@@ -53,6 +53,7 @@
 - **图标风格**：线性极简图标，适配手表小屏显示（尺寸：24x24dp）
 - **字体**：OPPO Sans 字体，默认字号14sp，支持±2sp调节
 - **间距**：元素间距统一为8dp，保证界面整洁不拥挤
+- **[系统风格控件](https://www.figma.com/design/ER3EBbZAOPPiFCqg2oTVDc/%E5%9C%86%E8%A1%A8_ColorOS-Watch-UIKit?node-id=0-1&p=f)**
 
 ---
 
