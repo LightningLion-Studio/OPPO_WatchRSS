@@ -5,12 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.lightningstudio.watchrss.ui.screen.CollaboratorsScreen
+import com.lightningstudio.watchrss.ui.screen.WebViewLoginScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +20,49 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WatchRSSTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                MainNavigation()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun MainNavigation() {
+    var currentScreen by remember { mutableStateOf<Screen>(Screen.Collaborators) }
+    var loginCookies by remember { mutableStateOf("") }
+
+    when (currentScreen) {
+        is Screen.Collaborators -> {
+            CollaboratorsScreen(
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        is Screen.WebViewLogin -> {
+            WebViewLoginScreen(
+                onLoginComplete = { cookies ->
+                    loginCookies = cookies
+                    // Handle the cookies here (e.g., save them or pass to ViewModel)
+                    println("Cookies received: $cookies")
+                },
+                onBack = {
+                    currentScreen = Screen.Collaborators
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
+
+// Define navigation screens
+sealed class Screen {
+	object Collaborators : Screen()
+	object WebViewLogin : Screen()
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    WatchRSSTheme {
-        Greeting("Android")
-    }
+fun MainNavigationPreview() {
+	WatchRSSTheme {
+		MainNavigation()
+	}
 }
