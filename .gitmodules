@@ -1,0 +1,3 @@
+[submodule "docs/BiliBili_API"]
+	path = docs/BiliBili_API
+	url = https://github.com/SocialSisterYi/bilibili-API-collect
