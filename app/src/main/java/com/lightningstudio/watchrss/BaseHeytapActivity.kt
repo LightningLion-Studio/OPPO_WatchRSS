@@ -1,0 +1,220 @@
+package com.lightningstudio.watchrss
+
+import android.content.Context
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewConfiguration
+import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
+import androidx.activity.ComponentActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import kotlin.math.abs
+import kotlin.math.max
+
+open class BaseHeytapActivity : ComponentActivity() {
+    private val resetRunnable = Runnable { resetViewState(window.decorView) }
+    private var swipeStartX = 0f
+    private var swipeStartY = 0f
+    private var swipeActive = false
+    private var swipeIntercepting = false
+    private var swipeLastDx = 0f
+    private var swipeCommitted = false
+    private val swipeSlop by lazy { ViewConfiguration.get(this).scaledTouchSlop.toFloat() }
+    private val minSwipeDistance by lazy {
+        max(swipeSlop * 2f, resources.displayMetrics.density * 48f)
+    }
+    private val maxSwipeOffPath by lazy {
+        max(swipeSlop * 3f, resources.displayMetrics.density * 48f)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        window.decorView.removeCallbacks(resetRunnable)
+        swipeCommitted = false
+        resetViewState(window.decorView)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        val root = window.decorView
+        val action = ev.actionMasked
+        val swipeHandled = handleSwipeBack(root, ev)
+        if (swipeHandled) {
+            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                root.removeCallbacks(resetRunnable)
+                if (!swipeCommitted) {
+                    root.postDelayed(resetRunnable, RESET_DELAY_MS)
+                }
+            }
+            return true
+        }
+        val handled = super.dispatchTouchEvent(ev)
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            root.removeCallbacks(resetRunnable)
+            resetViewState(root)
+            root.postDelayed(resetRunnable, RESET_DELAY_MS)
+        }
+        return handled
+    }
+
+    override fun onPause() {
+        window.decorView.removeCallbacks(resetRunnable)
+        if (!swipeCommitted) {
+            resetViewState(window.decorView)
+        }
+        super.onPause()
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        val safeBase = if (newBase is SafeReceiverContextWrapper) {
+            newBase
+        } else {
+            SafeReceiverContextWrapper(newBase)
+        }
+        super.attachBaseContext(safeBase)
+    }
+
+    protected fun setupSystemBars() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.statusBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    private fun resetViewState(view: View) {
+        view.isPressed = false
+        view.isSelected = false
+        view.isActivated = false
+        view.stateListAnimator = null
+        view.clearAnimation()
+        view.animate().cancel()
+        view.scaleX = 1f
+        view.scaleY = 1f
+        view.alpha = 1f
+        view.translationX = 0f
+        view.translationY = 0f
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) {
+                val child = view.getChildAt(index)
+                if (child != null) {
+                    resetViewState(child)
+                }
+            }
+        }
+    }
+
+    private fun handleSwipeBack(root: View, ev: MotionEvent): Boolean {
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                root.animate().cancel()
+                root.translationX = 0f
+                swipeCommitted = false
+                swipeActive = shouldStartSwipe(root, ev)
+                swipeIntercepting = false
+                swipeLastDx = 0f
+                swipeStartX = ev.x
+                swipeStartY = ev.y
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (swipeActive && !swipeIntercepting) {
+                    val dx = ev.x - swipeStartX
+                    val dy = ev.y - swipeStartY
+                    val absDx = abs(dx)
+                    val absDy = abs(dy)
+                    if (dx > swipeSlop && absDx > absDy && absDy < maxSwipeOffPath) {
+                        swipeIntercepting = true
+                        cancelChildTouch(ev)
+                    }
+                    if (absDy > maxSwipeOffPath) {
+                        swipeActive = false
+                    }
+                }
+                if (swipeIntercepting) {
+                    swipeLastDx = (ev.x - swipeStartX).coerceAtLeast(0f)
+                    root.translationX = swipeLastDx
+                    return true
+                }
+            }
+            MotionEvent.ACTION_UP -> {
+                if (swipeIntercepting) {
+                    val dx = swipeLastDx
+                    val dy = abs(ev.y - swipeStartY)
+                    val commitDistance = max(minSwipeDistance, root.width * SWIPE_COMMIT_RATIO)
+                    if (dx > commitDistance && dy < maxSwipeOffPath) {
+                        animateBackCommit(root)
+                    } else {
+                        animateBackCancel(root)
+                    }
+                    resetSwipeState()
+                    return true
+                }
+                resetSwipeState()
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                if (swipeIntercepting) {
+                    animateBackCancel(root)
+                    resetSwipeState()
+                    return true
+                }
+                resetSwipeState()
+            }
+        }
+        return swipeIntercepting
+    }
+
+    private fun shouldStartSwipe(root: View, ev: MotionEvent): Boolean {
+        val width = root.width
+        if (width <= 0 || ev.pointerCount != 1) {
+            return false
+        }
+        return ev.x <= width * SWIPE_START_RATIO
+    }
+
+    private fun cancelChildTouch(ev: MotionEvent) {
+        val cancelEvent = MotionEvent.obtain(ev)
+        cancelEvent.action = MotionEvent.ACTION_CANCEL
+        super.dispatchTouchEvent(cancelEvent)
+        cancelEvent.recycle()
+    }
+
+    private fun animateBackCommit(root: View) {
+        swipeCommitted = true
+        root.removeCallbacks(resetRunnable)
+        val target = root.width.toFloat().coerceAtLeast(1f)
+        root.animate()
+            .translationX(target)
+            .setDuration(SWIPE_ANIM_DURATION_MS)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                onBackPressedDispatcher.onBackPressed()
+                overridePendingTransition(0, 0)
+            }
+            .start()
+    }
+
+    private fun animateBackCancel(root: View) {
+        root.animate()
+            .translationX(0f)
+            .setDuration(SWIPE_ANIM_DURATION_MS)
+            .setInterpolator(DecelerateInterpolator())
+            .withEndAction {
+                root.translationX = 0f
+            }
+            .start()
+    }
+
+    private fun resetSwipeState() {
+        swipeActive = false
+        swipeIntercepting = false
+        swipeLastDx = 0f
+    }
+
+    companion object {
+        private const val RESET_DELAY_MS = 350L
+        private const val SWIPE_START_RATIO = 0.65f
+        private const val SWIPE_COMMIT_RATIO = 0.35f
+        private const val SWIPE_ANIM_DURATION_MS = 200L
+    }
+}

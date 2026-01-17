@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <com.heytap.wearable.support.widget.HeyButton
+        android:id="@+id/button_move_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="移动到顶部" />
+
+    <com.heytap.wearable.support.widget.HeyButton
+        android:id="@+id/button_pin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="置顶" />
+
+    <com.heytap.wearable.support.widget.HeyButton
+        android:id="@+id/button_mark_read"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="标记已读" />
+
+    <com.heytap.wearable.support.widget.HeyButton
+        android:id="@+id/button_delete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="删除" />
+</LinearLayout>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/profile_entry"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="6dp">
+
+    <FrameLayout
+        android:layout_width="48dp"
+        android:layout_height="48dp">
+
+        <com.heytap.wearable.support.widget.HeyTextView
+            android:id="@+id/text_avatar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/avatar_circle"
+            android:gravity="center"
+            android:text="我"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+    </FrameLayout>
+
+    <com.heytap.wearable.support.widget.HeyTextView
+        android:id="@+id/text_profile_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="未登录"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+
+    <com.heytap.wearable.support.widget.HeyTextView
+        android:id="@+id/text_profile_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="点击进入我的"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp" />
+</LinearLayout>
