@@ -1,3 +1,16 @@
+# Todo
+
+- [x] 完成基础配置/模型/序列化与签名工具
+- [x] 完成 HTTP 封装与 Cookie 解析/注入
+- [x] 完成账号存储（加密 SharedPreferences）
+- [x] 完成 TV/Web 二维码登录与账户写入
+- [x] 完成 buvid/WBI key/bili_ticket 获取与缓存
+- [ ] 实现内容接口：`BiliFeed`、`BiliVideo`、`BiliPlay`
+- [ ] 实现动作与同步：`BiliAction`、`BiliHistory`、`BiliFavorite`
+- [ ] 补齐 gRPC metadata 生成与 Play/Dyn 调用
+- [ ] 完善 `access_key` 刷新策略与异常处理
+- [ ] 增加 MockWebServer 回归测试覆盖登录/推荐/播放/动作
+
 # BiliBili SDK Engineering (野生 API)
 
 本文档基于 `docs/BiliBili_API/docs/` 中的野生 API 文档整理，面向 OPPO Watch RSS 项目的 `:sdk:bili` 设计与落地。由于接口非官方，策略以“可维护、可替换、可降级”为首要目标。SDK 以 App 端接口优先，Web 端作为兜底与降级通道。
@@ -69,7 +82,7 @@ App 端接口需要 `access_key` 才能获取个性化内容。优先采用 TV �
 - 轮询登录：`https://passport.bilibili.com/x/passport-tv-login/qrcode/poll`
 - 登录成功返回 `access_token` 与 `refresh_token`。(`docs/login/login_action/QR.md`)
 
-注意：`access_key` 失效需重新登录或使用 `refresh_token` 续期（续期接口需后续验证）。
+注意：`access_key` 采用“每次打开刷新”的策略，若接口提示失效则要求用户重新登录（暂不做 refresh_token 续期）。
 
 ### 4.4 二维码登录（Web Cookie 兜底）
 
@@ -133,6 +146,7 @@ APP API 需要 `appkey/appsec`，按参数排序 + MD5 签名。(`docs/misc/sign
 
 - App 端 BUVID 与 `fp_local/fp_remote` 生成算法参考 `docs/misc/device_identity.md`。
 - `fp_*` 用于账户相关 REST API 或 gRPC Metadata。
+- 当前版本暂不实现设备指纹；点赞/投币/收藏/收藏夹/历史/稍后再看不依赖设备指纹，优先完成这些功能。
 
 ### 5.4 gRPC Metadata（App 端播放/动态）
 
@@ -178,6 +192,7 @@ APP API 需要 `appkey/appsec`，按参数排序 + MD5 签名。(`docs/misc/sign
 - 投币：`https://api.bilibili.com/x/web-interface/coin/add`
 - 收藏：`https://api.bilibili.com/medialist/gateway/coll/resource/deal` 或 `https://api.bilibili.com/x/v3/fav/resource/deal`
 - POST 类均需要 `bili_jct` 作为 `csrf`。
+ - 以上动作接口不依赖设备指纹，暂不接入 `fp_*`。
 
 ### 6.6 稍后再看与历史
 
@@ -234,6 +249,9 @@ APP API 需要 `appkey/appsec`，按参数排序 + MD5 签名。(`docs/misc/sign
 
 ## 12. 仍需澄清/待验证项
 
-- APP 端 `access_key` 的刷新接口与过期策略（目前文档缺明确刷新入口）。
-- 设备指纹 `fp_*` 是否对当前接口强依赖。
+- APP 端 `access_key` 的刷新接口（当前策略为“每次打开刷新、失效重登”）。
 - 线上环境的播放能力（DASH/MP4 解码能力与功耗）。
+
+## 13. 参考实现（可选）
+
+- 可参考 `PiliPalaX` 项目中的调用与风控处理方式（仅作思路参考，不直接复用代码）。
