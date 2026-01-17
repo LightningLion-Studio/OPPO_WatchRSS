@@ -264,11 +264,7 @@ class HomeEntryAdapter(
         private val extra: View? = null
     ) : View.OnTouchListener {
         private val slop = ViewConfiguration.get(target.context).scaledTouchSlop
-        private val scaleTargets = if (extra != null && extra !== target) {
-            listOf(target, extra)
-        } else {
-            listOf(target)
-        }
+        private val coverView = if (extra != null && extra !== target) extra else null
         private var downX = 0f
         private var downY = 0f
         private var clickCandidate = false
@@ -319,24 +315,21 @@ class HomeEntryAdapter(
         }
 
         private fun startDownAnimation() {
-            scaleTargets.forEach { view ->
-                view.animate().cancel()
-                view.animate()
-                    .scaleX(PRESS_SCALE)
-                    .scaleY(PRESS_SCALE)
-                    .setDuration(PRESS_DOWN_DURATION_MS)
-                    .start()
-            }
+            animateScaleDown(PRESS_DOWN_DURATION_MS)
         }
 
         private fun scheduleClickHold() {
             clearCallbacks()
-            holdRunnable = Runnable {
-                setScaleInstant(PRESS_SCALE)
-                upRunnable = Runnable { animateScaleUp() }
-                target.postDelayed(upRunnable, PRESS_HOLD_MS)
+            val currentScale = target.scaleX
+            val remainingFraction = if (currentScale > PRESS_SCALE) {
+                (currentScale - PRESS_SCALE) / (1f - PRESS_SCALE)
+            } else {
+                0f
             }
-            target.post(holdRunnable)
+            val remainingDuration = (PRESS_DOWN_DURATION_MS * remainingFraction).toLong()
+            animateScaleDown(remainingDuration)
+            upRunnable = Runnable { animateScaleUp() }
+            target.postDelayed(upRunnable, remainingDuration + PRESS_HOLD_MS)
         }
 
         private fun cancelToUp() {
@@ -352,9 +345,15 @@ class HomeEntryAdapter(
         }
 
         private fun animateScaleUp() {
-            scaleTargets.forEach { view ->
-                view.animate().cancel()
-                view.animate()
+            target.animate().cancel()
+            target.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(PRESS_UP_DURATION_MS)
+                .start()
+            coverView?.let { cover ->
+                cover.animate().cancel()
+                cover.animate()
                     .scaleX(1f)
                     .scaleY(1f)
                     .setDuration(PRESS_UP_DURATION_MS)
@@ -362,10 +361,20 @@ class HomeEntryAdapter(
             }
         }
 
-        private fun setScaleInstant(scale: Float) {
-            scaleTargets.forEach { view ->
-                view.scaleX = scale
-                view.scaleY = scale
+        private fun animateScaleDown(duration: Long) {
+            target.animate().cancel()
+            target.animate()
+                .scaleX(PRESS_SCALE)
+                .scaleY(PRESS_SCALE)
+                .setDuration(duration)
+                .start()
+            coverView?.let { cover ->
+                cover.animate().cancel()
+                cover.animate()
+                    .scaleX(PRESS_SCALE)
+                    .scaleY(1f)
+                    .setDuration(duration)
+                    .start()
             }
         }
     }
