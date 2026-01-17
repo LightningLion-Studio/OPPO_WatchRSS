@@ -33,6 +33,10 @@ class SwipeRevealCallback(
         override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
             resetSwipeState()
         }
+
+        override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) {
+            resetSwipeState()
+        }
     }
 
     init {

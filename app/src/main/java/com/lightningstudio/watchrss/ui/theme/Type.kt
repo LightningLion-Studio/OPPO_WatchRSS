@@ -2,11 +2,17 @@ package com.lightningstudio.watchrss.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.lightningstudio.watchrss.R
 
-private val WatchFontFamily = FontFamily.SansSerif
+private val WatchFontFamily = FontFamily(
+    Font(R.font.oppo_sans, weight = FontWeight.Normal),
+    Font(R.font.oppo_sans, weight = FontWeight.Medium),
+    Font(R.font.oppo_sans, weight = FontWeight.SemiBold)
+)
 
 val Typography = Typography(
     headlineLarge = TextStyle(
