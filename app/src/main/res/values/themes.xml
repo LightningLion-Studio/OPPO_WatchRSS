@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.WatchRSS" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.WatchRSS" parent="@style/HeytapTheme" />
+
+    <style name="Theme.WatchRSS.Translucent" parent="@style/Theme.WatchRSS">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
 </resources>

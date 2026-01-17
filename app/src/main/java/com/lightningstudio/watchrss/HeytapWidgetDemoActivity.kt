@@ -1,11 +1,6 @@
 package com.lightningstudio.watchrss
 
 import android.os.Bundle
-import android.content.Context
-import androidx.activity.ComponentActivity
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.heytap.wearable.support.widget.HeyButton
 import com.heytap.wearable.support.widget.HeyCheckBox
 import com.heytap.wearable.support.widget.HeyDialog
@@ -20,25 +15,12 @@ import com.heytap.wearable.support.widget.HeyTimePicker
 import com.heytap.wearable.support.widget.pageindicator.HeyPageIndicator
 import com.heytap.wearable.support.widget.progressindicator.HeyProgressSpinnerIndicator
 
-class HeytapWidgetDemoActivity : ComponentActivity() {
+class HeytapWidgetDemoActivity : BaseHeytapActivity() {
     private var loadingDialog: HeyLoadingDialog? = null
-
-    override fun attachBaseContext(newBase: Context) {
-        val safeBase = if (newBase is SafeReceiverContextWrapper) {
-            newBase
-        } else {
-            SafeReceiverContextWrapper(newBase)
-        }
-        super.attachBaseContext(safeBase)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            hide(WindowInsetsCompat.Type.statusBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
+        setupSystemBars()
         setContentView(R.layout.activity_heytap_widget_demo)
 
         val dialogButton = findViewById<HeyButton>(R.id.hey_button)

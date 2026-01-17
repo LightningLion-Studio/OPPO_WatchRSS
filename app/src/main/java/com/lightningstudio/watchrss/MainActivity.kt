@@ -1,113 +1,68 @@
 package com.lightningstudio.watchrss
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import com.lightningstudio.watchrss.ui.screen.CollaboratorsScreen
-import com.lightningstudio.watchrss.ui.screen.WebViewLoginScreen
-import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
+import android.os.Bundle
+import android.view.View
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.heytap.wearable.support.recycler.widget.LinearLayoutManager
+import com.heytap.wearable.support.recycler.widget.RecyclerView
+import com.heytap.wearable.support.widget.HeyButton
+import com.heytap.wearable.support.widget.HeyTextView
+import com.heytap.wearable.support.widget.HeyToast
+import com.lightningstudio.watchrss.ui.adapter.RssChannelAdapter
+import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
+import com.lightningstudio.watchrss.ui.viewmodel.HomeViewModel
+import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : BaseHeytapActivity() {
+    private val viewModel: HomeViewModel by viewModels {
+        AppViewModelFactory((application as WatchRssApplication).container)
+    }
+
+    private lateinit var channelAdapter: RssChannelAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window, window.decorView).apply {
-            hide(WindowInsetsCompat.Type.statusBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        setupSystemBars()
+        setContentView(R.layout.activity_main)
+
+        val recyclerView = findViewById<RecyclerView>(R.id.channel_list)
+        val emptyView = findViewById<HeyTextView>(R.id.empty_view)
+        channelAdapter = RssChannelAdapter { channel ->
+            val intent = Intent(this, FeedActivity::class.java)
+            intent.putExtra(FeedActivity.EXTRA_CHANNEL_ID, channel.id)
+            startActivity(intent)
         }
-        setContent {
-            WatchRSSTheme {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
-                ) {
-                    MainNavigation(modifier = Modifier.fillMaxSize())
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = channelAdapter
+
+        findViewById<HeyButton>(R.id.button_add_rss).setOnClickListener {
+            startActivity(Intent(this, AddRssActivity::class.java))
+        }
+        findViewById<HeyButton>(R.id.button_settings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.channels.collect { channels ->
+                        channelAdapter.submitList(channels)
+                        emptyView.visibility = if (channels.isEmpty()) View.VISIBLE else View.GONE
+                    }
+                }
+                launch {
+                    viewModel.message.collect { message ->
+                        if (message != null) {
+                            HeyToast.showToast(this@MainActivity, message, android.widget.Toast.LENGTH_SHORT)
+                            viewModel.clearMessage()
+                        }
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun DemoLauncher(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "WatchRSS")
-        Button(onClick = {
-            context.startActivity(Intent(context, HeytapWidgetDemoActivity::class.java))
-        }) {
-            Text(text = "Open Heytap Widget Demo")
-        }
-    }
-}
-
-@Composable
-fun MainNavigation(modifier: Modifier = Modifier) {
-    var currentScreen by remember { mutableStateOf<Screen>(Screen.Collaborators) }
-    var loginCookies by remember { mutableStateOf("") }
-
-    when (currentScreen) {
-        is Screen.Collaborators -> {
-            CollaboratorsScreen(
-                modifier = modifier.fillMaxSize()
-            )
-        }
-        is Screen.WebViewLogin -> {
-            WebViewLoginScreen(
-                onLoginComplete = { cookies ->
-                    loginCookies = cookies
-                    // Handle the cookies here (e.g., save them or pass to ViewModel)
-                    println("Cookies received: $cookies")
-                },
-                onBack = {
-                    currentScreen = Screen.Collaborators
-                },
-                modifier = modifier.fillMaxSize()
-            )
-        }
-    }
-}
-
-// Define navigation screens
-sealed class Screen {
-    object Collaborators : Screen()
-    object WebViewLogin : Screen()
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun DemoLauncherPreview() {
-    WatchRSSTheme {
-        DemoLauncher()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun MainNavigationPreview() {
-    WatchRSSTheme {
-        MainNavigation()
     }
 }

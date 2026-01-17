@@ -50,7 +50,7 @@ UI (Activities/Fragments/Views)
   └── Presentation (ViewModel, State, Mapper)
         └── Domain (UseCases, Entities, Interfaces)
               └── Data (Repositories, SyncEngine, DB, Cache)
-                    ├── RssProvider (Rome + custom mapping)
+                    ├── RssProvider (RSS-Parser + custom mapping)
                     ├── BiliProvider (自研 Bili SDK)
                     ├── DouyinProvider (自研 Douyin SDK)
                     └── Media/Download (player, image, offline)
@@ -60,7 +60,7 @@ UI (Activities/Fragments/Views)
 - `:app`：入口、导航、页面、资源、依赖注入组装
 - `:core:domain`：统一数据模型、UseCase、接口（不依赖 Android）
 - `:core:data`：Repository、Room DB、SyncEngine、缓存策略（依赖 Android）
-- `:sdk:rss`：RSS 接入（封装 Rome + 自定义解析补丁）
+- `:sdk:rss`：RSS 接入（封装 RSS-Parser + 自定义解析补丁）
 - `:sdk:bili`：Bilibili SDK（网络、鉴权、内容、动作、播放地址解析）
 - `:sdk:douyin`：抖音 SDK（WebView 登录、cookies、内容、播放）
 - `:core:media`：播放器页面、媒体预加载、封面/缩略图
@@ -161,29 +161,31 @@ fun computeDedupKey(guid: String?, link: String?, title: String): String =
 ## 6. RSS 接入（SDK 选型 + 解析 + 渲染）
 
 ### 6.1 RSS SDK 选型结论（V1）
-选用 **ROME（com.rometools:rome）** 作为 RSS/Atom 解析库，并引入 **rome-modules** 以支持常见扩展（如 MediaRSS、Content 等）。  
+选用 **RSS-Parser（com.prof18.rssparser:rssparser）** 作为 RSS/Atom 解析库。  
 原因：
-- 成熟的 Java RSS/Atom 框架，且官方文档明确有 `rome-modules` 用于 MediaRSS 等扩展。  
-- 与需求中的“Media RSS Module / Content Module”匹配。
+- Kotlin 优先，Android 直接可用，协程 API 与现有代码风格一致。
+- 支持 RSS/Atom/RDF，且条目字段覆盖 content/image/audio/video 等常见需求。
+- Maven Central 发布，依赖管理简单。
 
-> 备选：`prof18/RSS-Parser`（Kotlin Multiplatform，支持 RSS/Atom/RDF，条目字段含 content/image/audio/video），若后续发现 Rome 体积或兼容性问题，可切换。  
+> 备选：Rome（com.rometools:rome + rome-modules），若后续遇到特殊扩展解析需求可切换。  
 
 ### 6.2 RSS 拉取与解析流程
 1. URL 校验（http/https、空值、长度）
-2. OkHttp 拉取（超时、重试、gzip）
-3. 解析为 `SyndFeed`，映射到 `Channel` / `FeedItem`
+2. RssParser 拉取（内部 OkHttp，可注入超时/重试/charset）
+3. 解析为 `RssChannel` / `RssItem`，映射到 `Channel` / `FeedItem`
 4. 生成 dedupKey、入库（Room）
 5. UI 先渲染缓存；并行触发刷新合并
 
 ### 6.3 RSS 模块解析与字段映射
-- `title/description/link/pubDate/guid` → Item 基础字段
-- `content:encoded`（或 Rome 的 Content module）→ 用于详情页正文抽取
-- `media:*`（或 enclosure/video/audio）→ 缩略图、音视频入口
+- `RssChannel.title/description/link/image` → Channel 基础字段
+- `RssItem.title/description/link/pubDate/guid` → Item 基础字段
+- `RssItem.content` → 详情页正文抽取（优先）
+- `RssItem.image/audio/video` → 缩略图、音视频入口
 
 > 兼容策略：针对不同 feed 的“脏数据/缺字段”，采用“最小可用”映射（title 必有；summary 可空；thumb 可空）。
 
 ### 6.4 详情页“强制阅读模式”（不渲染 HTML）
-输入：`description` + `content:encoded`（优先）  
+输入：`description` + `content`（优先）  
 输出：纯文本段落 + 图片列表 + 视频占位卡片
 
 实现方案（V1）：

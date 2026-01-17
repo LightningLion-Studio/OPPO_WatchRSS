@@ -2,10 +2,13 @@ package com.lightningstudio.watchrss.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val OppoOrange = Color(0xFFFF6026)
+val OppoOrangeDark = Color(0xFFED4735)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val WatchBackground = Color(0xFF0B1211)
+val WatchBackgroundDeep = Color(0xFF070B0B)
+val WatchSurface = Color(0xFF1C1F21)
+val WatchSurfaceVariant = Color(0xFF23272A)
+val WatchTextPrimary = Color(0xFFF5F5F5)
+val WatchTextSecondary = Color(0xFFB6B6B6)
+val WatchDivider = Color(0xFF2C3135)
