@@ -3,6 +3,7 @@ package com.lightningstudio.watchrss
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.TextPaint
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
@@ -85,7 +86,7 @@ class DetailActivity : BaseHeytapActivity() {
                         }
                         currentTitle = item.title
                         currentLink = item.link
-                        titleView.text = item.title
+                        applyTitleText(item.title)
                         renderContent(item, blockSpacing, maxImageWidth)
                         updateLinkButton(item.link)
                     }
@@ -146,6 +147,58 @@ class DetailActivity : BaseHeytapActivity() {
             openButton.visibility = View.VISIBLE
             openButton.tag = link
         }
+    }
+
+    private fun applyTitleText(title: String) {
+        titleView.text = formatTitleForWidthLimits(title)
+    }
+
+    private fun formatTitleForWidthLimits(title: String): String {
+        val normalized = title.trim().replace('\n', ' ')
+        if (normalized.isEmpty()) {
+            return title
+        }
+        val firstLimitPx =
+            resources.getDimensionPixelSize(R.dimen.detail_title_first_line_max_width).toFloat()
+        val secondLimitPx =
+            resources.getDimensionPixelSize(R.dimen.detail_title_second_line_max_width).toFloat()
+        val paint = titleView.paint
+        val firstEnd = breakTextIndex(normalized, 0, firstLimitPx, paint)
+        if (firstEnd >= normalized.length) {
+            return normalized
+        }
+        val secondEnd = breakTextIndex(normalized, firstEnd, secondLimitPx, paint)
+        return buildString {
+            append(normalized, 0, firstEnd)
+            append('\n')
+            if (secondEnd >= normalized.length) {
+                append(normalized, firstEnd, normalized.length)
+            } else {
+                append(normalized, firstEnd, secondEnd)
+                append('\n')
+                append(normalized, secondEnd, normalized.length)
+            }
+        }
+    }
+
+    private fun breakTextIndex(
+        text: String,
+        start: Int,
+        maxWidthPx: Float,
+        paint: TextPaint
+    ): Int {
+        if (start >= text.length || maxWidthPx <= 0f) {
+            return text.length
+        }
+        val count = paint.breakText(text, start, text.length, true, maxWidthPx, null)
+        if (count <= 0) {
+            return start
+        }
+        var end = start + count
+        while (end < text.length && text[end] == ' ') {
+            end++
+        }
+        return end
     }
 
     private fun renderContent(item: RssItem, blockSpacing: Int, maxImageWidth: Int) {

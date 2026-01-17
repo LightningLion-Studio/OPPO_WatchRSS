@@ -50,6 +50,11 @@ class HomeEntryAdapter(
                     .inflate(R.layout.item_home_profile, parent, false)
                 EntryViewHolder.ProfileViewHolder(view, onProfileClick)
             }
+            TYPE_ADD -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_home_add_rss, parent, false)
+                EntryViewHolder.AddViewHolder(view, onAddRssClick)
+            }
             else -> {
                 val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_home_entry, parent, false)
@@ -57,7 +62,6 @@ class HomeEntryAdapter(
                     view,
                     onChannelClick,
                     onChannelLongClick,
-                    onAddRssClick,
                     onMoveTopClick,
                     onMarkReadClick
                 )
@@ -73,6 +77,7 @@ class HomeEntryAdapter(
 
     override fun getItemViewType(position: Int): Int = when (items[position]) {
         HomeEntry.Profile -> TYPE_PROFILE
+        HomeEntry.AddRss -> TYPE_ADD
         else -> TYPE_DEFAULT
     }
 
@@ -106,7 +111,6 @@ class HomeEntryAdapter(
             itemView: View,
             private val onChannelClick: (RssChannel) -> Unit,
             private val onChannelLongClick: (RssChannel) -> Unit,
-            private val onAddRssClick: () -> Unit,
             private val onMoveTopClick: (RssChannel) -> Unit,
             private val onMarkReadClick: (RssChannel) -> Unit
         ) : EntryViewHolder(itemView) {
@@ -142,7 +146,7 @@ class HomeEntryAdapter(
                 when (entry) {
                     is HomeEntry.Channel -> bindChannel(entry.channel, indicator)
                     HomeEntry.Empty -> bindEmpty()
-                    HomeEntry.AddRss -> bindAddRss()
+                    HomeEntry.AddRss -> Unit
                     HomeEntry.Profile -> Unit
                 }
 
@@ -199,13 +203,6 @@ class HomeEntryAdapter(
                 contentView.setOnClickListener(null)
             }
 
-            private fun bindAddRss() {
-                contentView.setBackgroundResource(R.drawable.bg_settings_card)
-                contentView.setTitle("添加 RSS")
-                contentView.setSummary("手动输入或粘贴订阅地址")
-                contentView.setOnClickListener { onAddRssClick() }
-            }
-
             private fun resetViewState() {
                 resetViewState(contentView)
             }
@@ -248,11 +245,40 @@ class HomeEntryAdapter(
                 }
             }
         }
+
+        class AddViewHolder(
+            itemView: View,
+            private val onAddRssClick: () -> Unit
+        ) : EntryViewHolder(itemView) {
+            private val addButton: View = itemView.findViewById(R.id.button_add_rss)
+            private val pressScaleListener = PressScaleListener(addButton)
+
+            init {
+                addButton.setTag(R.id.tag_skip_scale_reset, true)
+                addButton.setOnTouchListener(pressScaleListener)
+            }
+
+            override fun bind(entry: HomeEntry) {
+                if (entry !is HomeEntry.AddRss) return
+                resetViewState(addButton)
+                addButton.setOnClickListener { onAddRssClick() }
+            }
+
+            private fun resetViewState(view: View) {
+                view.isPressed = false
+                view.isSelected = false
+                view.isActivated = false
+                view.scaleX = 1f
+                view.scaleY = 1f
+                view.alpha = 1f
+            }
+        }
     }
 
     companion object {
         private const val TYPE_PROFILE = 0
         private const val TYPE_DEFAULT = 1
+        private const val TYPE_ADD = 2
         private const val PRESS_SCALE = 0.97f
         private const val PRESS_DOWN_DURATION_MS = 240L
         private const val PRESS_UP_DURATION_MS = 360L
@@ -269,7 +295,6 @@ class HomeEntryAdapter(
         private var downY = 0f
         private var clickCandidate = false
         private var releaseHandled = false
-        private var holdRunnable: Runnable? = null
         private var upRunnable: Runnable? = null
 
         override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -338,8 +363,6 @@ class HomeEntryAdapter(
         }
 
         private fun clearCallbacks() {
-            holdRunnable?.let { target.removeCallbacks(it) }
-            holdRunnable = null
             upRunnable?.let { target.removeCallbacks(it) }
             upRunnable = null
         }

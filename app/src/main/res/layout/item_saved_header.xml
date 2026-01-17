@@ -11,8 +11,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="收藏"
-        android:textColor="@android:color/white"
-        android:textSize="@dimen/hey_m_title" />
+        android:textColor="#FFFFFF"
+        android:textSize="@dimen/settings_title_text_size"
+        android:textStyle="bold" />
 
     <com.heytap.wearable.support.widget.HeyTextView
         android:id="@+id/text_saved_hint"

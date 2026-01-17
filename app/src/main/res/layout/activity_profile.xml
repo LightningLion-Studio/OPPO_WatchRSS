@@ -24,92 +24,229 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="我的"
-                android:textSize="@dimen/hey_m_title" />
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/settings_title_text_size"
+                android:textStyle="bold" />
 
             <LinearLayout
-                android:id="@+id/account_entry"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_settings_card"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="12dp">
-
-                <FrameLayout
-                    android:layout_width="48dp"
-                    android:layout_height="48dp">
-
-                    <com.heytap.wearable.support.widget.HeyTextView
-                        android:id="@+id/text_account_avatar"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/avatar_circle"
-                        android:gravity="center"
-                        android:text="欢"
-                        android:textColor="@android:color/white"
-                        android:textSize="20sp" />
-                </FrameLayout>
+                android:layout_marginTop="12dp"
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:id="@+id/account_entry"
+                    android:layout_width="match_parent"
+                    android:layout_height="120px"
+                    android:background="@drawable/bg_settings_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <ImageView
+                        android:id="@+id/icon_account"
+                        android:layout_width="48px"
+                        android:layout_height="48px"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_action_share"
+                        android:tint="@android:color/white" />
 
                     <com.heytap.wearable.support.widget.HeyTextView
-                        android:id="@+id/text_account_name"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/text_account_title"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="欢太账号"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="欢太账号登录"
                         android:textColor="@android:color/white"
-                        android:textSize="18sp" />
-
-                    <com.heytap.wearable.support.widget.HeyTextView
-                        android:id="@+id/text_account_status"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="未登录"
-                        android:textColor="@android:color/darker_gray"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/profile_entry_text_size" />
                 </LinearLayout>
-
-                <com.heytap.wearable.support.widget.HeyButton
-                    android:id="@+id/button_login"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="登录" />
             </LinearLayout>
 
-            <com.heytap.wearable.support.widget.HeyMultipleDefaultItem
-                android:id="@+id/item_favorites"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:background="@drawable/bg_settings_card" />
+                android:orientation="vertical">
 
-            <com.heytap.wearable.support.widget.HeyMultipleDefaultItem
-                android:id="@+id/item_watch_later"
+                <LinearLayout
+                    android:id="@+id/item_favorites"
+                    android:layout_width="match_parent"
+                    android:layout_height="120px"
+                    android:background="@drawable/bg_settings_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <ImageView
+                        android:id="@+id/icon_favorites"
+                        android:layout_width="48px"
+                        android:layout_height="48px"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_action_favorite"
+                        android:tint="@android:color/white" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_favorites_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="我的收藏"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/profile_entry_text_size" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_settings_card" />
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
 
-            <com.heytap.wearable.support.widget.HeyMultipleDefaultItem
-                android:id="@+id/item_settings"
+                <LinearLayout
+                    android:id="@+id/item_watch_later"
+                    android:layout_width="match_parent"
+                    android:layout_height="120px"
+                    android:background="@drawable/bg_settings_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <ImageView
+                        android:id="@+id/icon_watch_later"
+                        android:layout_width="48px"
+                        android:layout_height="48px"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_play_circle"
+                        android:tint="@android:color/white" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_watch_later_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="稍后再看"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/profile_entry_text_size" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_settings_card" />
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
 
-            <com.heytap.wearable.support.widget.HeyMultipleDefaultItem
-                android:id="@+id/item_about"
+                <LinearLayout
+                    android:id="@+id/item_settings"
+                    android:layout_width="match_parent"
+                    android:layout_height="120px"
+                    android:background="@drawable/bg_settings_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <ImageView
+                        android:id="@+id/icon_settings"
+                        android:layout_width="48px"
+                        android:layout_height="48px"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_action_share"
+                        android:tint="@android:color/white" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_settings_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="设置"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/profile_entry_text_size" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_settings_card" />
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/item_about"
+                    android:layout_width="match_parent"
+                    android:layout_height="120px"
+                    android:background="@drawable/bg_settings_pill"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="14dp"
+                    android:paddingRight="14dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp">
+
+                    <ImageView
+                        android:id="@+id/icon_about"
+                        android:layout_width="48px"
+                        android:layout_height="48px"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="@null"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_action_share"
+                        android:tint="@android:color/white" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_about_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="关于"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/profile_entry_text_size" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="120px" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

@@ -11,13 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="设置"
-        android:textColor="@android:color/white"
-        android:textSize="@dimen/hey_m_title" />
-
-    <com.heytap.wearable.support.widget.HeyTextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="阅读与缓存"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="@dimen/hey_s_desription" />
+        android:textColor="#FFFFFF"
+        android:textSize="@dimen/settings_title_text_size"
+        android:textStyle="bold" />
 </LinearLayout>

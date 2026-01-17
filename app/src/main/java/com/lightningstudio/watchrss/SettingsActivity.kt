@@ -20,7 +20,7 @@ class SettingsActivity : BaseHeytapActivity() {
         10L, 20L, 30L, 40L, 50L, 60L, 70L, 80L, 90L, 100L, 200L, 300L
     )
     private var currentLimitMb: Long = cacheOptions.first()
-    private val fontOptions = listOf(12, 14, 16)
+    private val fontOptions = (12..32 step 2).toList()
     private var currentFontSp: Int = fontOptions[1]
 
     private lateinit var usageView: HeyTextView

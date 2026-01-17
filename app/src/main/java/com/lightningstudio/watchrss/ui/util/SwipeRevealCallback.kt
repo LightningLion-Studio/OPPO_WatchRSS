@@ -13,6 +13,31 @@ class SwipeRevealCallback(
     private var openPosition = RecyclerView.NO_POSITION
     private var activeHolder: RecyclerView.ViewHolder? = null
     private var activeDx: Float = 0f
+    private val adapterObserver = object : RecyclerView.AdapterDataObserver() {
+        override fun onChanged() {
+            resetSwipeState()
+        }
+
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            resetSwipeState()
+        }
+
+        override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+            resetSwipeState()
+        }
+
+        override fun onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) {
+            resetSwipeState()
+        }
+
+        override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
+            resetSwipeState()
+        }
+    }
+
+    init {
+        recyclerView.adapter?.registerAdapterDataObserver(adapterObserver)
+    }
 
     override fun onMove(
         recyclerView: RecyclerView,
@@ -27,10 +52,15 @@ class SwipeRevealCallback(
         return if (canSwipe(viewHolder)) ItemTouchHelper.LEFT else 0
     }
 
-    override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float = 1f
+    override fun getSwipeThreshold(viewHolder: RecyclerView.ViewHolder): Float = 2f
 
     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        resetSwipe(viewHolder)
+        val actionWidth = resolveActionWidth(viewHolder)
+        if (actionWidth > 0) {
+            openSwipe(viewHolder, actionWidth)
+        } else {
+            resetSwipe(viewHolder)
+        }
     }
 
     override fun onChildDraw(
@@ -61,6 +91,9 @@ class SwipeRevealCallback(
         if (isCurrentlyActive) {
             activeHolder = viewHolder
             activeDx = clampedDx
+            if (kotlin.math.abs(clampedDx) > 0f) {
+                resetPressScale(viewHolder)
+            }
             translateSwipe(viewHolder, clampedDx)
         } else if (activeHolder == viewHolder) {
             translateSwipe(viewHolder, activeDx)
@@ -86,6 +119,22 @@ class SwipeRevealCallback(
         return true
     }
 
+    private fun resetSwipeState() {
+        val holder = if (openPosition != RecyclerView.NO_POSITION) {
+            recyclerView.findViewHolderForAdapterPosition(openPosition)
+        } else {
+            null
+        }
+        if (holder != null) {
+            resetSwipe(holder)
+        } else {
+            activeHolder?.let { translateSwipe(it, 0f) }
+        }
+        openPosition = RecyclerView.NO_POSITION
+        activeHolder = null
+        activeDx = 0f
+    }
+
     private fun settleSwipe(viewHolder: RecyclerView.ViewHolder) {
         val actionWidth = resolveActionWidth(viewHolder)
         if (actionWidth <= 0) {
@@ -93,7 +142,12 @@ class SwipeRevealCallback(
             return
         }
         val content = findSwipeContent(viewHolder)
-        val shouldOpen = content.translationX <= -actionWidth / 2f
+        val currentDx = if (activeHolder == viewHolder && activeDx != 0f) {
+            activeDx
+        } else {
+            content.translationX
+        }
+        val shouldOpen = currentDx <= -actionWidth / 2f
         if (shouldOpen) {
             openSwipe(viewHolder, actionWidth)
         } else {
@@ -128,6 +182,10 @@ class SwipeRevealCallback(
         return viewHolder.itemView.findViewById(R.id.swipe_content) ?: viewHolder.itemView
     }
 
+    private fun findHomeContent(viewHolder: RecyclerView.ViewHolder): View? {
+        return viewHolder.itemView.findViewById(R.id.home_entry_item)
+    }
+
     private fun findSwipeCover(viewHolder: RecyclerView.ViewHolder): View? {
         return viewHolder.itemView.findViewById(R.id.swipe_cover)
     }
@@ -135,5 +193,24 @@ class SwipeRevealCallback(
     private fun translateSwipe(viewHolder: RecyclerView.ViewHolder, translationX: Float) {
         findSwipeContent(viewHolder).translationX = translationX
         findSwipeCover(viewHolder)?.translationX = translationX
+    }
+
+    private fun resetPressScale(viewHolder: RecyclerView.ViewHolder) {
+        val content = findSwipeContent(viewHolder)
+        resetScale(content)
+        val homeContent = findHomeContent(viewHolder)
+        if (homeContent != null && homeContent !== content) {
+            resetScale(homeContent)
+        }
+        val cover = findSwipeCover(viewHolder)
+        if (cover != null && cover !== content && cover !== homeContent) {
+            resetScale(cover)
+        }
+    }
+
+    private fun resetScale(view: View) {
+        view.animate().cancel()
+        view.scaleX = 1f
+        view.scaleY = 1f
     }
 }

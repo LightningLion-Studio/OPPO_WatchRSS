@@ -467,16 +467,11 @@ class FeedEntryAdapter(
         private val extra: View? = null
     ) : View.OnTouchListener {
         private val slop = ViewConfiguration.get(target.context).scaledTouchSlop
-        private val scaleTargets = if (extra != null && extra !== target) {
-            listOf(target, extra)
-        } else {
-            listOf(target)
-        }
+        private val coverView = if (extra != null && extra !== target) extra else null
         private var downX = 0f
         private var downY = 0f
         private var clickCandidate = false
         private var releaseHandled = false
-        private var holdRunnable: Runnable? = null
         private var upRunnable: Runnable? = null
 
         override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -522,24 +517,22 @@ class FeedEntryAdapter(
         }
 
         private fun startDownAnimation() {
-            scaleTargets.forEach { view ->
-                view.animate().cancel()
-                view.animate()
-                    .scaleX(FeedEntryAdapter.PRESS_SCALE)
-                    .scaleY(FeedEntryAdapter.PRESS_SCALE)
-                    .setDuration(FeedEntryAdapter.PRESS_DOWN_DURATION_MS)
-                    .start()
-            }
+            animateScaleDown(FeedEntryAdapter.PRESS_DOWN_DURATION_MS)
         }
 
         private fun scheduleClickHold() {
             clearCallbacks()
-            holdRunnable = Runnable {
-                setScaleInstant(FeedEntryAdapter.PRESS_SCALE)
-                upRunnable = Runnable { animateScaleUp() }
-                target.postDelayed(upRunnable, FeedEntryAdapter.PRESS_HOLD_MS)
+            val currentScale = target.scaleX
+            val remainingFraction = if (currentScale > FeedEntryAdapter.PRESS_SCALE) {
+                (currentScale - FeedEntryAdapter.PRESS_SCALE) / (1f - FeedEntryAdapter.PRESS_SCALE)
+            } else {
+                0f
             }
-            target.post(holdRunnable)
+            val remainingDuration =
+                (FeedEntryAdapter.PRESS_DOWN_DURATION_MS * remainingFraction).toLong()
+            animateScaleDown(remainingDuration)
+            upRunnable = Runnable { animateScaleUp() }
+            target.postDelayed(upRunnable, remainingDuration + FeedEntryAdapter.PRESS_HOLD_MS)
         }
 
         private fun cancelToUp() {
@@ -548,16 +541,20 @@ class FeedEntryAdapter(
         }
 
         private fun clearCallbacks() {
-            holdRunnable?.let { target.removeCallbacks(it) }
-            holdRunnable = null
             upRunnable?.let { target.removeCallbacks(it) }
             upRunnable = null
         }
 
         private fun animateScaleUp() {
-            scaleTargets.forEach { view ->
-                view.animate().cancel()
-                view.animate()
+            target.animate().cancel()
+            target.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(FeedEntryAdapter.PRESS_UP_DURATION_MS)
+                .start()
+            coverView?.let { cover ->
+                cover.animate().cancel()
+                cover.animate()
                     .scaleX(1f)
                     .scaleY(1f)
                     .setDuration(FeedEntryAdapter.PRESS_UP_DURATION_MS)
@@ -565,10 +562,20 @@ class FeedEntryAdapter(
             }
         }
 
-        private fun setScaleInstant(scale: Float) {
-            scaleTargets.forEach { view ->
-                view.scaleX = scale
-                view.scaleY = scale
+        private fun animateScaleDown(duration: Long) {
+            target.animate().cancel()
+            target.animate()
+                .scaleX(FeedEntryAdapter.PRESS_SCALE)
+                .scaleY(FeedEntryAdapter.PRESS_SCALE)
+                .setDuration(duration)
+                .start()
+            coverView?.let { cover ->
+                cover.animate().cancel()
+                cover.animate()
+                    .scaleX(FeedEntryAdapter.PRESS_SCALE)
+                    .scaleY(1f)
+                    .setDuration(duration)
+                    .start()
             }
         }
     }
