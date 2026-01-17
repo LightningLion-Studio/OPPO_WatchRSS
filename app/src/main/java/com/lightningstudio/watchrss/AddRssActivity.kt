@@ -43,7 +43,6 @@ class AddRssActivity : BaseHeytapActivity() {
         val cancelButton = findViewById<HeyButton>(R.id.button_cancel)
 
         val previewTitle = findViewById<HeyTextView>(R.id.text_preview_title)
-        val previewSite = findViewById<HeyTextView>(R.id.text_preview_site)
         val previewDesc = findViewById<HeyTextView>(R.id.text_preview_desc)
         val confirmButton = findViewById<HeyButton>(R.id.button_confirm)
         val editButton = findViewById<HeyButton>(R.id.button_edit)
@@ -142,7 +141,6 @@ class AddRssActivity : BaseHeytapActivity() {
                     val preview = state.preview
                     if (preview != null) {
                         previewTitle.text = preview.title
-                        previewSite.text = preview.siteUrl ?: preview.url
                         previewDesc.text = preview.description ?: "暂无简介"
                     }
 

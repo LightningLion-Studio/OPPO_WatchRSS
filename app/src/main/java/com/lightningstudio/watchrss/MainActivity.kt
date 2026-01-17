@@ -8,13 +8,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.heytap.wearable.support.recycler.widget.LinearLayoutManager
 import com.heytap.wearable.support.recycler.widget.RecyclerView
-import com.heytap.wearable.support.recycler.widget.helper.ItemTouchHelper
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
 import com.lightningstudio.watchrss.data.rss.RssChannel
-import com.lightningstudio.watchrss.ui.adapter.HomeEntry
 import com.lightningstudio.watchrss.ui.adapter.HomeEntryAdapter
-import com.lightningstudio.watchrss.ui.util.SwipeRevealCallback
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -25,7 +22,14 @@ class MainActivity : BaseHeytapActivity() {
     }
 
     private lateinit var homeAdapter: HomeEntryAdapter
-    private lateinit var swipeHelper: SwipeRevealCallback
+
+    override fun onSwipeBackAttempt(dx: Float, dy: Float): Boolean {
+        return if (::homeAdapter.isInitialized) {
+            homeAdapter.closeOpenSwipe()
+        } else {
+            false
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,7 +42,7 @@ class MainActivity : BaseHeytapActivity() {
                 startActivity(Intent(this, ProfileActivity::class.java))
             },
             onChannelClick = { channel ->
-                if (::swipeHelper.isInitialized && swipeHelper.closeOpenItem()) return@HomeEntryAdapter
+                if (homeAdapter.closeOpenSwipe()) return@HomeEntryAdapter
                 openChannel(channel)
             },
             onChannelLongClick = { channel ->
@@ -48,21 +52,16 @@ class MainActivity : BaseHeytapActivity() {
                 startActivity(Intent(this, AddRssActivity::class.java))
             },
             onMoveTopClick = { channel ->
-                if (::swipeHelper.isInitialized) {
-                    swipeHelper.closeOpenItem()
-                }
+                homeAdapter.closeOpenSwipe()
                 viewModel.moveToTop(channel)
             },
             onMarkReadClick = { channel ->
-                if (::swipeHelper.isInitialized) {
-                    swipeHelper.closeOpenItem()
-                }
+                homeAdapter.closeOpenSwipe()
                 viewModel.markChannelRead(channel)
             }
         )
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = homeAdapter
-        attachQuickSwipe(recyclerView)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -81,14 +80,6 @@ class MainActivity : BaseHeytapActivity() {
                 }
             }
         }
-    }
-
-    private fun attachQuickSwipe(recyclerView: RecyclerView) {
-        swipeHelper = SwipeRevealCallback(recyclerView) { viewHolder ->
-            val entry = homeAdapter.getEntry(viewHolder.adapterPosition)
-            entry is HomeEntry.Channel
-        }
-        ItemTouchHelper(swipeHelper).attachToRecyclerView(recyclerView)
     }
 
     private fun showChannelActions(channel: RssChannel, quick: Boolean) {

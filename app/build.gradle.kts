@@ -63,6 +63,9 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.jsoup)
+    implementation(libs.swipe.reveal.layout) {
+        exclude(group = "com.android.support", module = "support-v4")
+    }
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

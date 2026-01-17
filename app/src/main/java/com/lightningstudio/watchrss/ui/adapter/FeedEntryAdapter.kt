@@ -5,6 +5,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import com.chauthai.swipereveallayout.SwipeRevealLayout
+import com.chauthai.swipereveallayout.ViewBinderHelper
 import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.widget.HeyButton
 import com.heytap.wearable.support.widget.HeyTextView
@@ -35,6 +37,15 @@ class FeedEntryAdapter(
 ) : RecyclerView.Adapter<FeedEntryAdapter.EntryViewHolder>() {
     private val entries = mutableListOf<FeedEntry>()
     private val thumbUrlCache = mutableMapOf<Long, String?>()
+    private val viewBinderHelper = ViewBinderHelper().apply { setOpenOnlyOne(true) }
+    private var openSwipeKey: String? = null
+
+    fun closeOpenSwipe(): Boolean {
+        val key = openSwipeKey ?: return false
+        viewBinderHelper.closeLayout(key)
+        openSwipeKey = null
+        return true
+    }
 
     fun getEntry(position: Int): FeedEntry? = entries.getOrNull(position)
 
@@ -112,7 +123,14 @@ class FeedEntryAdapter(
                     onItemClick,
                     onItemLongClick,
                     onFavoriteClick,
-                    onWatchLaterClick
+                    onWatchLaterClick,
+                    viewBinderHelper = viewBinderHelper,
+                    onSwipeOpened = { key -> openSwipeKey = key },
+                    onSwipeClosed = { key ->
+                        if (openSwipeKey == key) {
+                            openSwipeKey = null
+                        }
+                    }
                 )
             }
             else -> {
@@ -124,7 +142,14 @@ class FeedEntryAdapter(
                     onFavoriteClick,
                     onWatchLaterClick,
                     scope,
-                    resolveThumbUrl = { item -> resolveThumbUrl(item) }
+                    resolveThumbUrl = { item -> resolveThumbUrl(item) },
+                    viewBinderHelper = viewBinderHelper,
+                    onSwipeOpened = { key -> openSwipeKey = key },
+                    onSwipeClosed = { key ->
+                        if (openSwipeKey == key) {
+                            openSwipeKey = null
+                        }
+                    }
                 )
             }
         }
@@ -201,7 +226,10 @@ class FeedEntryAdapter(
             private val onFavoriteClick: (RssItem) -> Unit,
             private val onWatchLaterClick: (RssItem) -> Unit,
             private val scope: kotlinx.coroutines.CoroutineScope,
-            private val resolveThumbUrl: (RssItem) -> String?
+            private val resolveThumbUrl: (RssItem) -> String?,
+            private val viewBinderHelper: ViewBinderHelper,
+            private val onSwipeOpened: (String) -> Unit,
+            private val onSwipeClosed: (String) -> Unit
         ) : EntryViewHolder(itemView) {
             private val titleView: HeyTextView = itemView.findViewById(R.id.text_item_title)
             private val summaryView: HeyTextView = itemView.findViewById(R.id.text_item_summary)
@@ -212,8 +240,10 @@ class FeedEntryAdapter(
             private val swipeActions: View? = itemView.findViewById(R.id.swipe_actions)
             private val swipeCover: View? = itemView.findViewById(R.id.swipe_cover)
             private val swipeContent: View? = itemView.findViewById(R.id.swipe_content)
+            private val swipeLayout: SwipeRevealLayout? = itemView.findViewById(R.id.swipe_root)
             private val clickTarget: View = swipeContent ?: itemView
             private val pressScaleListener = PressScaleListener(clickTarget, swipeCover)
+            private var swipeKey: String? = null
 
             init {
                 clickTarget.setTag(R.id.tag_skip_scale_reset, true)
@@ -221,6 +251,17 @@ class FeedEntryAdapter(
                 swipeCover?.setTag(R.id.tag_skip_scale_reset, true)
                 swipeCover?.setTag(R.id.tag_skip_translation_reset, true)
                 clickTarget.setOnTouchListener(pressScaleListener)
+                swipeLayout?.setSwipeListener(object : SwipeRevealLayout.SwipeListener {
+                    override fun onClosed(view: SwipeRevealLayout) {
+                        swipeKey?.let { onSwipeClosed(it) }
+                    }
+
+                    override fun onOpened(view: SwipeRevealLayout) {
+                        swipeKey?.let { onSwipeOpened(it) }
+                    }
+
+                    override fun onSlide(view: SwipeRevealLayout, slideOffset: Float) = Unit
+                })
             }
 
             override fun bind(entry: FeedEntry) {
@@ -229,7 +270,9 @@ class FeedEntryAdapter(
                 resetViewState(itemView)
                 resetViewState(clickTarget)
                 swipeCover?.let { resetViewState(it) }
-                resetSwipeState()
+                val key = item.id.toString()
+                swipeKey = key
+                swipeLayout?.let { viewBinderHelper.bind(it, key) }
                 titleView.text = item.title
                 val summary = formatRssSummary(item.description) ?: "暂无摘要"
                 summaryView.text = summary
@@ -265,11 +308,6 @@ class FeedEntryAdapter(
                 view.alpha = 1f
             }
 
-            private fun resetSwipeState() {
-                swipeContent?.translationX = 0f
-                swipeCover?.translationX = 0f
-            }
-
             private fun syncActionHeight() {
                 val actions = swipeActions ?: return
                 val cover = swipeCover
@@ -293,7 +331,10 @@ class FeedEntryAdapter(
             private val onItemClick: (RssItem) -> Unit,
             private val onItemLongClick: (RssItem) -> Unit,
             private val onFavoriteClick: (RssItem) -> Unit,
-            private val onWatchLaterClick: (RssItem) -> Unit
+            private val onWatchLaterClick: (RssItem) -> Unit,
+            private val viewBinderHelper: ViewBinderHelper,
+            private val onSwipeOpened: (String) -> Unit,
+            private val onSwipeClosed: (String) -> Unit
         ) : EntryViewHolder(itemView) {
             private val titleView: HeyTextView = itemView.findViewById(R.id.text_item_title)
             private val summaryView: HeyTextView = itemView.findViewById(R.id.text_item_summary)
@@ -303,8 +344,10 @@ class FeedEntryAdapter(
             private val swipeActions: View? = itemView.findViewById(R.id.swipe_actions)
             private val swipeCover: View? = itemView.findViewById(R.id.swipe_cover)
             private val swipeContent: View? = itemView.findViewById(R.id.swipe_content)
+            private val swipeLayout: SwipeRevealLayout? = itemView.findViewById(R.id.swipe_root)
             private val clickTarget: View = swipeContent ?: itemView
             private val pressScaleListener = PressScaleListener(clickTarget, swipeCover)
+            private var swipeKey: String? = null
 
             init {
                 clickTarget.setTag(R.id.tag_skip_scale_reset, true)
@@ -312,6 +355,17 @@ class FeedEntryAdapter(
                 swipeCover?.setTag(R.id.tag_skip_scale_reset, true)
                 swipeCover?.setTag(R.id.tag_skip_translation_reset, true)
                 clickTarget.setOnTouchListener(pressScaleListener)
+                swipeLayout?.setSwipeListener(object : SwipeRevealLayout.SwipeListener {
+                    override fun onClosed(view: SwipeRevealLayout) {
+                        swipeKey?.let { onSwipeClosed(it) }
+                    }
+
+                    override fun onOpened(view: SwipeRevealLayout) {
+                        swipeKey?.let { onSwipeOpened(it) }
+                    }
+
+                    override fun onSlide(view: SwipeRevealLayout, slideOffset: Float) = Unit
+                })
             }
 
             override fun bind(entry: FeedEntry) {
@@ -319,7 +373,9 @@ class FeedEntryAdapter(
                 val item = entry.item
                 resetViewState(clickTarget)
                 swipeCover?.let { resetViewState(it) }
-                resetSwipeState()
+                val key = item.id.toString()
+                swipeKey = key
+                swipeLayout?.let { viewBinderHelper.bind(it, key) }
                 titleView.text = item.title
                 val summary = formatRssSummary(item.description) ?: "暂无摘要"
                 summaryView.text = summary
@@ -341,11 +397,6 @@ class FeedEntryAdapter(
                 view.scaleX = 1f
                 view.scaleY = 1f
                 view.alpha = 1f
-            }
-
-            private fun resetSwipeState() {
-                swipeContent?.translationX = 0f
-                swipeCover?.translationX = 0f
             }
 
             private fun syncActionHeight() {

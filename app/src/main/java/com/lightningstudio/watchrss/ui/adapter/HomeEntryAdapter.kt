@@ -5,6 +5,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import com.chauthai.swipereveallayout.SwipeRevealLayout
+import com.chauthai.swipereveallayout.ViewBinderHelper
 import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.widget.HeyMultipleDefaultItem
 import com.lightningstudio.watchrss.R
@@ -28,6 +30,15 @@ class HomeEntryAdapter(
     private val onMarkReadClick: (RssChannel) -> Unit
 ) : RecyclerView.Adapter<HomeEntryAdapter.EntryViewHolder>() {
     private val items = mutableListOf<HomeEntry>()
+    private val viewBinderHelper = ViewBinderHelper().apply { setOpenOnlyOne(true) }
+    private var openSwipeKey: String? = null
+
+    fun closeOpenSwipe(): Boolean {
+        val key = openSwipeKey ?: return false
+        viewBinderHelper.closeLayout(key)
+        openSwipeKey = null
+        return true
+    }
 
     fun submitList(channels: List<RssChannel>) {
         items.clear()
@@ -63,7 +74,14 @@ class HomeEntryAdapter(
                     onChannelClick,
                     onChannelLongClick,
                     onMoveTopClick,
-                    onMarkReadClick
+                    onMarkReadClick,
+                    viewBinderHelper = viewBinderHelper,
+                    onSwipeOpened = { key -> openSwipeKey = key },
+                    onSwipeClosed = { key ->
+                        if (openSwipeKey == key) {
+                            openSwipeKey = null
+                        }
+                    }
                 )
             }
         }
@@ -112,18 +130,23 @@ class HomeEntryAdapter(
             private val onChannelClick: (RssChannel) -> Unit,
             private val onChannelLongClick: (RssChannel) -> Unit,
             private val onMoveTopClick: (RssChannel) -> Unit,
-            private val onMarkReadClick: (RssChannel) -> Unit
+            private val onMarkReadClick: (RssChannel) -> Unit,
+            private val viewBinderHelper: ViewBinderHelper,
+            private val onSwipeOpened: (String) -> Unit,
+            private val onSwipeClosed: (String) -> Unit
         ) : EntryViewHolder(itemView) {
             private val contentView: HeyMultipleDefaultItem =
                 itemView.findViewById(R.id.home_entry_item)
             private val swipeActions: View? = itemView.findViewById(R.id.swipe_actions)
             private val swipeCover: View? = itemView.findViewById(R.id.swipe_cover)
             private val swipeContent: View? = itemView.findViewById(R.id.swipe_content)
+            private val swipeLayout: SwipeRevealLayout? = itemView.findViewById(R.id.swipe_root)
             private val moveTopAction: com.heytap.wearable.support.widget.HeyTextView? =
                 itemView.findViewById(R.id.action_move_top)
             private val markReadAction: com.heytap.wearable.support.widget.HeyTextView? =
                 itemView.findViewById(R.id.action_mark_read)
             private val pressScaleListener = PressScaleListener(contentView, swipeCover)
+            private var swipeKey: String? = null
 
             init {
                 contentView.setTag(R.id.tag_skip_scale_reset, true)
@@ -131,17 +154,29 @@ class HomeEntryAdapter(
                 swipeCover?.setTag(R.id.tag_skip_translation_reset, true)
                 swipeContent?.setTag(R.id.tag_skip_translation_reset, true)
                 contentView.setOnTouchListener(pressScaleListener)
+                swipeLayout?.setSwipeListener(object : SwipeRevealLayout.SwipeListener {
+                    override fun onClosed(view: SwipeRevealLayout) {
+                        swipeKey?.let { onSwipeClosed(it) }
+                    }
+
+                    override fun onOpened(view: SwipeRevealLayout) {
+                        swipeKey?.let { onSwipeOpened(it) }
+                    }
+
+                    override fun onSlide(view: SwipeRevealLayout, slideOffset: Float) = Unit
+                })
             }
 
             override fun bind(entry: HomeEntry) {
                 resetViewState()
                 swipeCover?.let { resetViewState(it) }
+                swipeKey = null
+                swipeLayout?.close(false)
                 val indicator = contentView.getMinorImageView()
                 indicator?.visibility = View.GONE
                 contentView.setOnLongClickListener(null)
                 swipeActions?.visibility = View.GONE
                 swipeCover?.visibility = View.GONE
-                resetSwipeState()
 
                 when (entry) {
                     is HomeEntry.Channel -> bindChannel(entry.channel, indicator)
@@ -154,6 +189,9 @@ class HomeEntryAdapter(
             }
 
             private fun bindChannel(channel: RssChannel, indicator: android.widget.ImageView?) {
+                val key = channel.id.toString()
+                swipeKey = key
+                swipeLayout?.let { viewBinderHelper.bind(it, key) }
                 swipeActions?.visibility = View.VISIBLE
                 swipeCover?.visibility = View.VISIBLE
                 contentView.setTitle(channel.title)
@@ -182,18 +220,22 @@ class HomeEntryAdapter(
                     true
                 }
 
-                moveTopAction?.setOnClickListener { onMoveTopClick(channel) }
+                moveTopAction?.setOnClickListener {
+                    closeSwipeMenu()
+                    onMoveTopClick(channel)
+                }
 
                 val isBuiltin = com.lightningstudio.watchrss.data.rss.BuiltinChannelType
                     .fromUrl(channel.url) != null
                 val canMarkRead = channel.unreadCount > 0 && !isBuiltin
-                markReadAction?.isEnabled = canMarkRead
+                markReadAction?.isEnabled = true
                 markReadAction?.alpha = if (canMarkRead) 1f else 0.5f
-                markReadAction?.setOnClickListener(if (canMarkRead) {
-                    { onMarkReadClick(channel) }
-                } else {
-                    null
-                })
+                markReadAction?.setOnClickListener {
+                    closeSwipeMenu()
+                    if (canMarkRead) {
+                        onMarkReadClick(channel)
+                    }
+                }
             }
 
             private fun bindEmpty() {
@@ -216,15 +258,20 @@ class HomeEntryAdapter(
                 view.alpha = 1f
             }
 
-            private fun resetSwipeState() {
-                swipeContent?.translationX = 0f
-                swipeCover?.translationX = 0f
+            private fun closeSwipeMenu() {
+                val key = swipeKey
+                if (key != null) {
+                    viewBinderHelper.closeLayout(key)
+                } else {
+                    swipeLayout?.close(true)
+                }
             }
 
             private fun syncActionHeight() {
                 val actions = swipeActions ?: return
                 val cover = swipeCover
                 val content = swipeContent ?: return
+                val targetView = contentView
                 fun updateHeight(height: Int) {
                     if (height <= 0) return
                     if (actions.layoutParams.height != height) {
@@ -233,9 +280,12 @@ class HomeEntryAdapter(
                     if (cover != null && cover.layoutParams.height != height) {
                         cover.layoutParams = cover.layoutParams.apply { this.height = height }
                     }
+                    if (content.layoutParams.height != height) {
+                        content.layoutParams = content.layoutParams.apply { this.height = height }
+                    }
                 }
-                updateHeight(content.height)
-                content.post { updateHeight(content.height) }
+                updateHeight(targetView.height)
+                targetView.post { updateHeight(targetView.height) }
             }
         }
 

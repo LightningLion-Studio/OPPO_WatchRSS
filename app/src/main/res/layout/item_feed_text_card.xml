@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.chauthai.swipereveallayout.SwipeRevealLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/swipe_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp">
+    android:layout_marginBottom="10dp"
+    app:dragEdge="right">
 
     <LinearLayout
         android:id="@+id/swipe_actions"
@@ -41,12 +43,6 @@
             android:textSize="@dimen/hey_s_desription" />
     </LinearLayout>
 
-    <View
-        android:id="@+id/swipe_cover"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/black" />
-
     <FrameLayout
         android:id="@+id/swipe_content"
         android:layout_width="match_parent"
@@ -54,6 +50,12 @@
         android:background="@drawable/bg_settings_card"
         android:clipToOutline="true"
         android:outlineProvider="background">
+
+        <View
+            android:id="@+id/swipe_cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent" />
 
         <LinearLayout
             android:id="@+id/text_container"
@@ -92,4 +94,4 @@
             android:contentDescription="未读"
             android:src="@drawable/rss_unread_dot" />
     </FrameLayout>
-</FrameLayout>
+</com.chauthai.swipereveallayout.SwipeRevealLayout>

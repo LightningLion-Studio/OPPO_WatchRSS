@@ -176,6 +176,11 @@ open class BaseHeytapActivity : ComponentActivity() {
                     val absDx = abs(dx)
                     val absDy = abs(dy)
                     if (dx > swipeSlop && absDx > absDy && absDy < maxSwipeOffPath) {
+                        if (onSwipeBackAttempt(dx, dy)) {
+                            cancelChildTouch(ev)
+                            resetSwipeState()
+                            return true
+                        }
                         swipeIntercepting = true
                         cancelChildTouch(ev)
                     }
@@ -215,6 +220,8 @@ open class BaseHeytapActivity : ComponentActivity() {
         }
         return swipeIntercepting
     }
+
+    protected open fun onSwipeBackAttempt(dx: Float, dy: Float): Boolean = false
 
     private fun shouldStartSwipe(root: View, ev: MotionEvent): Boolean {
         val width = root.width
