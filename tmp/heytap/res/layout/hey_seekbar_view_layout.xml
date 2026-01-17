@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+    <com.heytap.wearable.support.widget.VolumeSeekBar
+        android:id="@+id/seek"
+        android:layout_gravity="center"
+        style="@style/HeySeekBarStyle_6_0"/>
+
+    <ImageView
+        android:id="@+id/hey_vol_icon"
+        android:layout_width="@dimen/hey_seekbar_inco_size_6_0"
+        android:layout_height="@dimen/hey_seekbar_inco_size_6_0"
+        android:layout_gravity="center"
+        android:src="@drawable/hey_volume_mute"/>
+</merge>

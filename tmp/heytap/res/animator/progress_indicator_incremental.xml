@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="@integer/progress_indicator_incremental_anim_duration"
+    android:interpolator="@anim/progress_indicator_incoming_80"
+    android:propertyName="sweepAngle"
+    android:valueType="floatType" />

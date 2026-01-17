@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="apm">
+        <item>przed południem</item>
+        <item>po południu</item>
+    </string-array>
+    <dimen name="hey_hms_textsize">10sp</dimen>
+    <string name="color_counter_picker_hour">h</string>
+    <string name="color_counter_picker_minute">min</string>
+    <string name="color_counter_picker_second">s</string>
+    <string name="hey_cancel">Anuluj</string>
+    <string name="loading_default">Ładowanie...</string>
+    <string name="pb_continue">Wznów</string>
+    <string name="pb_download">Pobierz</string>
+</resources>

@@ -1,7 +1,9 @@
 package com.lightningstudio.watchrss.ui.adapter
 
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.widget.HeyButton
@@ -11,8 +13,7 @@ import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.data.rss.RssMediaExtractor
 import com.lightningstudio.watchrss.ui.util.formatRssSummary
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
-import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.lifecycle.lifecycleScope
+import kotlin.math.abs
 
 sealed class FeedEntry {
     data class Header(val title: String, val isRefreshing: Boolean) : FeedEntry()
@@ -22,8 +23,11 @@ sealed class FeedEntry {
 }
 
 class FeedEntryAdapter(
+    private val scope: kotlinx.coroutines.CoroutineScope,
     private val onItemClick: (RssItem) -> Unit,
     private val onItemLongClick: (RssItem) -> Unit,
+    private val onFavoriteClick: (RssItem) -> Unit,
+    private val onWatchLaterClick: (RssItem) -> Unit,
     private val onHeaderClick: () -> Unit,
     private val onRefreshClick: () -> Unit,
     private val onLoadMoreClick: () -> Unit,
@@ -103,7 +107,13 @@ class FeedEntryAdapter(
             }
             TYPE_ITEM_TEXT -> {
                 val view = inflater.inflate(R.layout.item_feed_text_card, parent, false)
-                EntryViewHolder.TextItemViewHolder(view, onItemClick, onItemLongClick)
+                EntryViewHolder.TextItemViewHolder(
+                    view,
+                    onItemClick,
+                    onItemLongClick,
+                    onFavoriteClick,
+                    onWatchLaterClick
+                )
             }
             else -> {
                 val view = inflater.inflate(R.layout.item_feed_card, parent, false)
@@ -111,6 +121,9 @@ class FeedEntryAdapter(
                     view,
                     onItemClick,
                     onItemLongClick,
+                    onFavoriteClick,
+                    onWatchLaterClick,
+                    scope,
                     resolveThumbUrl = { item -> resolveThumbUrl(item) }
                 )
             }
@@ -120,7 +133,7 @@ class FeedEntryAdapter(
     override fun onBindViewHolder(holder: EntryViewHolder, position: Int) {
         holder.bind(entries[position])
         if (holder is EntryViewHolder.ImageItemViewHolder) {
-            preloadNearbyImages(position, holder.itemView)
+            preloadNearbyImages(position, holder.itemView, scope)
         }
     }
 
@@ -185,17 +198,38 @@ class FeedEntryAdapter(
             itemView: View,
             private val onItemClick: (RssItem) -> Unit,
             private val onItemLongClick: (RssItem) -> Unit,
+            private val onFavoriteClick: (RssItem) -> Unit,
+            private val onWatchLaterClick: (RssItem) -> Unit,
+            private val scope: kotlinx.coroutines.CoroutineScope,
             private val resolveThumbUrl: (RssItem) -> String?
         ) : EntryViewHolder(itemView) {
             private val titleView: HeyTextView = itemView.findViewById(R.id.text_item_title)
             private val summaryView: HeyTextView = itemView.findViewById(R.id.text_item_summary)
             private val thumbView: android.widget.ImageView = itemView.findViewById(R.id.image_thumb)
             private val unreadView: android.widget.ImageView = itemView.findViewById(R.id.image_unread)
+            private val favoriteAction: HeyTextView = itemView.findViewById(R.id.action_favorite)
+            private val watchLaterAction: HeyTextView = itemView.findViewById(R.id.action_watch_later)
+            private val swipeActions: View? = itemView.findViewById(R.id.swipe_actions)
+            private val swipeCover: View? = itemView.findViewById(R.id.swipe_cover)
+            private val swipeContent: View? = itemView.findViewById(R.id.swipe_content)
+            private val clickTarget: View = swipeContent ?: itemView
+            private val pressScaleListener = PressScaleListener(clickTarget, swipeCover)
+
+            init {
+                clickTarget.setTag(R.id.tag_skip_scale_reset, true)
+                clickTarget.setTag(R.id.tag_skip_translation_reset, true)
+                swipeCover?.setTag(R.id.tag_skip_scale_reset, true)
+                swipeCover?.setTag(R.id.tag_skip_translation_reset, true)
+                clickTarget.setOnTouchListener(pressScaleListener)
+            }
 
             override fun bind(entry: FeedEntry) {
                 if (entry !is FeedEntry.Item) return
                 val item = entry.item
                 resetViewState(itemView)
+                resetViewState(clickTarget)
+                swipeCover?.let { resetViewState(it) }
+                resetSwipeState()
                 titleView.text = item.title
                 val summary = formatRssSummary(item.description) ?: "暂无摘要"
                 summaryView.text = summary
@@ -205,21 +239,21 @@ class FeedEntryAdapter(
                 val thumbUrl = resolveThumbUrl(item)
 
                 if (!thumbUrl.isNullOrBlank()) {
-                    val scope = itemView.findViewTreeLifecycleOwner()?.lifecycleScope
-                    if (scope != null) {
-                        val maxWidth = itemView.resources.displayMetrics.widthPixels
-                        RssImageLoader.load(itemView.context, thumbUrl, thumbView, scope, maxWidth)
-                    }
+                    val maxWidth = itemView.resources.displayMetrics.widthPixels
+                    RssImageLoader.load(itemView.context, thumbUrl, thumbView, scope, maxWidth)
                 } else {
                     thumbView.setImageDrawable(null)
                     thumbView.setBackgroundColor(0xFF1C1C1C.toInt())
                 }
 
-                itemView.setOnClickListener { onItemClick(item) }
-                itemView.setOnLongClickListener {
+                clickTarget.setOnClickListener { onItemClick(item) }
+                clickTarget.setOnLongClickListener {
                     onItemLongClick(item)
                     true
                 }
+                favoriteAction.setOnClickListener { onFavoriteClick(item) }
+                watchLaterAction.setOnClickListener { onWatchLaterClick(item) }
+                syncActionHeight()
             }
 
             private fun resetViewState(view: View) {
@@ -230,28 +264,118 @@ class FeedEntryAdapter(
                 view.scaleY = 1f
                 view.alpha = 1f
             }
+
+            private fun resetSwipeState() {
+                swipeContent?.translationX = 0f
+                swipeCover?.translationX = 0f
+            }
+
+            private fun syncActionHeight() {
+                val actions = swipeActions ?: return
+                val cover = swipeCover
+                val content = swipeContent ?: return
+                if (content.height > 0) {
+                    if (actions.layoutParams.height != content.height) {
+                        actions.layoutParams = actions.layoutParams.apply { this.height = content.height }
+                    }
+                    if (cover != null && cover.layoutParams.height != content.height) {
+                        cover.layoutParams = cover.layoutParams.apply { this.height = content.height }
+                    }
+                } else {
+                    content.post {
+                        val contentHeight = content.height
+                        if (contentHeight > 0 && actions.layoutParams.height != contentHeight) {
+                            actions.layoutParams = actions.layoutParams.apply { this.height = contentHeight }
+                        }
+                        if (cover != null && contentHeight > 0 && cover.layoutParams.height != contentHeight) {
+                            cover.layoutParams = cover.layoutParams.apply { this.height = contentHeight }
+                        }
+                    }
+                }
+            }
         }
 
         class TextItemViewHolder(
             itemView: View,
             private val onItemClick: (RssItem) -> Unit,
-            private val onItemLongClick: (RssItem) -> Unit
+            private val onItemLongClick: (RssItem) -> Unit,
+            private val onFavoriteClick: (RssItem) -> Unit,
+            private val onWatchLaterClick: (RssItem) -> Unit
         ) : EntryViewHolder(itemView) {
             private val titleView: HeyTextView = itemView.findViewById(R.id.text_item_title)
             private val summaryView: HeyTextView = itemView.findViewById(R.id.text_item_summary)
             private val unreadView: android.widget.ImageView = itemView.findViewById(R.id.image_unread)
+            private val favoriteAction: HeyTextView = itemView.findViewById(R.id.action_favorite)
+            private val watchLaterAction: HeyTextView = itemView.findViewById(R.id.action_watch_later)
+            private val swipeActions: View? = itemView.findViewById(R.id.swipe_actions)
+            private val swipeCover: View? = itemView.findViewById(R.id.swipe_cover)
+            private val swipeContent: View? = itemView.findViewById(R.id.swipe_content)
+            private val clickTarget: View = swipeContent ?: itemView
+            private val pressScaleListener = PressScaleListener(clickTarget, swipeCover)
+
+            init {
+                clickTarget.setTag(R.id.tag_skip_scale_reset, true)
+                clickTarget.setTag(R.id.tag_skip_translation_reset, true)
+                swipeCover?.setTag(R.id.tag_skip_scale_reset, true)
+                swipeCover?.setTag(R.id.tag_skip_translation_reset, true)
+                clickTarget.setOnTouchListener(pressScaleListener)
+            }
 
             override fun bind(entry: FeedEntry) {
                 if (entry !is FeedEntry.Item) return
                 val item = entry.item
+                resetViewState(clickTarget)
+                swipeCover?.let { resetViewState(it) }
+                resetSwipeState()
                 titleView.text = item.title
                 val summary = formatRssSummary(item.description) ?: "暂无摘要"
                 summaryView.text = summary
                 unreadView.visibility = if (item.isRead) View.GONE else View.VISIBLE
-                itemView.setOnClickListener { onItemClick(item) }
-                itemView.setOnLongClickListener {
+                clickTarget.setOnClickListener { onItemClick(item) }
+                clickTarget.setOnLongClickListener {
                     onItemLongClick(item)
                     true
+                }
+                favoriteAction.setOnClickListener { onFavoriteClick(item) }
+                watchLaterAction.setOnClickListener { onWatchLaterClick(item) }
+                syncActionHeight()
+            }
+
+            private fun resetViewState(view: View) {
+                view.isPressed = false
+                view.isSelected = false
+                view.isActivated = false
+                view.scaleX = 1f
+                view.scaleY = 1f
+                view.alpha = 1f
+            }
+
+            private fun resetSwipeState() {
+                swipeContent?.translationX = 0f
+                swipeCover?.translationX = 0f
+            }
+
+            private fun syncActionHeight() {
+                val actions = swipeActions ?: return
+                val cover = swipeCover
+                val content = swipeContent ?: return
+                if (content.height > 0) {
+                    if (actions.layoutParams.height != content.height) {
+                        actions.layoutParams = actions.layoutParams.apply { this.height = content.height }
+                    }
+                    if (cover != null && cover.layoutParams.height != content.height) {
+                        cover.layoutParams = cover.layoutParams.apply { this.height = content.height }
+                    }
+                } else {
+                    content.post {
+                        val contentHeight = content.height
+                        if (contentHeight > 0 && actions.layoutParams.height != contentHeight) {
+                            actions.layoutParams = actions.layoutParams.apply { this.height = contentHeight }
+                        }
+                        if (cover != null && contentHeight > 0 && cover.layoutParams.height != contentHeight) {
+                            cover.layoutParams = cover.layoutParams.apply { this.height = contentHeight }
+                        }
+                    }
                 }
             }
         }
@@ -264,6 +388,10 @@ class FeedEntryAdapter(
         private const val TYPE_ACTIONS = 3
         private const val TYPE_ITEM_TEXT = 4
         private const val PRELOAD_COUNT = 3
+        private const val PRESS_SCALE = 0.97f
+        private const val PRESS_DOWN_DURATION_MS = 240L
+        private const val PRESS_UP_DURATION_MS = 360L
+        private const val PRESS_HOLD_MS = 300L
     }
 
     private fun hasThumb(item: RssItem): Boolean = resolveThumbUrl(item) != null
@@ -323,8 +451,7 @@ class FeedEntryAdapter(
         }
     }
 
-    private fun preloadNearbyImages(position: Int, itemView: View) {
-        val scope = itemView.findViewTreeLifecycleOwner()?.lifecycleScope ?: return
+    private fun preloadNearbyImages(position: Int, itemView: View, scope: kotlinx.coroutines.CoroutineScope) {
         val context = itemView.context
         val maxWidth = itemView.resources.displayMetrics.widthPixels
         val end = (position + PRELOAD_COUNT).coerceAtMost(entries.lastIndex)
@@ -332,6 +459,117 @@ class FeedEntryAdapter(
             val entry = entries.getOrNull(index) as? FeedEntry.Item ?: continue
             val url = resolveThumbUrl(entry.item) ?: continue
             RssImageLoader.preload(context, url, scope, maxWidth)
+        }
+    }
+
+    private class PressScaleListener(
+        private val target: View,
+        private val extra: View? = null
+    ) : View.OnTouchListener {
+        private val slop = ViewConfiguration.get(target.context).scaledTouchSlop
+        private val scaleTargets = if (extra != null && extra !== target) {
+            listOf(target, extra)
+        } else {
+            listOf(target)
+        }
+        private var downX = 0f
+        private var downY = 0f
+        private var clickCandidate = false
+        private var releaseHandled = false
+        private var holdRunnable: Runnable? = null
+        private var upRunnable: Runnable? = null
+
+        override fun onTouch(v: View, event: MotionEvent): Boolean {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.x
+                    downY = event.y
+                    clickCandidate = true
+                    releaseHandled = false
+                    clearCallbacks()
+                    startDownAnimation()
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    if (!releaseHandled && clickCandidate && movedOutOfSlop(event)) {
+                        clickCandidate = false
+                        releaseHandled = true
+                        cancelToUp()
+                    }
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    if (releaseHandled) return false
+                    clickCandidate = false
+                    releaseHandled = true
+                    cancelToUp()
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (releaseHandled) return false
+                    releaseHandled = true
+                    if (clickCandidate) {
+                        scheduleClickHold()
+                    } else {
+                        cancelToUp()
+                    }
+                }
+            }
+            return false
+        }
+
+        private fun movedOutOfSlop(event: MotionEvent): Boolean {
+            val dx = abs(event.x - downX)
+            val dy = abs(event.y - downY)
+            return dx > slop || dy > slop
+        }
+
+        private fun startDownAnimation() {
+            scaleTargets.forEach { view ->
+                view.animate().cancel()
+                view.animate()
+                    .scaleX(FeedEntryAdapter.PRESS_SCALE)
+                    .scaleY(FeedEntryAdapter.PRESS_SCALE)
+                    .setDuration(FeedEntryAdapter.PRESS_DOWN_DURATION_MS)
+                    .start()
+            }
+        }
+
+        private fun scheduleClickHold() {
+            clearCallbacks()
+            holdRunnable = Runnable {
+                setScaleInstant(FeedEntryAdapter.PRESS_SCALE)
+                upRunnable = Runnable { animateScaleUp() }
+                target.postDelayed(upRunnable, FeedEntryAdapter.PRESS_HOLD_MS)
+            }
+            target.post(holdRunnable)
+        }
+
+        private fun cancelToUp() {
+            clearCallbacks()
+            animateScaleUp()
+        }
+
+        private fun clearCallbacks() {
+            holdRunnable?.let { target.removeCallbacks(it) }
+            holdRunnable = null
+            upRunnable?.let { target.removeCallbacks(it) }
+            upRunnable = null
+        }
+
+        private fun animateScaleUp() {
+            scaleTargets.forEach { view ->
+                view.animate().cancel()
+                view.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(FeedEntryAdapter.PRESS_UP_DURATION_MS)
+                    .start()
+            }
+        }
+
+        private fun setScaleInstant(scale: Float) {
+            scaleTargets.forEach { view ->
+                view.scaleX = scale
+                view.scaleY = scale
+            }
         }
     }
 

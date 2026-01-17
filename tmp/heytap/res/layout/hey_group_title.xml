@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <android.view.ViewStub
+        android:id="@+id/hey_loading_viewstub"
+        android:layout_width="@dimen/hey_title_loadding_view_size"
+        android:layout_height="@dimen/hey_title_loadding_view_size"
+        android:layout_marginRight="@dimen/hey_gourp_titlebar_progressbar_margin_right"
+        android:layout_marginTop="@dimen/hey_group_load_padding_top"
+        android:layout_marginBottom="@dimen/hey_group_load_padding_bottom"
+        android:layout="@layout/hey_view_stub_hey_loading"
+        android:visibility="gone" />
+
+    <android.view.ViewStub
+        android:id="@+id/progressbar_viewstub"
+        android:layout_width="@dimen/hey_title_loadding_view_size"
+        android:layout_height="@dimen/hey_title_loadding_view_size"
+        android:layout_marginRight="@dimen/hey_gourp_titlebar_progressbar_margin_right"
+        android:layout="@layout/hey_view_stub_progressbar"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/left_tv"
+        style="@style/HeyGroupTitleTextStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="分组小标题" />
+</merge>

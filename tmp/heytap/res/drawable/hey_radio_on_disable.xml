@@ -1,0 +1,8 @@
+<vector android:height="@dimen/hey_listitem_widget_size" android:viewportHeight="60"
+    android:viewportWidth="60" android:width="@dimen/hey_listitem_widget_size" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillAlpha="0.4" android:fillColor="#ffffff" android:pathData="M30,50C18.954,50 10,41.046 10,30C10,18.954 18.954,10 30,10C41.046,10 50,18.954 50,30C50,41.046 41.046,50 30,50Z"/>
+    <group>
+        <clip-path android:pathData="M30,50C18.954,50 10,41.046 10,30C10,18.954 18.954,10 30,10C41.046,10 50,18.954 50,30C50,41.046 41.046,50 30,50Z"/>
+        <path android:fillAlpha="0.4" android:fillColor="#ffffff" android:pathData="M30,30m-7.5,0a7.5,7.5 0,1 1,15 0a7.5,7.5 0,1 1,-15 0"/>
+    </group>
+</vector>

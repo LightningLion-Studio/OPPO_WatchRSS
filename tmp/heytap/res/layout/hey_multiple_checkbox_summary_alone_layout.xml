@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical">
+
+    <LinearLayout
+        android:id="@+id/item_head"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/item_textview"
+            style="@style/HeyTextStyle"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+
+        <com.heytap.wearable.support.widget.HeyCheckBox
+            android:layout_marginLeft="@dimen/hey_listitem_widget_margin_left"
+            android:id="@+id/single_checkbox"
+            android:layout_width="@dimen/hey_listitem_widget_size"
+            android:layout_height="@dimen/hey_listitem_widget_size" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/summary_textview"
+        style="@style/HeySummaryTextStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/hey_alone_summary_margin_top"
+        android:layout_marginEnd="@dimen/hey_listitem_padding_right" />
+</merge>

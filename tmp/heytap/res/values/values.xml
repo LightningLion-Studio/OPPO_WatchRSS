@@ -1,0 +1,1620 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="apm">
+        <item>AM</item>
+        <item>PM</item>
+    </string-array>
+    <array name="hey_auto_size_text_sizes_code">
+        <item>17</item>
+        <item>14</item>
+        <item>12</item>
+        <item>9</item>
+    </array>
+    <string-array name="hour_12">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+    </string-array>
+    <string-array name="hour_24">
+        <item>00</item>
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+        <item>04</item>
+        <item>05</item>
+        <item>06</item>
+        <item>07</item>
+        <item>08</item>
+        <item>09</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+    </string-array>
+    <string-array name="minute">
+        <item>00</item>
+        <item>01</item>
+        <item>02</item>
+        <item>03</item>
+        <item>04</item>
+        <item>05</item>
+        <item>06</item>
+        <item>07</item>
+        <item>08</item>
+        <item>09</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+        <item>24</item>
+        <item>25</item>
+        <item>26</item>
+        <item>27</item>
+        <item>28</item>
+        <item>29</item>
+        <item>30</item>
+        <item>31</item>
+        <item>32</item>
+        <item>33</item>
+        <item>34</item>
+        <item>35</item>
+        <item>36</item>
+        <item>37</item>
+        <item>38</item>
+        <item>39</item>
+        <item>40</item>
+        <item>41</item>
+        <item>42</item>
+        <item>43</item>
+        <item>44</item>
+        <item>45</item>
+        <item>46</item>
+        <item>47</item>
+        <item>48</item>
+        <item>49</item>
+        <item>50</item>
+        <item>51</item>
+        <item>52</item>
+        <item>53</item>
+        <item>54</item>
+        <item>55</item>
+        <item>56</item>
+        <item>57</item>
+        <item>58</item>
+        <item>59</item>
+    </string-array>
+    <attr format="enum" name="dotOrientation">
+        <enum name="horizontal" value="0"/>
+        <enum name="vertical" value="1"/>
+    </attr>
+    <attr format="float" name="dotRoundAngle"/>
+    <attr format="color" name="heyBackgroundColor"/>
+    <attr format="color|reference" name="heyBtnNextFocusTitleNormal"/>
+    <attr format="color|reference" name="heyClockColor"/>
+    <attr format="integer|reference" name="heyCornerRadius"/>
+    <attr format="color|reference" name="heyDefaultSecondaryButtonBackground"/>
+    <attr format="color|reference" name="heyDefaultTextColor"/>
+    <attr name="heyEllipsize">
+        <enum name="end" value="0"/>
+        <enum name="marquee" value="1"/>
+    </attr>
+    <attr format="string|reference" name="heyFontFamily"/>
+    <attr format="string|reference" name="heyItemContentText"/>
+    <attr format="reference" name="heyLeftImage"/>
+    <attr format="reference" name="heyMinorImage"/>
+    <attr format="color|reference" name="heyPrimaryColor"/>
+    <attr format="reference" name="heyPrimaryImage"/>
+    <attr format="color|reference" name="heySearchBarIcon"/>
+    <attr format="color|reference" name="heySearchBarIconStroke"/>
+    <attr format="boolean" name="heyShowClock"/>
+    <attr format="boolean" name="heyShowIcon"/>
+    <attr format="boolean" name="heyShowMinorImage"/>
+    <attr format="color|reference" name="heySpinnerRotateIcon"/>
+    <attr format="string|reference" name="heySummaryText"/>
+    <attr format="string|reference" name="heyText"/>
+    <attr format="color|reference" name="heyTintControlDisabled"/>
+    <attr format="color|reference" name="heyTintControlNormal"/>
+    <attr format="color|reference" name="heyTintControlPressed"/>
+    <attr format="color|reference" name="heyTintLightNormal"/>
+    <attr format="color|reference" name="heyTintLightPressed"/>
+    <attr format="boolean" name="heyUseClip"/>
+    <attr format="color|reference" name="hey_preference_class_title_arrow"/>
+    <attr format="color|reference" name="hey_preference_class_title_control_press"/>
+    <attr format="color|reference" name="hey_preference_class_title_light_normal"/>
+    <attr format="reference" name="progressIndicatorSpinnerLabelStyle"/>
+    <attr format="reference" name="progressIndicatorSpinnerStyle"/>
+    <attr format="reference" name="wearPageIndicator"/>
+    <bool name="hey_switch_theme_enable">false</bool>
+    <color name="bg">#33FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="color1">#B3FFFFFF</color>
+    <color name="color_enable">#66FFFFFF</color>
+    <color name="color_picker_normal_text_color">#4cffffff</color>
+    <color name="default_background_color">#262626</color>
+    <color name="default_foreground_color">#33FFFFFF</color>
+    <color name="dialog_title_text_color">#FF2AD181</color>
+    <color name="download_bg">#33FFFFFF</color>
+    <color name="download_disable">#66FFFFFF</color>
+    <color name="group_title_text_color">#B0B5BF</color>
+    <color name="hey_clock_color">#CCFFFFFF</color>
+    <color name="hey_colorAccent">#0066FF</color>
+    <color name="hey_colorAccent_disable">#66476CFF</color>
+    <color name="hey_colorPrimary">#2AD181</color>
+    <color name="hey_colorPrimaryDark">#00574B</color>
+    <color name="hey_color_blue">#1F8AFD</color>
+    <color name="hey_color_green">#33B054</color>
+    <color name="hey_color_indigo">#1DB7EB</color>
+    <color name="hey_color_orange">#EB6230</color>
+    <color name="hey_color_purple">#694BFF</color>
+    <color name="hey_color_purple2">#952AF4</color>
+    <color name="hey_color_red">#EB0954</color>
+    <color name="hey_color_sport">#27E568</color>
+    <color name="hey_color_system">#0066FF</color>
+    <color name="hey_color_text_blue">#247CFF</color>
+    <color name="hey_color_text_disabled">#66FFFFFF</color>
+    <color name="hey_color_text_hint">#757980</color>
+    <color name="hey_color_text_primary">#FFFFFF</color>
+    <color name="hey_color_text_secondary">#999DA6</color>
+    <color name="hey_color_waring">#E03D3D</color>
+    <color name="hey_color_waring_fatal">#E03D3D</color>
+    <color name="hey_color_waring_mild">#FAC637</color>
+    <color name="hey_color_waring_moderate">#FF9900</color>
+    <color name="hey_color_waring_normal">#27E568</color>
+    <color name="hey_color_waring_severe">#FF6738</color>
+    <color name="hey_color_waring_slight">#A2E51C</color>
+    <color name="hey_color_yellow">#FAC637</color>
+    <color name="hey_default_checkbox_color">#2AD181</color>
+    <color name="hey_dialog_content_color">#CCFFFFFF</color>
+    <color name="hey_dialog_title_content_color">#B0B5BF</color>
+    <color name="hey_edit_text_hint_color">#757980</color>
+    <color name="hey_foot_note_text_color">#80FFFFFF</color>
+    <color name="hey_info_text_color">#909399</color>
+    <color name="hey_number_picker_text_color_normal">#66FFFFFF</color>
+    <color name="hey_number_picker_text_color_selected">#FFFFFFFF</color>
+    <color name="hey_page_color">#4DFFFFFF</color>
+    <color name="hey_page_color_selected">#F44336</color>
+    <color name="hey_progress_spinner_indicator_spinner_progress_color">@color/white</color>
+    <color name="hey_progress_spinner_indicator_spinner_track_color">#4DFFFFFF</color>
+    <color name="hey_progress_spinner_indicator_text_color">@color/white</color>
+    <color name="hey_selector_color">#12FFFFFF</color>
+    <color name="hey_summary_color">#B0B5BF</color>
+    <color name="hey_super_volume_seekbar_progress_end">#EB4556</color>
+    <color name="hey_super_volume_seekbar_progress_start">#D9FFFFFF</color>
+    <color name="hey_toast_bg">#FFFFFF</color>
+    <color name="hey_toggle_bt_background_color">#2AD181</color>
+    <color name="hey_translucent">#00000000</color>
+    <color name="hey_volume_seekbar_background">#1AFFFFFF</color>
+    <color name="hey_volume_seekbar_progress">#476CFF</color>
+    <color name="hey_weak_colorAccent">#4D476CFF</color>
+    <color name="hey_wear_page_indicator_selected_color">#FFFFFFFF</color>
+    <color name="hey_wear_page_indicator_unselected_color">#66FFFFFF</color>
+    <color name="hey_window_background_color">#ffffff</color>
+    <color name="horizontal_progressbar_color">#2AD181</color>
+    <color name="listitem_pressed">#191919</color>
+    <color name="pb_blue">#66FFFFFF</color>
+    <color name="progress">#66FFFFFF</color>
+    <color name="progress_bg">#66FFFFFF</color>
+    <color name="red">#F44336</color>
+    <color name="ripple_color">#0DFFFFFF</color>
+    <color name="switch_checked_color">@color/hey_colorAccent</color>
+    <color name="switch_checked_disabled_color">#664C65FF</color>
+    <color name="switch_inner_circle_checked_disabled_color">#597464</color>
+    <color name="switch_inner_circle_color">@color/switch_unchecked_color</color>
+    <color name="switch_inner_circle_unchecked_disabled_color">#343434</color>
+    <color name="switch_outer_circle_checked_disabled_color">#666666</color>
+    <color name="switch_outer_circle_unchecked_disabled_color">#808080</color>
+    <color name="switch_unchecked_color">#666666</color>
+    <color name="switch_unchecked_disabled_color">#3B3B3B</color>
+    <color name="white">#FFFFFFFF</color>
+    <dimen name="color_number_picker_change_index_distance">7dp</dimen>
+    <dimen name="color_number_picker_padding">@dimen/hey_content_horizontal_distance_6_0</dimen>
+    <dimen name="color_number_picker_padding_vertical">12dp</dimen>
+    <dimen name="color_number_picker_y_off_set">0dp</dimen>
+    <dimen name="color_time_picker_normal_text_height">40dp</dimen>
+    <dimen name="dotMarginTop">2dp</dimen>
+    <dimen name="hey_24M_Title">24sp</dimen>
+    <dimen name="hey_alone_summary_margin_bottom">14dp</dimen>
+    <dimen name="hey_alone_summary_margin_top">6dp</dimen>
+    <dimen name="hey_apm_view_margin_right">12dp</dimen>
+    <dimen name="hey_back_arrow_size">17dp</dimen>
+    <dimen name="hey_back_icon_height">15dp</dimen>
+    <dimen name="hey_back_icon_width">18dp</dimen>
+    <dimen name="hey_back_title_margin_vertical">6dp</dimen>
+    <dimen name="hey_back_titlebar_clock_margin_bottom">6dp</dimen>
+    <dimen name="hey_backtitle_margin_vertical">6dp</dimen>
+    <dimen name="hey_bar_padding_horizontal">3dp</dimen>
+    <dimen name="hey_bar_padding_vertical">2dp</dimen>
+    <dimen name="hey_big_button_padding_horizontal">9dp</dimen>
+    <dimen name="hey_big_button_padding_vertical">11dp</dimen>
+    <dimen name="hey_big_circle_button_padding">10dp</dimen>
+    <dimen name="hey_bottom_margin_top">5dp</dimen>
+    <dimen name="hey_button_default_height">44dp</dimen>
+    <dimen name="hey_button_default_radius">47dp</dimen>
+    <dimen name="hey_button_default_radius_real">23.5dp</dimen>
+    <dimen name="hey_button_height">44dp</dimen>
+    <dimen name="hey_button_margin_vertical">4dp</dimen>
+    <dimen name="hey_button_mergin_horizontal">9dp</dimen>
+    <dimen name="hey_button_padding_vertical">11dp</dimen>
+    <dimen name="hey_cancel_titlebar_padding_right">43dp</dimen>
+    <dimen name="hey_caption">9sp</dimen>
+    <dimen name="hey_card_default_bg_radius">16dp</dimen>
+    <dimen name="hey_card_large_bg_radius">18dp</dimen>
+    <dimen name="hey_card_large_height">80dp</dimen>
+    <dimen name="hey_card_normal_bg_radius">16dp</dimen>
+    <dimen name="hey_card_small_bg_radius">14dp</dimen>
+    <dimen name="hey_card_small_height">60dp</dimen>
+    <dimen name="hey_checkbox_paddingLeft">6dp</dimen>
+    <dimen name="hey_checkbox_size">22dp</dimen>
+    <dimen name="hey_common_list_margin_bottom">11dp</dimen>
+    <dimen name="hey_common_margin_bottom">4dp</dimen>
+    <dimen name="hey_common_margin_left">5dp</dimen>
+    <dimen name="hey_content_horizontal_distance">9dp</dimen>
+    <dimen name="hey_content_horizontal_distance_6_0">14dp</dimen>
+    <dimen name="hey_content_summary_margin">2dp</dimen>
+    <dimen name="hey_controller_view_icon_gap_height">0dp</dimen>
+    <dimen name="hey_controller_view_icon_gap_width">0dp</dimen>
+    <dimen name="hey_controller_view_icon_size">23dp</dimen>
+    <dimen name="hey_controller_view_icon_size_6_0">30dp</dimen>
+    <dimen name="hey_controllerview_padding_horizontal">11dp</dimen>
+    <dimen name="hey_controllerview_padding_vertical">11dp</dimen>
+    <dimen name="hey_controllview_padding_horizontal">11dp</dimen>
+    <dimen name="hey_count_picker_hour_width">38dp</dimen>
+    <dimen name="hey_count_picker_second_layout_width">58dp</dimen>
+    <dimen name="hey_count_picker_second_margin_left">2dp</dimen>
+    <dimen name="hey_count_picker_second_width">38dp</dimen>
+    <dimen name="hey_defaultLeftTextMarginRight">4dp</dimen>
+    <dimen name="hey_defaultTitleBarWidth">0dp</dimen>
+    <dimen name="hey_default_item_text_margin_right">5dp</dimen>
+    <dimen name="hey_default_textSize">@dimen/hey_s_title</dimen>
+    <dimen name="hey_dialog_button_margin_bottom">4dp</dimen>
+    <dimen name="hey_dialog_content_margin_vertical">12dp</dimen>
+    <dimen name="hey_dialog_loading_text_margin_top">6dp</dimen>
+    <dimen name="hey_dialog_loading_view_size">33dp</dimen>
+    <dimen name="hey_dialog_message_margin_bottom">7dp</dimen>
+    <dimen name="hey_dialog_message_margin_horizontal">5dp</dimen>
+    <dimen name="hey_dialog_message_margin_top">4dp</dimen>
+    <dimen name="hey_dialog_message_padding_horizontal">9dp</dimen>
+    <dimen name="hey_dialog_padding">6dp</dimen>
+    <dimen name="hey_dialog_padding_left">10dp</dimen>
+    <dimen name="hey_dialog_padding_right">8dp</dimen>
+    <dimen name="hey_dialog_padding_top">6dp</dimen>
+    <dimen name="hey_dialog_parent_padding_vertical">11dp</dimen>
+    <dimen name="hey_dialog_round_layout_bottom">20dp</dimen>
+    <dimen name="hey_dialog_round_layout_circle_bottom">15dp</dimen>
+    <dimen name="hey_dialog_round_layout_large_bottom">60dp</dimen>
+    <dimen name="hey_dialog_round_layout_top">48dp</dimen>
+    <dimen name="hey_dialog_round_layout_two_btn_distance">16dp</dimen>
+    <dimen name="hey_dialog_round_vertical_btn_top">16dp</dimen>
+    <dimen name="hey_dialog_title_margin_horizontal">3dp</dimen>
+    <dimen name="hey_dialpad_button_height">43dp</dimen>
+    <dimen name="hey_dialpad_button_radius">19dp</dimen>
+    <dimen name="hey_dialpad_button_width">59dp</dimen>
+    <dimen name="hey_dialpad_padding_bottom">3dp</dimen>
+    <dimen name="hey_dialpad_text_size">28sp</dimen>
+    <dimen name="hey_distance_10dp">10dp</dimen>
+    <dimen name="hey_distance_12dp">12dp</dimen>
+    <dimen name="hey_distance_14dp">14dp</dimen>
+    <dimen name="hey_distance_16dp">16dp</dimen>
+    <dimen name="hey_distance_18dp">18dp</dimen>
+    <dimen name="hey_distance_20dp">20dp</dimen>
+    <dimen name="hey_distance_2dp">2dp</dimen>
+    <dimen name="hey_distance_4dp">4dp</dimen>
+    <dimen name="hey_distance_6dp">6dp</dimen>
+    <dimen name="hey_distance_8dp">8dp</dimen>
+    <dimen name="hey_divide_height">0.5dp</dimen>
+    <dimen name="hey_dotStrokeWidth">0.7dp</dimen>
+    <dimen name="hey_download_idle_bg_radius">24dp</dimen>
+    <dimen name="hey_edit_bg_round_stroke_width">2dp</dimen>
+    <dimen name="hey_edittext_margin_vertical">7dp</dimen>
+    <dimen name="hey_edittext_padding_horizontal">14dp</dimen>
+    <dimen name="hey_edittext_padding_vertical">15dp</dimen>
+    <dimen name="hey_edittext_radius">12dp</dimen>
+    <dimen name="hey_fastscroll_default_thickness">7dp</dimen>
+    <dimen name="hey_fastscroll_margin">0dp</dimen>
+    <dimen name="hey_fastscroll_minimum_range">46dp</dimen>
+    <dimen name="hey_foot_note_layout_margin_vertical">17dp</dimen>
+    <dimen name="hey_foot_note_width">94dp</dimen>
+    <dimen name="hey_footnote_icon_margin_right">8dp</dimen>
+    <dimen name="hey_footnote_margin_vertical">20dp</dimen>
+    <dimen name="hey_gourp_titlebar_height">28dp</dimen>
+    <dimen name="hey_gourp_titlebar_progressbar_margin_right">6dp</dimen>
+    <dimen name="hey_group_load_padding_bottom">4dp</dimen>
+    <dimen name="hey_group_load_padding_top">7dp</dimen>
+    <dimen name="hey_group_title_height">28dp</dimen>
+    <dimen name="hey_group_title_margin_bottom">4dp</dimen>
+    <dimen name="hey_group_title_margin_top">7dp</dimen>
+    <dimen name="hey_group_title_text_size">@dimen/hey_m_desription</dimen>
+    <dimen name="hey_group_titlebar_height">28dp</dimen>
+    <dimen name="hey_hms_margintop">3dp</dimen>
+    <dimen name="hey_hms_textsize">@dimen/hey_m_desription</dimen>
+    <dimen name="hey_hmspicker_text_width_height">19dp</dimen>
+    <dimen name="hey_horizontal_normal_progress_bar_height_def">5dp</dimen>
+    <dimen name="hey_horizontal_normal_progress_bar_width_def">87dp</dimen>
+    <dimen name="hey_horizontal_segment_progress_bar_height_def">4dp</dimen>
+    <dimen name="hey_horizontal_segment_progress_bar_width_def">92dp</dimen>
+    <dimen name="hey_image_button_padding_horizontal">76dp</dimen>
+    <dimen name="hey_image_button_padding_vertical">4dp</dimen>
+    <dimen name="hey_image_title_bar_icon_margin_top">10dp</dimen>
+    <dimen name="hey_image_title_bar_icon_size">24dp</dimen>
+    <dimen name="hey_imagebutton_height">44dp</dimen>
+    <dimen name="hey_imagebutton_padding_horizontal">67dp</dimen>
+    <dimen name="hey_imagebutton_padding_vertical">6dp</dimen>
+    <dimen name="hey_information_icon_margin_vertical">6dp</dimen>
+    <dimen name="hey_information_inco_margin_right">8dp</dimen>
+    <dimen name="hey_information_view_margin_left">7dp</dimen>
+    <dimen name="hey_item_big_left_image_padding_start">20dp</dimen>
+    <dimen name="hey_item_big_left_image_padding_vertical">8dp</dimen>
+    <dimen name="hey_item_left_image_padding_vertical">3.5dp</dimen>
+    <dimen name="hey_item_touch_helper_max_drag_scroll_per_frame">19dp</dimen>
+    <dimen name="hey_item_touch_helper_swipe_escape_max_velocity">740dp</dimen>
+    <dimen name="hey_item_touch_helper_swipe_escape_velocity">111dp</dimen>
+    <dimen name="hey_l_body">57sp</dimen>
+    <dimen name="hey_l_desription">16sp</dimen>
+    <dimen name="hey_l_title">26sp</dimen>
+    <dimen name="hey_list_primary_icon_margin_left">6dp</dimen>
+    <dimen name="hey_listitem_big_lefticon_height_width">44dp</dimen>
+    <dimen name="hey_listitem_left_icon_margin_right">10dp</dimen>
+    <dimen name="hey_listitem_lefticon_height_width">30dp</dimen>
+    <dimen name="hey_listitem_margin_horizontal">2dp</dimen>
+    <dimen name="hey_listitem_margin_vertical">3dp</dimen>
+    <dimen name="hey_listitem_marging_right">6dp</dimen>
+    <dimen name="hey_listitem_max_width100">93dp</dimen>
+    <dimen name="hey_listitem_max_width136">126dp</dimen>
+    <dimen name="hey_listitem_minor_icon_margin_right">3dp</dimen>
+    <dimen name="hey_listitem_padding_right">6dp</dimen>
+    <dimen name="hey_listitem_right_icon_margin_left">6dp</dimen>
+    <dimen name="hey_listitem_summary_height">19dp</dimen>
+    <dimen name="hey_listitem_switch_marginLeft">4dp</dimen>
+    <dimen name="hey_listitem_switch_margin_left">13dp</dimen>
+    <dimen name="hey_listitem_text_normal_margin_right">5dp</dimen>
+    <dimen name="hey_listitem_widget_margin_left">4dp</dimen>
+    <dimen name="hey_listitem_widget_margin_right">6dp</dimen>
+    <dimen name="hey_listitem_widget_minor_margin_right">-4dp</dimen>
+    <dimen name="hey_listitem_widget_padding_left">@dimen/hey_content_horizontal_distance_6_0</dimen>
+    <dimen name="hey_listitem_widget_padding_vertical">11dp</dimen>
+    <dimen name="hey_listitem_widget_size">24dp</dimen>
+    <dimen name="hey_loadding_size">33dp</dimen>
+    <dimen name="hey_loadding_title_padding_vertical">7dp</dimen>
+    <dimen name="hey_loadding_view_size">22dp</dimen>
+    <dimen name="hey_loadding_view_size1">22dp</dimen>
+    <dimen name="hey_loadding_view_size2">69dp</dimen>
+    <dimen name="hey_loading_title_textview_marginLeft">3dp</dimen>
+    <dimen name="hey_loadview_text_maxheight">101dp</dimen>
+    <dimen name="hey_loadview_text_maxwidht">167dp</dimen>
+    <dimen name="hey_m_body">46sp</dimen>
+    <dimen name="hey_m_desription">13sp</dimen>
+    <dimen name="hey_m_title">20sp</dimen>
+    <dimen name="hey_main_title_margin_bottom">6dp</dimen>
+    <dimen name="hey_main_title_margin_top">3dp</dimen>
+    <dimen name="hey_multiple_default_summary_alone_padding_vertical">14.5dp</dimen>
+    <dimen name="hey_multiple_item_height">52dp</dimen>
+    <dimen name="hey_multiple_item_padding_vertical">6dp</dimen>
+    <dimen name="hey_multiple_listitem_alone_text_margin_vertical">10dp</dimen>
+    <dimen name="hey_multiple_listitem_alone_textview_margin_right">4dp</dimen>
+    <dimen name="hey_multiple_listitem_left_icon_margin_right">10dp</dimen>
+    <dimen name="hey_multiple_listitem_switch_margin_left">4dp</dimen>
+    <dimen name="hey_multiple_listitem_text_margin_vertical">15dp</dimen>
+    <dimen name="hey_multiple_switch_summary_alone_padding_vertical">12.5dp</dimen>
+    <dimen name="hey_normal_picker_width">77dp</dimen>
+    <dimen name="hey_number_picker_apm_textSize_middle">@dimen/hey_s_title</dimen>
+    <dimen name="hey_number_picker_height">128dp</dimen>
+    <dimen name="hey_number_picker_textSize">@dimen/hey_xl_title</dimen>
+    <dimen name="hey_number_picker_textSize_middle">@dimen/hey_m_title</dimen>
+    <dimen name="hey_number_picker_textSize_small">@dimen/hey_m_desription</dimen>
+    <dimen name="hey_number_picker_width">37dp</dimen>
+    <dimen name="hey_page_indicator_dot_size">@dimen/hey_pageindicator_dot_size</dimen>
+    <dimen name="hey_page_indicator_dot_spacing">15dp</dimen>
+    <dimen name="hey_page_indicator_dot_stroke_width">1px</dimen>
+    <dimen name="hey_page_indicator_height">10dp</dimen>
+    <dimen name="hey_pageindicator_dot_size">6dp</dimen>
+    <dimen name="hey_pageindicator_dot_space">3dp</dimen>
+    <dimen name="hey_pageindicator_height">11dp</dimen>
+    <dimen name="hey_picker_apm_default_text_size">18sp</dimen>
+    <dimen name="hey_picker_apm_selected_text_size">24sp</dimen>
+    <dimen name="hey_picker_colon_margin_horizontal">5.5dp</dimen>
+    <dimen name="hey_picker_colon_margin_top">1.5dp</dimen>
+    <dimen name="hey_picker_default_text_size">20sp</dimen>
+    <dimen name="hey_picker_height">89dp</dimen>
+    <dimen name="hey_picker_item_height">29dp</dimen>
+    <dimen name="hey_picker_marginVertical">22dp</dimen>
+    <dimen name="hey_picker_padding_horizontal">7dp</dimen>
+    <dimen name="hey_picker_selected_text_size">26sp</dimen>
+    <dimen name="hey_primary_minor_distance">6dp</dimen>
+    <dimen name="hey_progress_indicator_horizontal_padding">0dp</dimen>
+    <dimen name="hey_progress_indicator_spinner_track_width">6dp</dimen>
+    <dimen name="hey_progress_indicator_spinner_track_width_small">4dp</dimen>
+    <dimen name="hey_progress_indicator_text_size">12sp</dimen>
+    <dimen name="hey_progress_indicator_text_view_horizontal_margin">8dp</dimen>
+    <dimen name="hey_progress_indicator_text_view_vertical_margin">4dp</dimen>
+    <dimen name="hey_progress_indicator_vertical_padding">0dp</dimen>
+    <dimen name="hey_protocol_message_margin_top">4dp</dimen>
+    <dimen name="hey_protocol_summary_margin_bottom">7dp</dimen>
+    <dimen name="hey_protocol_summary_margin_top">6dp</dimen>
+    <dimen name="hey_protocol_title_margin_top">7dp</dimen>
+    <dimen name="hey_radio_padding_right">7dp</dimen>
+    <dimen name="hey_radio_padding_vertical">11dp</dimen>
+    <dimen name="hey_radio_size">23dp</dimen>
+    <dimen name="hey_round_button_circle_padding_large">15dp</dimen>
+    <dimen name="hey_round_button_circle_padding_normal">14dp</dimen>
+    <dimen name="hey_round_button_circle_padding_small">12dp</dimen>
+    <dimen name="hey_round_button_circle_padding_smallest">4dp</dimen>
+    <dimen name="hey_round_button_default_text_width">104dp</dimen>
+    <dimen name="hey_round_button_default_width">144dp</dimen>
+    <dimen name="hey_round_button_icon_padding_vertical">8dp</dimen>
+    <dimen name="hey_round_button_large_width">193dp</dimen>
+    <dimen name="hey_round_button_padding_horizontal">19dp</dimen>
+    <dimen name="hey_round_button_padding_vertical">12.5dp</dimen>
+    <dimen name="hey_round_title_bar_min_height">61.5dp</dimen>
+    <dimen name="hey_round_toast_min_height">54dp</dimen>
+    <dimen name="hey_s_body">38sp</dimen>
+    <dimen name="hey_s_desription">11sp</dimen>
+    <dimen name="hey_s_title">16sp</dimen>
+    <dimen name="hey_scrollbar_padding_top">34dp</dimen>
+    <dimen name="hey_seek_bar_margin_vertical">12dp</dimen>
+    <dimen name="hey_seek_bar_radius">50dp</dimen>
+    <dimen name="hey_seekbar_bg_height">198dp</dimen>
+    <dimen name="hey_seekbar_bg_margin_start">64.5dp</dimen>
+    <dimen name="hey_seekbar_bg_radius">30dp</dimen>
+    <dimen name="hey_seekbar_bg_width">60dp</dimen>
+    <dimen name="hey_seekbar_height">148dp</dimen>
+    <dimen name="hey_seekbar_height_6_0">130dp</dimen>
+    <dimen name="hey_seekbar_icon_margin_start">79.5dp</dimen>
+    <dimen name="hey_seekbar_icon_margin_top">158dp</dimen>
+    <dimen name="hey_seekbar_icon_size">50dp</dimen>
+    <dimen name="hey_seekbar_inco_size">50dp</dimen>
+    <dimen name="hey_seekbar_inco_size_6_0">30dp</dimen>
+    <dimen name="hey_seekbar_width">148dp</dimen>
+    <dimen name="hey_seekbar_width_6_0">130dp</dimen>
+    <dimen name="hey_shape_button_height">43.5dp</dimen>
+    <dimen name="hey_shape_radius">22dp</dimen>
+    <dimen name="hey_single_item_height">44dp</dimen>
+    <dimen name="hey_single_item_padding_vertical">11dp</dimen>
+    <dimen name="hey_single_item_primary_image_maring_left1">5dp</dimen>
+    <dimen name="hey_single_item_primary_image_maring_left2">6dp</dimen>
+    <dimen name="hey_single_switch_padding_vertical">9dp</dimen>
+    <dimen name="hey_slider_add_image_margin_start">143dp</dimen>
+    <dimen name="hey_slider_add_image_margin_top">47dp</dimen>
+    <dimen name="hey_slider_controller_gap_margin_inner">8dp</dimen>
+    <dimen name="hey_slider_controller_gap_margin_outer">6dp</dimen>
+    <dimen name="hey_slider_controller_height">60dp</dimen>
+    <dimen name="hey_slider_controller_margin_horizontal">12dp</dimen>
+    <dimen name="hey_slider_controller_margin_top">4dp</dimen>
+    <dimen name="hey_slider_controller_padding_horizontal">10dp</dimen>
+    <dimen name="hey_slider_height">44dp</dimen>
+    <dimen name="hey_slider_progressbar_image_margin_start">50dp</dimen>
+    <dimen name="hey_slider_progressbar_image_margin_top">59dp</dimen>
+    <dimen name="hey_slider_sub_image_margin_bottom">12dp</dimen>
+    <dimen name="hey_slider_sub_image_margin_start">12dp</dimen>
+    <dimen name="hey_slider_sub_image_margin_top">47dp</dimen>
+    <dimen name="hey_slider_text_level_margin_start">155.5dp</dimen>
+    <dimen name="hey_slider_text_level_margin_top">12dp</dimen>
+    <dimen name="hey_slider_text_title_margin_start">12dp</dimen>
+    <dimen name="hey_slider_text_title_margin_top">12dp</dimen>
+    <dimen name="hey_slider_title_margin_horizontal">20dp</dimen>
+    <dimen name="hey_slider_title_margin_vertical">3dp</dimen>
+    <dimen name="hey_small_button_padding_horizontal">20dp</dimen>
+    <dimen name="hey_small_button_padding_vertical">8.5dp</dimen>
+    <dimen name="hey_small_button_width">83dp</dimen>
+    <dimen name="hey_small_circle_button_padding">8.5dp</dimen>
+    <dimen name="hey_small_picker_width">47dp</dimen>
+    <dimen name="hey_summary_text_size">@dimen/hey_m_desription</dimen>
+    <dimen name="hey_switch_circle_padding">7dp</dimen>
+    <dimen name="hey_switch_height">26dp</dimen>
+    <dimen name="hey_switch_inner_circle_width">14dp</dimen>
+    <dimen name="hey_switch_outer_circle_stroke_width">2.5dp</dimen>
+    <dimen name="hey_switch_outer_circle_width">14dp</dimen>
+    <dimen name="hey_switch_width">42dp</dimen>
+    <dimen name="hey_three_picker_colon_margin_horizontal">4.5dp</dimen>
+    <dimen name="hey_time_picker_apm_textSize">@dimen/hey_l_title</dimen>
+    <dimen name="hey_time_picker_margin_horizontal">14dp</dimen>
+    <dimen name="hey_time_picker_width">49dp</dimen>
+    <dimen name="hey_title_bar_default_TextSize">@dimen/hey_s_title</dimen>
+    <dimen name="hey_title_bar_height">33dp</dimen>
+    <dimen name="hey_title_bar_leftImage_marginLeft">@dimen/hey_content_horizontal_distance_6_0</dimen>
+    <dimen name="hey_title_bar_leftImage_marginTopBottom">4dp</dimen>
+    <dimen name="hey_title_bar_leftTextView_marginLeft">6dp</dimen>
+    <dimen name="hey_title_bar_leftTextView_marginTopBottom">6dp</dimen>
+    <dimen name="hey_title_bar_max_width">137dp</dimen>
+    <dimen name="hey_title_bar_middleTextView_marginTopBottom">@dimen/hey_content_horizontal_distance_6_0</dimen>
+    <dimen name="hey_title_bar_rightTextView_marginRight">@dimen/hey_content_horizontal_distance_6_0</dimen>
+    <dimen name="hey_title_bar_rightTextView_marginTopBottom">6dp</dimen>
+    <dimen name="hey_title_clock_paddingtop">6dp</dimen>
+    <dimen name="hey_title_icon_margin_right">4dp</dimen>
+    <dimen name="hey_title_lefticon_size">22dp</dimen>
+    <dimen name="hey_title_loadding_view_size">17dp</dimen>
+    <dimen name="hey_title_margin_vertical">6dp</dimen>
+    <dimen name="hey_title_margin_vertical_top">27dp</dimen>
+    <dimen name="hey_title_padding_horizontal">6dp</dimen>
+    <dimen name="hey_titlebar_clock_text_size">12sp</dimen>
+    <dimen name="hey_titlebar_height">33dp</dimen>
+    <dimen name="hey_titlebar_max_width102">94dp</dimen>
+    <dimen name="hey_titlebar_max_width120">111dp</dimen>
+    <dimen name="hey_titlebar_max_width84">78dp</dimen>
+    <dimen name="hey_titlebar_right_hotspot">67dp</dimen>
+    <dimen name="hey_toast_bg_radius">24dp</dimen>
+    <dimen name="hey_toast_horizontal_distance">7dp</dimen>
+    <dimen name="hey_toast_padding_vertical">12dp</dimen>
+    <dimen name="hey_toast_width">185dp</dimen>
+    <dimen name="hey_toggle_padding">9dp</dimen>
+    <dimen name="hey_toggle_size">46dp</dimen>
+    <dimen name="hey_two_picker_colon_margin_horizontal">8dp</dimen>
+    <dimen name="hey_ui_radio_padding_vertical">20dp</dimen>
+    <dimen name="hey_unit_bg_radius">10dp</dimen>
+    <dimen name="hey_unit_padding_horizontal">7dp</dimen>
+    <dimen name="hey_vertical_button_distance">5dp</dimen>
+    <dimen name="hey_volume_background_radius">70dp</dimen>
+    <dimen name="hey_volume_seek_bar_left_padding">16dp</dimen>
+    <dimen name="hey_volume_seekbar_margin_start">29.5dp</dimen>
+    <dimen name="hey_volume_seekbar_margin_top">18dp</dimen>
+    <dimen name="hey_volume_wave_size">788dp</dimen>
+    <dimen name="hey_wear_page_indicator_padding">4dp</dimen>
+    <dimen name="hey_wear_page_indicator_radius">3dp</dimen>
+    <dimen name="hey_wear_page_indicator_rectangular_dot_distance">10dp</dimen>
+    <dimen name="hey_wearos_dialog_hor_button_padding">11dp</dimen>
+    <dimen name="hey_wearos_dialog_hor_button_size">44dp</dimen>
+    <dimen name="hey_wearos_dialog_hor_padding">15dp</dimen>
+    <dimen name="hey_wearos_dialog_padding_ver">6dp</dimen>
+    <dimen name="hey_wearos_dialog_textsize">@dimen/hey_s_title</dimen>
+    <dimen name="hey_wearos_dialog_ver_button_padding">11dp</dimen>
+    <dimen name="hey_wearos_dialog_ver_button_size">37dp</dimen>
+    <dimen name="hey_wearos_dialog_ver_padding">9dp</dimen>
+    <dimen name="hey_widget_number_picker">129dp</dimen>
+    <dimen name="hey_xl_body">69sp</dimen>
+    <dimen name="hey_xl_title">31sp</dimen>
+    <dimen name="hey_xxl_body">84sp</dimen>
+    <dimen name="hey_xxxl_body">101sp</dimen>
+    <dimen name="itemDefaultContentMarginTopBottom">12dp</dimen>
+    <dimen name="itemDefaultLeftIconMarginLeft">@dimen/hey_content_horizontal_distance_6_0</dimen>
+    <dimen name="itemDefaultLeftIconMarginRight">@dimen/hey_content_horizontal_distance_6_0</dimen>
+    <dimen name="itemDefaultRightMinorIconMarginRight">6dp</dimen>
+    <item name="hey_button_layout" type="id"/>
+    <item name="hey_dialog_content" type="id"/>
+    <item name="item_touch_helper_previous_elevation" type="id"/>
+    <item name="negative_id" type="id"/>
+    <item name="permission_allow_button" type="id"/>
+    <item name="permission_deny_button" type="id"/>
+    <item name="positive_id" type="id"/>
+    <integer name="hey_fast_valume_wave_duration">21600</integer>
+    <integer name="hey_valume_wave_duration">44000</integer>
+    <integer name="heytap_first_item_fraction">80</integer>
+    <integer name="heytap_second_item_fraction">100</integer>
+    <integer name="heytap_third_item_fraction">130</integer>
+    <integer name="progress_indicator_anim_pause_duration_ms">500</integer>
+    <integer name="progress_indicator_end_anim_duration_ms">917</integer>
+    <integer name="progress_indicator_end_anim_offset_ms">0</integer>
+    <integer name="progress_indicator_incremental_anim_duration">100</integer>
+    <integer name="progress_indicator_rotation_anim_duration_ms">1333</integer>
+    <integer name="progress_indicator_rotation_anim_offset_ms">83</integer>
+    <integer name="progress_indicator_start_anim_duration_ms">917</integer>
+    <integer name="progress_indicator_start_anim_offset_ms">583</integer>
+    <string name="app_name" translatable="false">support-lib</string>
+    <string name="color_counter_picker_hour">h</string>
+    <string name="color_counter_picker_minute">m</string>
+    <string name="color_counter_picker_second">s</string>
+    <string name="defaultText">fjslf</string>
+    <string name="hey_button_default_text">Button</string>
+    <string name="hey_button_small_text">Small Button</string>
+    <string name="hey_cancel">Cancel</string>
+    <string name="hey_default_item_summary_text" translatable="false">列表信息</string>
+    <string name="hey_default_item_text" translatable="false">List Content</string>
+    <string name="hey_default_title_text" translatable="false">标题栏</string>
+    <string name="hey_multiple_item_summary_text">List Summary</string>
+    <string name="hey_multiple_item_summary_text_long">Long Summary Long Summary Long Summary Long Summary </string>
+    <string name="hey_widget_version" translatable="false">2.1.4</string>
+    <string name="loading_default">Loading...</string>
+    <string name="pb_continue">Resume</string>
+    <string name="pb_download">Download</string>
+    <string name="pb_open">打开</string>
+    <style name="DialogAnimations">
+        <item name="android:windowEnterAnimation">@anim/hey_dialog_slide_in</item>
+        <item name="android:windowExitAnimation">@anim/hey_dialog_slide_off</item>
+    </style>
+    <style name="DialogAnimationsFromBottom">
+        <item name="android:windowEnterAnimation">@anim/hey_dialog_enter_from_bottom</item>
+        <item name="android:windowExitAnimation">@anim/hey_dialog_exit_from_top</item>
+    </style>
+    <style name="DialogAnimationsWithoutAlpha">
+        <item name="android:windowEnterAnimation">@anim/hey_dialog_slide_in_without_alpha</item>
+        <item name="android:windowExitAnimation">@anim/hey_dialog_slide_off</item>
+    </style>
+    <style name="DialogTheme" parent="HeytapTheme">
+        
+        <item name="android:windowFrame">@null</item>
+        
+        <item name="android:windowIsFloating">true</item>
+        
+        <item name="android:windowIsTranslucent">true</item>
+        
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:background">@android:color/transparent</item>
+        
+        <item name="android:windowBackground">@android:color/transparent</item>
+        
+        <item name="android:backgroundDimEnabled">true</item>
+        
+        <item name="android:backgroundDimAmount">1.0</item>
+    </style>
+    <style name="HeyArrowStyle">
+        <item name="android:visibility">visible</item>
+    </style>
+    <style name="HeyBackTitleStyle" parent="HeyTitleTextStyle">
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="HeyBasePickerStyle">
+        <item name="android:layout_height">@dimen/hey_picker_height</item>
+        <item name="android:layout_marginVertical">@dimen/hey_picker_marginVertical</item>
+        <item name="heyTextSizeSelected">@dimen/hey_picker_selected_text_size</item>
+        <item name="heyTextSizeNormal">@dimen/hey_picker_default_text_size</item>
+        <item name="heyFontFamily">"sys-sans-en"</item>
+    </style>
+    <style name="HeyBigCircleButtonStyle">
+        <item name="android:scaleType">center</item>
+        <item name="android:padding">@dimen/hey_big_circle_button_padding</item>
+        <item name="android:layout_marginBottom">@dimen/hey_common_margin_bottom</item>
+        <item name="heyImageButtonType">circle</item>
+    </style>
+    <style name="HeyBigShapeButtonBottomStyle" parent="HeyShapeButtonStyleNormal">
+        <item name="android:layout_marginTop">@dimen/hey_bottom_margin_top</item>
+        <item name="android:layout_marginBottom">4dp</item>
+    </style>
+    <style name="HeyBigShapeButtonStyle" parent="HeyShapeButtonStyleNormal">
+        <item name="android:paddingVertical">@dimen/hey_big_button_padding_vertical</item>
+        <item name="android:layout_marginVertical">@dimen/hey_button_margin_vertical</item>
+    </style>
+    <style name="HeyBigShapeButtonTopStyle" parent="HeyShapeButtonStyleNormal">
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:layout_marginBottom">@dimen/hey_bottom_margin_top</item>
+    </style>
+    <style name="HeyButtonStyle" parent="android:Widget.Button">
+        <item name="android:textColor">@drawable/hey_textcolor_selector</item>
+        <item name="android:paddingBottom">@dimen/hey_listitem_widget_size</item>
+        <item name="android:paddingTop">@dimen/hey_listitem_widget_size</item>
+    </style>
+    <style name="HeyCancelTitleStyle" parent="HeyTitleTextStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:textColor">@color/hey_colorAccent</item>
+    </style>
+    <style name="HeyCardBackgroundStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginHorizontal">2dp</item>
+    </style>
+    <style name="HeyCheckBoxStyle" parent="android:Widget">
+        <item name="HeyCheckBoxStateList">@drawable/hey_checkbox_state</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:textAppearance">?android:attr/textAppearance</item>
+        <item name="HeyCheckboxSize">@dimen/hey_listitem_widget_size</item>
+        <item name="android:height">@dimen/hey_listitem_widget_size</item>
+        <item name="android:width">@dimen/hey_listitem_widget_size</item>
+        <item name="android:textColor">#FF000000</item>
+        <item name="android:gravity">center_vertical|left</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+    </style>
+    <style name="HeyClockStyle">
+        <item name="android:textSize">@dimen/hey_l_desription</item>
+        <item name="android:textColor">@color/hey_clock_color</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:format12Hour">h:mm</item>
+        <item name="android:format24Hour">HH:mm</item>
+    </style>
+    <style name="HeyCommonDivideStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/hey_divide_height</item>
+        <item name="android:background">@color/default_foreground_color</item>
+        <item name="android:layout_marginHorizontal">@dimen/hey_content_horizontal_distance_6_0</item>
+    </style>
+    <style name="HeyControllerViewStyle">
+        <item name="backgroundBarColor">@color/default_background_color</item>
+        <item name="progressBarColor">@color/horizontal_progressbar_color</item>
+    </style>
+    <style name="HeyDialogTheme" parent="@android:style/ThemeOverlay.Material.Dialog">
+        <item name="android:windowBackground">@color/black</item>
+    </style>
+    <style name="HeyDialpadButtonStyle">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/hey_dialpad_text_size</item>
+        <item name="android:layout_width">@dimen/hey_dialpad_button_width</item>
+        <item name="android:layout_height">@dimen/hey_dialpad_button_height</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:paddingBottom">@dimen/hey_dialpad_padding_bottom</item>
+        <item name="heyCornerRadius">@dimen/hey_dialpad_button_radius</item>
+        <item name="heyBackgroundColor">@color/default_background_color</item>
+        <item name="android:fontFamily">"sys-sans-en"</item>
+    </style>
+    <style name="HeyEditTextStyle">
+        <item name="android:background">@drawable/hey_edit_bg</item>
+        <item name="android:textSize">@dimen/hey_l_desription</item>
+        <item name="android:textCursorDrawable">@drawable/hey_cursor</item>
+        <item name="android:fontFamily">"oplus-sans-medium"</item>
+        <item name="android:paddingVertical">@dimen/hey_edittext_padding_vertical</item>
+        <item name="android:paddingHorizontal">@dimen/hey_edittext_padding_horizontal</item>
+        <item name="android:layout_marginVertical">@dimen/hey_edittext_margin_vertical</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="HeyGradientButtonStyle">
+        <item name="gradientButtonIconDrawable">@drawable/hey_phone</item>
+        <item name="gradientButtonBackground">@color/switch_checked_color</item>
+        <item name="gradientButtonRadius">@dimen/hey_button_default_radius</item>
+        <item name="android:padding">6dp</item>
+        <item name="android:clickable">true</item>
+    </style>
+    <style name="HeyGroupTitleStyle">
+        <item name="groupTitleShowLoadding">false</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">match_parent</item>
+    </style>
+    <style name="HeyGroupTitleTextStyle" parent="android:Widget.TextView">
+        <item name="android:textColor">@color/group_title_text_color</item>
+        <item name="android:textSize">@dimen/hey_m_desription</item>
+        <item name="android:layout_marginTop">@dimen/hey_group_title_margin_top</item>
+        <item name="android:layout_marginBottom">@dimen/hey_group_title_margin_bottom</item>
+        <item name="android:fontFamily">"oplus-sans-medium"</item>
+    </style>
+    <style name="HeyHMSPickerTextStyle">
+        <item name="android:singleLine">false</item>
+        <item name="android:textSize">@dimen/hey_xl_title</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="HeyLargePickerStyle" parent="HeyBasePickerStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:foreground">@drawable/hey_picker_gradient_fg</item>
+    </style>
+    <style name="HeyLoadingDialogContentStyle">
+    </style>
+    <style name="HeyMainTitleStyle">
+        <item name="heyText">@string/hey_default_title_text</item>
+    </style>
+    <style name="HeyMainTitleTextStyle" parent="HeyTitleTextStyle">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/hey_s_title</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <style name="HeyMultipleDefaultItemStyle" parent="HeySingleDefaultItemStyle">
+        <item name="heySummaryText">@string/hey_multiple_item_summary_text</item>
+        <item name="heyPrimaryImage">@drawable/hey_arrow</item>
+    </style>
+    <style name="HeyMultipleItemWithCheckBoxStyle">
+        <item name="heyText">@string/hey_multiple_item_summary_text</item>
+        <item name="heySummaryText">@string/hey_multiple_item_summary_text</item>
+    </style>
+    <style name="HeyMultipleItemWithLeftImageStyle" parent="HeySingleDefaultItemStyle">
+        <item name="heyLeftImage">@drawable/hey_msg</item>
+        <item name="heySummaryText">@string/hey_multiple_item_summary_text</item>
+    </style>
+    <style name="HeyMultipleItemWithRadioButtonStyle">
+        <item name="heyText">@string/hey_multiple_item_summary_text</item>
+        <item name="heySummaryText">@string/hey_multiple_item_summary_text</item>
+    </style>
+    <style name="HeyMultipleListItemContextTextStyle" parent="HeyTextStyle">
+        <item name="android:layout_marginTop">@dimen/hey_multiple_listitem_text_margin_vertical</item>
+    </style>
+    <style name="HeyMultipleListItemSummaryTextStyle" parent="HeySummaryTextStyle">
+        <item name="android:layout_marginBottom">@dimen/hey_multiple_listitem_text_margin_vertical</item>
+    </style>
+    <style name="HeyNoSwipeStyle" parent="@style/HeytapTheme">
+        <item name="android:windowSwipeToDismiss">false</item>
+    </style>
+    <style name="HeyNoSwipeStyleCompat" parent="@style/HeytapCompatTheme">
+        <item name="android:windowSwipeToDismiss">false</item>
+    </style>
+    <style name="HeyNormalPickerStyle" parent="HeyBasePickerStyle">
+        <item name="android:layout_width">@dimen/hey_normal_picker_width</item>
+        <item name="android:foreground">@drawable/hey_picker_gradient_fg</item>
+    </style>
+    <style name="HeyOvalButtonStyle">
+        <item name="android:paddingHorizontal">@dimen/hey_imagebutton_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/hey_imagebutton_padding_vertical</item>
+        <item name="android:layout_marginVertical">@dimen/hey_button_margin_vertical</item>
+        <item name="heyImageButtonType">oval</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="HeyOvalButtonStyleWithMargin">
+        <item name="android:paddingHorizontal">@dimen/hey_imagebutton_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/hey_imagebutton_padding_vertical</item>
+        <item name="heyImageButtonType">oval</item>
+        <item name="android:layout_marginVertical">@dimen/hey_button_margin_vertical</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/hey_shape_button_height</item>
+    </style>
+    <style name="HeyPageIndicatorStyle">
+        
+        <item name="dotSize">@dimen/hey_pageindicator_dot_size</item>
+        
+        <item name="dotSpacing">@dimen/hey_pageindicator_dot_space</item>
+        
+        <item name="traceDotColor">#FFFFFF</item>
+        
+        <item name="dotStrokeWidth">@dimen/hey_dotStrokeWidth</item>
+        <item name="android:layout_gravity">bottom|center</item>
+    </style>
+    <style name="HeyProgressBarStyle" parent="@android:style/Widget.ProgressBar.Large">
+        <item name="android:minWidth">18dip</item>
+        <item name="android:maxWidth">18dip</item>
+        <item name="android:minHeight">18dip</item>
+        <item name="android:maxHeight">18dip</item>
+    </style>
+    <style name="HeyProgressBarStyleBig">
+        <item name="android:indeterminate">true</item>
+        <item name="android:indeterminateDrawable">@drawable/hey_loadding</item>
+    </style>
+    <style name="HeyProgressButtonStyle">
+        <item name="progressButtonBackground">@drawable/hey_download_idle</item>
+        <item name="progressbtnTextColor">@color/download_disable</item>
+        <item name="progressbtnDownloadTextColor">@color/white</item>
+        <item name="progressbtnTextSize">@dimen/hey_default_textSize</item>
+        <item name="android:layout_marginVertical">@dimen/hey_button_margin_vertical</item>
+    </style>
+    <style name="HeyProgressSpinnerIndicatorDefault" parent="android:Widget">
+        <item name="android:theme">@style/ThemeOverlay.HeyProgressSpinnerIndicatorDefault</item>
+    </style>
+    <style name="HeyProgressSpinnerIndicatorDrawable" parent="android:Widget">
+        <item name="spinnerTrackColor">@color/hey_progress_spinner_indicator_spinner_track_color</item>
+        <item name="spinnerProgressColor">@color/hey_progress_spinner_indicator_spinner_progress_color</item>
+        <item name="spinnerTrackWidth">@dimen/hey_progress_indicator_spinner_track_width</item>
+        <item name="spinnerStartAngle">0</item>
+    </style>
+    <style name="HeyRadioStyle" parent="android:Widget.CompoundButton.RadioButton">
+        <item name="android:background">@drawable/hey_radio_bg</item>
+        <item name="android:layoutDirection">rtl</item>
+        <item name="android:textDirection">ltr</item>
+    </style>
+    <style name="HeyRoundButtonCircleLargeStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/hey_round_button_circle_padding_large</item>
+        <item name="android:src">@drawable/hey_round_button_icon_down_30</item>
+        <item name="android:background">@color/default_background_color</item>
+        <item name="heyImageButtonType">circle</item>
+    </style>
+    <style name="HeyRoundButtonCircleNormalStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/hey_round_button_circle_padding_normal</item>
+        <item name="android:src">@drawable/hey_round_button_icon_down_24</item>
+        <item name="android:background">@color/default_background_color</item>
+        <item name="heyImageButtonType">circle</item>
+    </style>
+    <style name="HeyRoundButtonCircleSmallStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/hey_round_button_circle_padding_small</item>
+        <item name="android:src">@drawable/hey_round_button_icon_down_24</item>
+        <item name="android:background">@color/default_background_color</item>
+        <item name="heyImageButtonType">circle</item>
+    </style>
+    <style name="HeyRoundButtonCircleSmallestStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">@dimen/hey_round_button_circle_padding_smallest</item>
+        <item name="android:src">@drawable/hey_round_button_icon_down_24</item>
+        <item name="android:background">@color/default_background_color</item>
+        <item name="heyImageButtonType">circle</item>
+    </style>
+    <style name="HeyRoundButtonIconDefaultStyle">
+        <item name="android:layout_width">@dimen/hey_round_button_default_width</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingHorizontal">@dimen/hey_round_button_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/hey_round_button_icon_padding_vertical</item>
+        <item name="android:src">@drawable/hey_round_button_icon_down_24</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@color/default_background_color</item>
+        <item name="heyImageButtonType">oval</item>
+    </style>
+    <style name="HeyRoundButtonTextDefaultStyle">
+        <item name="android:layout_width">@dimen/hey_round_button_default_width</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/hey_default_textSize</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:text">@string/hey_button_small_text</item>
+        <item name="android:fontFamily">"oplus-sans-medium"</item>
+        <item name="android:paddingHorizontal">@dimen/hey_round_button_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/hey_round_button_padding_vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="heyBackgroundColor">@color/default_background_color</item>
+        <item name="heyCornerRadius">@dimen/hey_shape_button_height</item>
+        <item name="heyUseClip">true</item>
+    </style>
+    <style name="HeyRoundButtonTextLargeStyle" parent="HeyRoundButtonTextDefaultStyle">
+        <item name="android:layout_width">@dimen/hey_round_button_large_width</item>
+    </style>
+    <style name="HeySeekBarStyle">
+        <item name="android:layout_width">@dimen/hey_seekbar_width</item>
+        <item name="android:layout_height">@dimen/hey_seekbar_height</item>
+        <item name="android:max">100</item>
+        <item name="android:progress">50</item>
+        <item name="android:rotation">270</item>
+        <item name="android:rotationX">0.5</item>
+        <item name="android:rotationY">0.5</item>
+    </style>
+    <style name="HeySeekBarStyle_6_0">
+        <item name="android:layout_width">@dimen/hey_seekbar_width_6_0</item>
+        <item name="android:layout_height">@dimen/hey_seekbar_height_6_0</item>
+        <item name="android:max">100</item>
+        <item name="android:progress">50</item>
+        <item name="android:rotation">270</item>
+    </style>
+    <style name="HeyShapeButtonStyleNormal">
+        <item name="android:textSize">@dimen/hey_default_textSize</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:layout_centerHorizontal">true</item>
+        <item name="android:minWidth">144dp</item>
+        <item name="android:text">@string/hey_button_default_text</item>
+        <item name="android:fontFamily">"oplus-sans-medium"</item>
+        <item name="android:paddingHorizontal">@dimen/hey_big_button_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/hey_button_padding_vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="heyBackgroundColor">@color/default_background_color</item>
+        <item name="heyCornerRadius">@dimen/hey_shape_button_height</item>
+        <item name="heyUseClip">true</item>
+    </style>
+    <style name="HeySingleBigLeftImageItemStyle">
+        <item name="android:paddingStart">@dimen/hey_item_big_left_image_padding_start</item>
+        <item name="android:paddingEnd">@dimen/hey_listitem_padding_right</item>
+        <item name="android:paddingTop">@dimen/hey_item_big_left_image_padding_vertical</item>
+        <item name="android:paddingBottom">@dimen/hey_item_big_left_image_padding_vertical</item>
+        <item name="heyLeftImageWidth">@dimen/hey_listitem_big_lefticon_height_width</item>
+        <item name="heyLeftImageHeight">@dimen/hey_listitem_big_lefticon_height_width</item>
+    </style>
+    <style name="HeySingleDefaultItemStyle">
+        <item name="heyText">@string/hey_default_item_text</item>
+        <item name="heyPrimaryImage">@drawable/hey_arrow</item>
+    </style>
+    <style name="HeySingleListItemTextStyle" parent="HeyTextStyle">
+        <item name="android:layout_marginVertical">@dimen/hey_listitem_widget_padding_vertical</item>
+    </style>
+    <style name="HeySliderStyle">
+        <item name="android:layout_marginHorizontal">@dimen/hey_listitem_margin_horizontal</item>
+    </style>
+    <style name="HeySmallCircleButtonStyle">
+        <item name="android:padding">@dimen/hey_small_circle_button_padding</item>
+        <item name="android:layout_marginBottom">@dimen/hey_common_margin_bottom</item>
+        <item name="heyImageButtonType">circle</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="HeySmallPickerStyle" parent="HeyBasePickerStyle">
+        <item name="android:layout_width">@dimen/hey_small_picker_width</item>
+        <item name="android:foreground">@drawable/hey_picker_gradient_fg</item>
+    </style>
+    <style name="HeySmallShapeButtonStyle" parent="HeyBigShapeButtonStyle">
+        <item name="android:minWidth">@dimen/hey_small_button_width</item>
+        <item name="android:paddingHorizontal">@dimen/hey_small_button_padding_horizontal</item>
+        <item name="android:paddingVertical">@dimen/hey_small_button_padding_vertical</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:singleLine">true</item>
+    </style>
+    <style name="HeyStateViewStyleDefault">
+        <item name="heyTextColor">@color/hey_dialog_title_content_color</item>
+        <item name="heyBoolTextColor">@color/white</item>
+        <item name="heySummaryTextColor">@color/hey_dialog_title_content_color</item>
+        <item name="heyTextSize">@dimen/hey_l_desription</item>
+        <item name="heyBoolTextSize">@dimen/hey_l_desription</item>
+        <item name="heySummaryTextSize">@dimen/hey_m_desription</item>
+        <item name="heyTextMarginIcon">4dp</item>
+        <item name="heyBoolTextMarginIcon">8dp</item>
+        <item name="heyShapeBtnMarginContent">25.5dp</item>
+        <item name="heyShapeBtnMarginSummary">12dp</item>
+        <item name="heyImageBtnMarginContent">24dp</item>
+        <item name="heyImageBtnMarginSummary">12dp</item>
+        <item name="heyFontFamily">"oplus-sans-medium"</item>
+    </style>
+    <style name="HeySummaryTextStyle" parent="android:Widget.TextView">
+        <item name="android:text">@string/hey_default_item_summary_text</item>
+        <item name="android:textColor">@color/hey_summary_color</item>
+        <item name="android:textSize">@dimen/hey_m_desription</item>
+        <item name="android:lineSpacingMultiplier">1.03</item>
+        <item name="android:fontFamily">"sys-sans-en"</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <style name="HeySwitchStyle">
+        <item name="barHeight">@dimen/hey_switch_height</item>
+        <item name="barWidth">@dimen/hey_switch_width</item>
+        <item name="android:clickable">true</item>
+        <item name="android:checked">true</item>
+        <item name="barCheckedColor">@color/hey_colorAccent</item>
+        <item name="barUncheckedColor">@color/switch_unchecked_color</item>
+
+        <item name="outerCircleWidth">@dimen/hey_switch_outer_circle_width</item>
+        <item name="outerCircleStrokeWidth">@dimen/hey_switch_outer_circle_stroke_width</item>
+        <item name="outerCircleColor">@color/white</item>
+        <item name="heyBarPaddingHorizontal">@dimen/hey_bar_padding_horizontal</item>
+        <item name="heyBarPaddingVertical">@dimen/hey_bar_padding_vertical</item>
+
+        <item name="innerCircleWidth">@dimen/hey_switch_inner_circle_width</item>
+        <item name="innerCircleColor">@color/switch_inner_circle_color</item>
+        <item name="circlePadding">@dimen/hey_switch_circle_padding</item>
+        <item name="loadingDrawable">@drawable/switch_loading</item>
+
+        <item name="barUncheckedDisabledColor">@color/switch_unchecked_disabled_color</item>
+        <item name="outerCircleUncheckedDisabledColor">@color/switch_outer_circle_unchecked_disabled_color</item>
+        <item name="innerCircleUncheckedDisabledColor">@color/switch_inner_circle_unchecked_disabled_color</item>
+        <item name="outerCircleCheckedDisabledColor">@color/switch_outer_circle_checked_disabled_color</item>
+        <item name="barCheckedDisabledColor">@color/switch_checked_disabled_color</item>
+        <item name="innerCircleCheckedDisabledColor">@color/switch_inner_circle_checked_disabled_color</item>
+
+        
+        
+        
+        
+        
+        <item name="isLoaddingStyle">false</item>
+        <item name="themeEnable">false</item>
+    </style>
+    <style name="HeySystemCheckBoxTheme">
+        <item name="colorAccent">@color/hey_colorAccent</item>
+        <item name="colorControlNormal">@color/white</item>
+    </style>
+    <style name="HeyTextStyle" parent="android:Widget.TextView">
+        <item name="android:text">@string/hey_default_item_text</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/hey_s_title</item>
+        <item name="android:lineSpacingMultiplier">1.03</item>
+        <item name="android:fontFamily">"oplus-sans-medium"</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+    <style name="HeyTextViewStyle">
+        <item name="android:textSize">27sp</item>
+        <item name="android:textColor">#D8000000</item>
+        <item name="android:paddingTop">20dp</item>
+        <item name="android:paddingBottom">20dp</item>
+        <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingRight">2dp</item>
+        <item name="android:background">@drawable/hey_text_view_background</item>
+    </style>
+    <style name="HeyTitleNoClockStyle" parent="HeyMainTitleStyle">
+        <item name="heyShowClock">false</item>
+    </style>
+    <style name="HeyTitleNoIconStyle" parent="HeyMainTitleStyle">
+        <item name="heyTitleShowIcon">false</item>
+    </style>
+    <style name="HeyTitleTextStyle" parent="android:Widget.TextView">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">@dimen/hey_l_desription</item>
+        <item name="android:text">@string/hey_default_title_text</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:fontFamily">"sys-sans-en"</item>
+        <item name="android:layout_marginVertical">@dimen/hey_title_margin_vertical</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="HeyUIRadioStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/hey_l_desription</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">"oplus-sans-medium"</item>
+        <item name="android:paddingLeft">@dimen/hey_content_horizontal_distance_6_0</item>
+        <item name="android:paddingVertical">@dimen/hey_listitem_widget_padding_vertical</item>
+        <item name="android:lineSpacingMultiplier">1.03</item>
+        <item name="android:layoutDirection">rtl</item>
+        <item name="android:textDirection">ltr</item>
+        <item name="android:background">@drawable/hey_base_item_bg</item>
+    </style>
+    <style name="HeyUnitStyle" parent="HeySummaryTextStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">@dimen/hey_s_desription</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:paddingHorizontal">@dimen/hey_unit_padding_horizontal</item>
+        <item name="android:background">@drawable/hey_unit_shape</item>
+    </style>
+    <style name="HeytapCompatTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowSwipeToDismiss">true</item>
+        <item name="android:fontFamily">"sys-sans-en"</item>
+        <item name="android:windowBackground">@color/black</item>
+        <item name="android:lineSpacingMultiplier">1.03</item>
+    </style>
+    <style name="HeytapTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen">
+        <item name="android:windowSwipeToDismiss">true</item>
+        <item name="android:fontFamily">"sys-sans-en"</item>
+        <item name="android:windowBackground">@color/black</item>
+        <item name="android:lineSpacingMultiplier">1.03</item>
+    </style>
+    <style name="ThemeOverlay.HeyProgressSpinnerIndicatorDefault" parent="">
+
+    <item name="progressIndicatorSpinnerStyle">@style/HeyProgressSpinnerIndicatorDrawable</item>
+  </style>
+    <style name="animation_translucent_translate" parent="@android:style/Animation.Translucent">
+        <item name="android:windowExitAnimation">@anim/hey_activity_anim</item>
+    </style>
+    <declare-styleable name="HeyAppTitleBar">
+        <attr name="heyText"/>
+        <attr name="heyClockColor"/>
+        <attr name="heyShowIcon"/>
+        <attr name="heyShowClock"/>
+        <attr name="heyEllipsize"/>
+        <attr format="reference" name="heyTitleLeftImage"/>
+        <attr format="reference" name="heyTitleRightImage"/>
+        <attr format="boolean" name="heyTitleShowRightImage"/>
+    </declare-styleable>
+    <declare-styleable name="HeyArcTextClock">
+        <attr format="boolean" name="isArcLayout"/>
+    </declare-styleable>
+    <declare-styleable name="HeyBackTitleBar">
+        <attr name="heyText"/>
+        <attr name="heyClockColor"/>
+        <attr name="heyShowClock"/>
+        <attr name="heyEllipsize"/>
+        <attr format="boolean" name="heyTitleShowIcon"/>
+    </declare-styleable>
+    <declare-styleable name="HeyCancelTitleBar">
+        <attr name="heyText"/>
+    </declare-styleable>
+    <declare-styleable name="HeyCheckBox">
+        
+        <attr format="reference" name="HeyCheckBoxStateList"/>
+        
+        <attr format="boolean" name="HeyCheckboxStateAllSelect"/>
+        
+        <attr format="boolean" name="HeyCheckboxStatePartSelect"/>
+        <attr format="integer" name="HeyCheckBoxStyle"/>
+        <attr format="dimension" name="HeyCheckboxSize"/>
+        <attr name="HeyCheckBoxState">
+            <enum name="unSelected" value="0"/>
+            <enum name="partSelected" value="1"/>
+            <enum name="allSelected" value="2"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="HeyDialog">
+        <attr format="string" name="contentText"/>
+        <attr format="dimension" name="contentTextSize"/>
+        <attr format="color" name="contentTextColor"/>
+        <attr format="dimension" name="contentTextMarginTop"/>
+        <attr format="dimension" name="contentTextMarginBottom"/>
+        <attr format="dimension" name="contentTextMarginLeft"/>
+        <attr format="dimension" name="contentTextMarginRight"/>
+        <attr format="dimension" name="contentTextPaddingTop"/>
+        <attr format="dimension" name="contentTextPaddingBottom"/>
+        <attr format="dimension" name="contentTextPaddingLeft"/>
+        <attr format="dimension" name="contentTextPaddingRight"/>
+
+        <attr format="string" name="summaryText"/>
+        <attr format="dimension" name="summaryTextSize"/>
+        <attr format="color" name="summaryTextColor"/>
+        <attr format="dimension" name="summaryTextMarginTop"/>
+        <attr format="dimension" name="summaryTextMarginBottom"/>
+        <attr format="dimension" name="summaryTextMarginLeft"/>
+        <attr format="dimension" name="summaryTextMarginRight"/>
+        <attr format="dimension" name="summaryTextPaddingTop"/>
+        <attr format="dimension" name="summaryTextPaddingBottom"/>
+        <attr format="dimension" name="summaryTextPaddingLeft"/>
+        <attr format="dimension" name="summaryTextPaddingRight"/>
+
+        <attr format="string" name="firBtnText"/>
+        <attr format="color" name="firBtnTextColor"/>
+        <attr format="dimension" name="firBtnTextSize"/>
+        <attr format="color" name="firBtnBackgroundColor"/>
+        <attr format="dimension" name="firBtnMarginTop"/>
+        <attr format="dimension" name="firBtnMarginBottom"/>
+        <attr format="dimension" name="firBtnMarginLeft"/>
+        <attr format="dimension" name="firBtnMarginRight"/>
+        <attr format="dimension" name="firBtnTextPaddingTop"/>
+        <attr format="dimension" name="firBtnTextPaddingBottom"/>
+        <attr format="dimension" name="firBtnTextPaddingLeft"/>
+        <attr format="dimension" name="firBtnTextPaddingRight"/>
+
+        <attr format="string" name="secBtnText"/>
+        <attr format="color" name="secBtnTextColor"/>
+        <attr format="dimension" name="secBtnTextSize"/>
+        <attr format="color" name="secBtnBackgroundColor"/>
+        <attr format="dimension" name="secBtnMarginTop"/>
+        <attr format="dimension" name="secBtnMarginBottom"/>
+        <attr format="dimension" name="secBtnMarginLeft"/>
+        <attr format="dimension" name="secBtnMarginRight"/>
+        <attr format="dimension" name="secBtnTextPaddingTop"/>
+        <attr format="dimension" name="secBtnTextPaddingBottom"/>
+        <attr format="dimension" name="secBtnTextPaddingLeft"/>
+        <attr format="dimension" name="secBtnTextPaddingRight"/>
+    </declare-styleable>
+    <declare-styleable name="HeyFootNoteView">
+        <attr format="reference" name="heyFootIcon"/>
+        <attr format="reference" name="heyFootText"/>
+    </declare-styleable>
+    <declare-styleable name="HeyGradientButton">
+        
+        <attr format="reference" name="gradientButtonIconDrawable"/>
+        
+        <attr format="color|reference" name="gradientButtonBackground"/>
+        
+        <attr format="integer|reference" name="gradientButtonRadius"/>
+        
+        <attr format="enum" name="gradientButtonType">
+            <enum name="oval" value="1"/>
+            <enum name="circle" value="0"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="HeyGroupTitle">
+        <attr format="color|reference" name="groupTitleBackground"/>
+        <attr format="boolean" name="groupTitleShowLoadding"/>
+        <attr format="color|reference" name="groupTitleLeftTextColor"/>
+        <attr format="dimension|reference" name="groupTitleLeftTextSize"/>
+        <attr format="string|reference" name="groupTitleText"/>
+        <attr format="color|reference" name="groupTitleMiddleTextColor"/>
+        <attr format="dimension|reference" name="groupTitleMiddleTextSize"/>
+    </declare-styleable>
+    <declare-styleable name="HeyHorizontalProgressBar">
+        <attr format="color|reference" name="backgroundBarColor"/>
+        <attr format="color|reference" name="progressBarColor"/>
+        <attr format="integer|reference" name="maxProgress"/>
+        <attr format="integer|reference" name="minProgress"/>
+        <attr format="integer|reference" name="curProgress"/>
+        <attr name="progressBarType">
+            <enum name="normal" value="0"/>
+            <enum name="segment" value="1"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="HeyImageButton">
+        
+        <attr format="enum" name="heyImageButtonType">
+            <enum name="oval" value="1"/>
+            <enum name="circle" value="0"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="HeyImageTitleBar">
+        <attr name="heyPrimaryImage"/>
+    </declare-styleable>
+    <declare-styleable name="HeyInformationView">
+        <attr format="reference" name="heyInfoIcon"/>
+        <attr format="reference" name="heyInfoText"/>
+    </declare-styleable>
+    <declare-styleable name="HeyMainTitleBar">
+        <attr name="heyText"/>
+        <attr name="heyEllipsize"/>
+        <attr name="heyShowClock"/>
+        <attr name="heyShowIcon"/>
+    </declare-styleable>
+    <declare-styleable name="HeyMultiplItemWithLeftImage">
+        <attr name="heyText"/>
+        <attr name="heyPrimaryImage"/>
+        <attr name="heyLeftImage"/>
+        <attr name="heySummaryText"/>
+    </declare-styleable>
+    <declare-styleable name="HeyMultipleDefaultItem">
+        <attr name="heyText"/>
+        <attr name="heyPrimaryImage"/>
+        <attr name="heySummaryText"/>
+        <attr name="heyShowIcon"/>
+        <attr name="heyMinorImage"/>
+        <attr name="heyShowMinorImage"/>
+    </declare-styleable>
+    <declare-styleable name="HeyMultipleItemWithCheckBox">
+        <attr name="heyText"/>
+        <attr name="heySummaryText"/>
+        <attr format="boolean" name="heyChecked"/>
+    </declare-styleable>
+    <declare-styleable name="HeyMultipleItemWithRadioButton">
+        <attr name="heyText"/>
+        <attr name="heySummaryText"/>/>
+    </declare-styleable>
+    <declare-styleable name="HeyNumberPicker">
+        
+        <attr format="reference|integer" name="heyShownCount"/>
+        
+        <attr format="reference|boolean" name="heyShowDivider"/>
+        <attr format="reference|color" name="heyDividerColor"/>
+        <attr format="reference|dimension" name="heyDividerMarginLeft"/>
+        <attr format="reference|dimension" name="heyDividerMarginRight"/>
+        <attr format="reference|dimension" name="heyDividerHeight"/>
+        <attr format="reference|color" name="heyTextColorNormal"/>
+        <attr format="reference|color" name="heyTextColorSelected"/>
+        <attr format="reference|color" name="heyTextColorSelectedFocused"/>
+        <attr format="reference|color" name="heyTextColorHint"/>
+        <attr format="reference|dimension" name="heyTextSizeNormal"/>
+        <attr format="reference|dimension" name="heyTextSizeSelected"/>
+        <attr format="reference|dimension" name="heyTextSizeHint"/>
+        <attr format="reference" name="heyTextArray"/>
+        <attr format="reference|integer" name="heyMinValue"/>
+        <attr format="reference|integer" name="heyMaxValue"/>
+        <attr format="reference|boolean" name="heyWrapSelectorWheel"/>
+        <attr format="reference|boolean" name="heyRespondChangeOnDetached"/>
+        <attr format="reference|string" name="heyHintText"/>
+        <attr format="reference|string" name="heyEmptyItemHint"/>
+        <attr format="reference|dimension" name="heyMarginStartOfHint"/>
+        <attr format="reference|dimension" name="heyMarginEndOfHint"/>
+        <attr format="reference|dimension" name="heyItemPaddingHorizontal"/>
+        <attr format="reference|dimension" name="heyItemPaddingVertical"/>
+        <attr format="reference|boolean" name="heyRespondChangeInMainThread"/>
+        <attr format="reference|string" name="heyTextEllipsize"/>
+
+        
+        <attr format="reference" name="heyAlternativeTextArrayWithMeasureHint"/>
+        <attr format="reference" name="heyAlternativeTextArrayWithoutMeasureHint"/>
+        
+        <attr format="reference|string" name="heyAlternativeHint"/>
+        <attr name="heyFontFamily"/>
+    </declare-styleable>
+    <declare-styleable name="HeyPageIndicator">
+        <attr format="color" name="dotColor"/>
+        <attr format="color" name="traceDotColor"/>
+        <attr format="dimension|reference" name="dotMarginTop"/>
+        <attr format="dimension" name="dotSize"/>
+        <attr format="dimension" name="dotSpacing"/>
+        <attr format="dimension" name="dotStrokeWidth"/>
+        <attr format="dimension" name="dotCornerRadius"/>
+        <attr format="boolean" name="dotClickable"/>
+        <attr format="boolean" name="dotIsStrokeStyle"/>
+        <attr format="dimension" name="dotRoundMargin"/>
+        <attr name="dotRoundAngle"/>
+        <attr name="dotOrientation"/>
+    </declare-styleable>
+    <declare-styleable name="HeyProgressButton">
+        <attr format="reference" name="progressButtonBackground"/>
+        <attr format="dimension|reference" name="progressbtnTextSize"/>
+        <attr format="color|reference" name="progressbtnTextColor"/>
+        <attr format="color|reference" name="progressbtnDownloadTextColor"/>
+        <attr format="string|reference" name="progressbtnText"/>
+        <attr format="integer|reference" name="progressbtnMax"/>
+        <attr format="integer|reference" name="progressbtnProgress"/>
+        <attr format="enum" name="progressbtnState">
+            <enum name="normal" value="0"/>
+            <enum name="downloading" value="1"/>
+            <enum name="pause" value="2"/>
+            <enum name="finish" value="3"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="HeyRoundImageAntiAlias">
+        <attr name="heyUseClip"/>
+        <attr format="dimension" name="heyRadius"/>
+    </declare-styleable>
+    <declare-styleable name="HeyRoundImageView">
+        
+        <attr format="dimension" name="border_width"/>
+        
+        <attr format="color" name="border_color"/>
+        
+        <attr format="dimension" name="corner_radius"/>
+        
+        <attr format="dimension" name="leftTop_corner_radius"/>
+        
+        <attr format="dimension" name="rightTop_corner_radius"/>
+        
+        <attr format="dimension" name="leftBottom_corner_radius"/>
+        
+        <attr format="dimension" name="rightBottom_corner_radius"/>
+        
+        <attr format="enum" name="type">
+            <enum name="oval" value="2"/>
+            <enum name="round" value="1"/>
+            <enum name="circle" value="0"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="HeyRoundProgress">
+        
+        <attr format="color" name="srp_roundColor"/>
+        
+        <attr format="dimension" name="srp_roundWidth"/>
+        
+        <attr format="color" name="srp_progressColor"/>
+        
+        <attr format="dimension" name="srp_progressWidth"/>
+        
+        <attr format="integer" name="srp_max"/>
+        
+        <attr format="integer" name="srp_startAngle"/>
+        
+        <attr name="srp_style">
+            <enum name="STROKE" value="0"/>
+            <enum name="FILL" value="1"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="HeyShapeButton">
+        <attr name="heyBackgroundColor"/>
+        <attr name="heyCornerRadius"/>
+        <attr name="heyUseClip"/>
+    </declare-styleable>
+    <declare-styleable name="HeySingleDefaultItem">
+        <attr name="heyText"/>
+        <attr name="heyPrimaryImage"/>
+        <attr name="heyMinorImage"/>
+        <attr name="heyShowMinorImage"/>
+    </declare-styleable>
+    <declare-styleable name="HeySingleItemWithCheckBox">
+        <attr name="heyText"/>
+    </declare-styleable>
+    <declare-styleable name="HeySingleItemWithLeftImage">
+        <attr name="heyText"/>
+        <attr name="heyPrimaryImage"/>
+        <attr name="heyLeftImage"/>
+        <attr name="android:paddingStart"/>
+        <attr name="android:paddingEnd"/>
+        <attr name="android:paddingTop"/>
+        <attr name="android:paddingBottom"/>
+        <attr format="dimension" name="heyLeftImageHeight"/>
+        <attr format="dimension" name="heyLeftImageWidth"/>
+    </declare-styleable>
+    <declare-styleable name="HeySingleItemWithOnlyLeftImage">
+        <attr name="heyText"/>
+        <attr name="heyLeftImage"/>
+    </declare-styleable>
+    <declare-styleable name="HeySingleItemWithSummary">
+        <attr name="heyText"/>
+        <attr name="heySummaryText"/>
+    </declare-styleable>
+    <declare-styleable name="HeyStateView">
+        <attr name="heyText"/>
+        <attr name="heySummaryText"/>
+        <attr format="reference" name="heyIcon"/>
+        <attr format="string|reference" name="heyShapeBtnText"/>
+        <attr format="reference" name="heyImageBtnIcon"/>
+        <attr format="color|reference" name="heyTextColor"/>
+        <attr format="color|reference" name="heyBoolTextColor"/>
+        <attr format="color|reference" name="heySummaryTextColor"/>
+        <attr format="dimension|reference" name="heyTextSize"/>
+        <attr format="dimension|reference" name="heyBoolTextSize"/>
+        <attr format="dimension|reference" name="heySummaryTextSize"/>
+        <attr format="dimension|reference" name="heyTextMarginIcon"/>
+        <attr format="dimension|reference" name="heyBoolTextMarginIcon"/>
+        <attr format="dimension|reference" name="heyShapeBtnMarginSummary"/>
+        <attr format="dimension|reference" name="heyShapeBtnMarginContent"/>
+        <attr format="dimension|reference" name="heyImageBtnMarginSummary"/>
+        <attr format="dimension|reference" name="heyImageBtnMarginContent"/>
+        <attr name="heyFontFamily"/>
+    </declare-styleable>
+    <declare-styleable name="HeySwitch">
+        
+        <attr format="dimension" name="barHeight"/>
+        
+        <attr format="dimension" name="barWidth"/>
+        
+        <attr format="dimension" name="outerCircleWidth"/>
+        
+        <attr format="dimension" name="outerCircleStrokeWidth"/>
+        
+        <attr format="dimension" name="outerCircleColor"/>
+        
+        <attr format="dimension" name="innerCircleWidth"/>
+
+        <attr format="dimension" name="heyBarPaddingVertical"/>
+        <attr format="dimension" name="heyBarPaddingHorizontal"/>
+
+        
+        <attr format="dimension" name="circlePadding"/>
+
+        <attr format="reference" name="loadingDrawable"/>
+        <attr format="color" name="barCheckedColor"/>
+        <attr format="color" name="barUncheckedColor"/>
+        <attr format="color" name="innerCircleColor"/>
+
+        <attr format="color" name="barUncheckedDisabledColor"/>
+        <attr format="color" name="barCheckedDisabledColor"/>
+        <attr format="color" name="outerCircleUncheckedDisabledColor"/>
+
+        <attr format="color" name="outerCircleCheckedDisabledColor"/>
+        <attr format="color" name="innerCircleUncheckedDisabledColor"/>
+        <attr format="color" name="innerCircleCheckedDisabledColor"/>
+
+        <attr format="reference" name="themedCheckedDrawable"/>
+        <attr format="reference" name="themedUncheckedDrawable"/>
+        <attr format="reference" name="themedLoadingCheckedBackground"/>
+        <attr format="reference" name="themedLoadingUncheckedBackground"/>
+        <attr format="reference" name="themedLoadingDrawable"/>
+        <attr format="boolean" name="isLoaddingStyle"/>
+        <attr format="boolean" name="themeEnable"/>
+    </declare-styleable>
+    <declare-styleable name="ProgressSpinnerDrawable">
+        
+        <attr format="reference|color" name="spinnerProgressColor"/>
+
+        
+        <attr format="reference|color" name="spinnerTrackColor"/>
+
+        
+        <attr format="dimension" name="spinnerTrackWidth"/>
+
+        
+        <attr format="boolean" name="showEmptySweepAngle"/>
+
+        
+        <attr format="boolean" name="fullSweepAngle"/>
+
+        
+        <attr format="float" name="spinnerStartAngle"/>
+
+        
+        <attr format="float" name="spinnerSweepAngle"/>
+
+        
+        <attr format="float" name="spinnerTrackStartAngle"/>
+
+        
+        <attr format="float" name="spinnerTrackEndAngle"/>
+
+        
+        <attr name="android:level"/>
+
+        
+        <attr format="float" name="spinnerRotation"/>
+
+        
+        <attr name="android:gravity"/>
+    </declare-styleable>
+    <declare-styleable name="RecyclerView">
+        
+        <attr format="string" name="layoutManager"/>
+
+        
+        
+        
+        <eat-comment/>
+
+        <attr name="android:orientation"/>
+        <attr name="android:descendantFocusability"/>
+        <attr format="integer" name="spanCount"/>
+        <attr format="boolean" name="reverseLayout"/>
+        <attr format="boolean" name="stackFromEnd"/>
+        <attr format="boolean" name="fastScrollEnabled"/>
+        <attr format="reference" name="fastScrollVerticalThumbDrawable"/>
+        <attr format="reference" name="fastScrollVerticalTrackDrawable"/>
+        <attr format="reference" name="fastScrollHorizontalThumbDrawable"/>
+        <attr format="reference" name="fastScrollHorizontalTrackDrawable"/>
+    </declare-styleable>
+    <declare-styleable name="WearPageIndicator">
+        <attr format="dimension" name="margin"/>
+        <attr format="dimension" name="radius"/>
+        <attr format="color" name="selectedColor"/>
+        <attr format="color" name="unselectedColor"/>
+        <attr name="dotOrientation"/>
+        <attr name="dotRoundAngle"/>
+    </declare-styleable>
+    <declare-styleable name="WearProgressSpinnerIndicator">
+
+        
+        <attr format="reference" name="spinner"/>
+
+        
+        <attr format="float" name="progress"/>
+
+        
+        <attr name="android:gravity"/>
+
+        <attr name="android:text"/>
+
+        
+        <attr name="android:indeterminate"/>
+    </declare-styleable>
+</resources>

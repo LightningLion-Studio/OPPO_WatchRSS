@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <android.view.ViewStub
+        android:id="@+id/right_minor_icon_viewstub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/hey_listitem_widget_margin_left"
+        android:layout_marginRight="@dimen/hey_listitem_widget_minor_margin_right"
+        android:layout="@layout/hey_view_stub_right_minor_icon" />
+
+    <ImageView
+        android:id="@+id/right_primary_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/hey_listitem_widget_margin_left"
+        style="@style/HeyArrowStyle"
+        android:src="@drawable/hey_arrow" />
+</LinearLayout>

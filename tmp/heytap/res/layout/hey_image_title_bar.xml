@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/hey_round_title_bar_min_height">
+
+    <com.heytap.wearable.support.widget.HeyRoundImageAntiAlias
+        android:id="@+id/image_icon"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/hey_image_title_bar_icon_margin_top"
+        android:layout_width="@dimen/hey_image_title_bar_icon_size"
+        android:layout_height="@dimen/hey_image_title_bar_icon_size"/>
+</RelativeLayout>

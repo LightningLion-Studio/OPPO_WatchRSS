@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<drawable xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:targetApi="N_MR1"
+    class="com.heytap.wearable.support.widget.progressindicator.ProgressSpinnerDrawable"
+    app:spinnerProgressColor="@color/hey_progress_spinner_indicator_spinner_progress_color"
+    app:spinnerTrackColor="@color/hey_progress_spinner_indicator_spinner_track_color"
+    app:spinnerTrackWidth="@dimen/hey_progress_indicator_spinner_track_width" />

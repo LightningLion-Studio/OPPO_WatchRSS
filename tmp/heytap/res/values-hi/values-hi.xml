@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="apm">
+        <item>पूर्वाह्न</item>
+        <item>अपराह्न</item>
+    </string-array>
+    <dimen name="hey_hms_textsize">8sp</dimen>
+    <string name="color_counter_picker_hour">घंटे</string>
+    <string name="color_counter_picker_minute">मिनट</string>
+    <string name="color_counter_picker_second">सेकंड</string>
+    <string name="hey_cancel">रद्द करें</string>
+    <string name="loading_default">लोड हो रहा है...</string>
+    <string name="pb_continue">पुन: जारी रखें</string>
+    <string name="pb_download">डाउनलोड करें</string>
+</resources>

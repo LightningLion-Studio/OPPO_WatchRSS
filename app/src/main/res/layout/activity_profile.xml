@@ -9,6 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:scrollbars="none"
         android:fillViewport="true">
 
         <LinearLayout
@@ -29,9 +30,11 @@
                 android:id="@+id/account_entry"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:padding="6dp">
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_settings_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
 
                 <FrameLayout
                     android:layout_width="48dp"
@@ -45,67 +48,68 @@
                         android:gravity="center"
                         android:text="欢"
                         android:textColor="@android:color/white"
-                        android:textSize="18sp" />
+                        android:textSize="20sp" />
                 </FrameLayout>
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="center_horizontal"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <com.heytap.wearable.support.widget.HeyTextView
                         android:id="@+id/text_account_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
                         android:text="欢太账号"
                         android:textColor="@android:color/white"
-                        android:textSize="16sp" />
+                        android:textSize="18sp" />
 
                     <com.heytap.wearable.support.widget.HeyTextView
                         android:id="@+id/text_account_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
+                        android:layout_marginTop="2dp"
                         android:text="未登录"
                         android:textColor="@android:color/darker_gray"
-                        android:textSize="12sp" />
+                        android:textSize="14sp" />
                 </LinearLayout>
-            </LinearLayout>
 
-            <com.heytap.wearable.support.widget.HeyButton
-                android:id="@+id/button_login"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="6dp"
-                android:text="欢太账号登录" />
+                <com.heytap.wearable.support.widget.HeyButton
+                    android:id="@+id/button_login"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="登录" />
+            </LinearLayout>
 
             <com.heytap.wearable.support.widget.HeyMultipleDefaultItem
                 android:id="@+id/item_favorites"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp" />
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_settings_card" />
 
             <com.heytap.wearable.support.widget.HeyMultipleDefaultItem
                 android:id="@+id/item_watch_later"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp" />
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_settings_card" />
 
             <com.heytap.wearable.support.widget.HeyMultipleDefaultItem
                 android:id="@+id/item_settings"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp" />
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_settings_card" />
 
             <com.heytap.wearable.support.widget.HeyMultipleDefaultItem
                 android:id="@+id/item_about"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp" />
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_settings_card" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

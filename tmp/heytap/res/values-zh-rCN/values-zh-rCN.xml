@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="apm">
+        <item>上午</item>
+        <item>下午</item>
+    </string-array>
+    <string name="color_counter_picker_hour">时</string>
+    <string name="color_counter_picker_minute">分</string>
+    <string name="color_counter_picker_second">秒</string>
+    <string name="hey_button_default_text">按钮</string>
+    <string name="hey_button_small_text">小按钮</string>
+    <string name="hey_cancel">取消</string>
+    <string name="hey_multiple_item_summary_text">辅助文字</string>
+    <string name="hey_multiple_item_summary_text_long">辅助长文字辅助长文字辅助长文字辅助长文字辅助长文字</string>
+    <string name="loading_default">正在加载...</string>
+    <string name="pb_continue">继续</string>
+    <string name="pb_download">下载</string>
+    <string name="pb_open">打开</string>
+</resources>

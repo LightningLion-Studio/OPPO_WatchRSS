@@ -15,10 +15,9 @@
         android:textSize="@dimen/hey_m_title" />
 
     <com.heytap.wearable.support.widget.HeyTextView
-        android:id="@+id/text_settings_usage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="当前已用 0MB"
+        android:text="阅读与缓存"
         android:textColor="@android:color/darker_gray"
         android:textSize="@dimen/hey_s_desription" />
 </LinearLayout>

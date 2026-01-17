@@ -1,0 +1,17 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape>
+            <corners android:radius="@dimen/hey_download_idle_bg_radius" />
+            <solid android:color="@color/default_background_color" />
+        </shape>
+    </item>
+
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <corners android:radius="@dimen/hey_download_idle_bg_radius" />
+                <solid android:color="@color/default_foreground_color" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

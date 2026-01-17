@@ -17,6 +17,7 @@ import com.lightningstudio.watchrss.data.rss.RssChannel
 import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
 import com.lightningstudio.watchrss.ui.adapter.HomeEntry
 import com.lightningstudio.watchrss.ui.adapter.HomeEntryAdapter
+import com.lightningstudio.watchrss.ui.util.SwipeRevealCallback
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -27,6 +28,7 @@ class MainActivity : BaseHeytapActivity() {
     }
 
     private lateinit var homeAdapter: HomeEntryAdapter
+    private lateinit var swipeHelper: SwipeRevealCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +41,7 @@ class MainActivity : BaseHeytapActivity() {
                 startActivity(Intent(this, ProfileActivity::class.java))
             },
             onChannelClick = { channel ->
+                if (::swipeHelper.isInitialized && swipeHelper.closeOpenItem()) return@HomeEntryAdapter
                 openChannel(channel)
             },
             onChannelLongClick = { channel ->
@@ -46,6 +49,18 @@ class MainActivity : BaseHeytapActivity() {
             },
             onAddRssClick = {
                 startActivity(Intent(this, AddRssActivity::class.java))
+            },
+            onMoveTopClick = { channel ->
+                if (::swipeHelper.isInitialized) {
+                    swipeHelper.closeOpenItem()
+                }
+                viewModel.moveToTop(channel)
+            },
+            onMarkReadClick = { channel ->
+                if (::swipeHelper.isInitialized) {
+                    swipeHelper.closeOpenItem()
+                }
+                viewModel.markChannelRead(channel)
             }
         )
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -72,32 +87,11 @@ class MainActivity : BaseHeytapActivity() {
     }
 
     private fun attachQuickSwipe(recyclerView: RecyclerView) {
-        val helper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean = false
-
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder
-            ): Int {
-                val entry = homeAdapter.getEntry(viewHolder.adapterPosition)
-                return if (entry is HomeEntry.Channel) ItemTouchHelper.LEFT else 0
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.adapterPosition
-                if (position == RecyclerView.NO_POSITION) return
-                val entry = homeAdapter.getEntry(position)
-                if (entry is HomeEntry.Channel) {
-                    showChannelActions(entry.channel, quick = true)
-                }
-                homeAdapter.notifyItemChanged(position)
-            }
-        })
-        helper.attachToRecyclerView(recyclerView)
+        swipeHelper = SwipeRevealCallback(recyclerView) { viewHolder ->
+            val entry = homeAdapter.getEntry(viewHolder.adapterPosition)
+            entry is HomeEntry.Channel
+        }
+        ItemTouchHelper(swipeHelper).attachToRecyclerView(recyclerView)
     }
 
     private fun showChannelActions(channel: RssChannel, quick: Boolean) {

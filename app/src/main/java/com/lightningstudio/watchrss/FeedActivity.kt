@@ -14,6 +14,7 @@ import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.recycler.widget.helper.ItemTouchHelper
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.ui.adapter.FeedEntryAdapter
+import com.lightningstudio.watchrss.ui.util.SwipeRevealCallback
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.FeedViewModel
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ class FeedActivity : BaseHeytapActivity() {
     }
 
     private lateinit var feedAdapter: FeedEntryAdapter
+    private lateinit var swipeHelper: SwipeRevealCallback
     private var currentTitle: String = "RSS"
     private var isRefreshing: Boolean = false
     private var canLoadMore: Boolean = false
@@ -36,13 +38,27 @@ class FeedActivity : BaseHeytapActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.feed_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
         feedAdapter = FeedEntryAdapter(
+            scope = lifecycleScope,
             onItemClick = { item ->
+                if (::swipeHelper.isInitialized && swipeHelper.closeOpenItem()) return@FeedEntryAdapter
                 val intent = Intent(this, DetailActivity::class.java)
                 intent.putExtra(DetailActivity.EXTRA_ITEM_ID, item.id)
                 startActivity(intent)
             },
             onItemLongClick = { item ->
                 showItemActions(item)
+            },
+            onFavoriteClick = { item ->
+                if (::swipeHelper.isInitialized) {
+                    swipeHelper.closeOpenItem()
+                }
+                viewModel.toggleFavorite(item.id)
+            },
+            onWatchLaterClick = { item ->
+                if (::swipeHelper.isInitialized) {
+                    swipeHelper.closeOpenItem()
+                }
+                viewModel.toggleWatchLater(item.id)
             },
             onHeaderClick = { openChannelDetail() },
             onRefreshClick = { viewModel.refresh() },
@@ -125,36 +141,11 @@ class FeedActivity : BaseHeytapActivity() {
     }
 
     private fun attachQuickSwipe(recyclerView: RecyclerView) {
-        val helper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean = false
-
-            override fun getSwipeDirs(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder
-            ): Int {
-                val entry = feedAdapter.getEntry(viewHolder.adapterPosition)
-                return if (entry is com.lightningstudio.watchrss.ui.adapter.FeedEntry.Item) {
-                    ItemTouchHelper.LEFT
-                } else {
-                    0
-                }
-            }
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val position = viewHolder.adapterPosition
-                if (position == RecyclerView.NO_POSITION) return
-                val entry = feedAdapter.getEntry(position)
-                if (entry is com.lightningstudio.watchrss.ui.adapter.FeedEntry.Item) {
-                    showItemActions(entry.item)
-                }
-                feedAdapter.notifyItemChanged(position)
-            }
-        })
-        helper.attachToRecyclerView(recyclerView)
+        swipeHelper = SwipeRevealCallback(recyclerView) { viewHolder ->
+            val entry = feedAdapter.getEntry(viewHolder.adapterPosition)
+            entry is com.lightningstudio.watchrss.ui.adapter.FeedEntry.Item
+        }
+        ItemTouchHelper(swipeHelper).attachToRecyclerView(recyclerView)
     }
 
     private fun showItemActions(item: com.lightningstudio.watchrss.data.rss.RssItem) {

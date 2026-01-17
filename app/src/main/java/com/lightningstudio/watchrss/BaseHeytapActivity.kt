@@ -127,17 +127,23 @@ open class BaseHeytapActivity : ComponentActivity() {
     }
 
     private fun resetViewState(view: View) {
+        val skipScale = view.getTag(R.id.tag_skip_scale_reset) == true
+        val skipTranslation = view.getTag(R.id.tag_skip_translation_reset) == true
         view.isPressed = false
         view.isSelected = false
         view.isActivated = false
         view.stateListAnimator = null
         view.clearAnimation()
         view.animate().cancel()
-        view.scaleX = 1f
-        view.scaleY = 1f
+        if (!skipScale) {
+            view.scaleX = 1f
+            view.scaleY = 1f
+        }
         view.alpha = 1f
-        view.translationX = 0f
-        view.translationY = 0f
+        if (!skipTranslation) {
+            view.translationX = 0f
+            view.translationY = 0f
+        }
         if (view is ViewGroup) {
             for (index in 0 until view.childCount) {
                 val child = view.getChildAt(index)

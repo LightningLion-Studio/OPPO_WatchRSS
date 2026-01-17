@@ -5,6 +5,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.heytap.wearable.support.widget.HeySwitch
 import com.heytap.wearable.support.widget.HeyTextView
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.SettingsViewModel
@@ -27,7 +28,7 @@ class SettingsActivity : BaseHeytapActivity() {
     private lateinit var minusButton: HeyTextView
     private lateinit var plusButton: HeyTextView
     private lateinit var themeValue: HeyTextView
-    private lateinit var themeToggle: HeyTextView
+    private lateinit var themeToggle: HeySwitch
     private lateinit var fontValue: HeyTextView
     private lateinit var fontMinus: HeyTextView
     private lateinit var fontPlus: HeyTextView
@@ -58,9 +59,7 @@ class SettingsActivity : BaseHeytapActivity() {
             viewModel.updateCacheLimitMb(next)
         }
 
-        themeToggle.setOnClickListener {
-            viewModel.toggleReadingTheme()
-        }
+        themeToggle.setOnClickListener { viewModel.toggleReadingTheme() }
 
         fontMinus.setOnClickListener {
             val next = fontOptions.lastOrNull { it < currentFontSp } ?: return@setOnClickListener
@@ -89,6 +88,7 @@ class SettingsActivity : BaseHeytapActivity() {
                 launch {
                     viewModel.readingThemeDark.collect { isDark ->
                         themeValue.text = if (isDark) "深色" else "浅色"
+                        themeToggle.isChecked = isDark
                     }
                 }
                 launch {

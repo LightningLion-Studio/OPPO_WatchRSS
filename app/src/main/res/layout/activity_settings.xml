@@ -8,6 +8,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:scrollbars="none"
         android:fillViewport="true">
 
         <LinearLayout
@@ -25,61 +26,73 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_settings_card"
-                android:baselineAligned="true"
-                android:baselineAlignedChildIndex="0"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:paddingLeft="14dp"
                 android:paddingRight="14dp"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp">
 
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/text_cache_label"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:includeFontPadding="false"
-                    android:text="缓存上限"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_cache_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:includeFontPadding="false"
+                        android:text="缓存上限"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/button_cache_minus"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@drawable/bg_round_icon_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:text="-"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_cache_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:layout_marginRight="8dp"
+                        android:includeFontPadding="false"
+                        android:text="50MB"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/button_cache_plus"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@drawable/bg_round_icon_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:text="+"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
+                </LinearLayout>
 
                 <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/button_cache_minus"
+                    android:id="@+id/text_settings_usage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingLeft="6dp"
-                    android:paddingRight="6dp"
-                    android:textColor="@android:color/white"
-                    android:text="-"
-                    android:textSize="@dimen/hey_s_title" />
-
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/text_cache_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:includeFontPadding="false"
-                    android:text="50MB"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
-
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/button_cache_plus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingLeft="6dp"
-                    android:paddingRight="6dp"
-                    android:textColor="@android:color/white"
-                    android:text="+"
-                    android:textSize="@dimen/hey_s_title" />
+                    android:layout_marginTop="6dp"
+                    android:text="当前已用 0MB"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="@dimen/hey_s_desription" />
             </LinearLayout>
 
             <LinearLayout
@@ -95,38 +108,36 @@
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp">
 
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/text_reading_theme_label"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:includeFontPadding="false"
-                    android:text="阅读主题"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
+                    android:orientation="vertical">
 
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/text_reading_theme_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="8dp"
-                    android:includeFontPadding="false"
-                    android:text="深色"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_reading_theme_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
+                        android:text="阅读主题"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
 
-                <com.heytap.wearable.support.widget.HeyTextView
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_reading_theme_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:includeFontPadding="false"
+                        android:text="深色"
+                        android:textColor="@android:color/darker_gray"
+                        android:textSize="@dimen/hey_s_desription" />
+                </LinearLayout>
+
+                <com.heytap.wearable.support.widget.HeySwitch
                     android:id="@+id/button_reading_theme_toggle"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingLeft="6dp"
-                    android:paddingRight="6dp"
-                    android:text="切换"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
+                    android:layout_height="wrap_content" />
             </LinearLayout>
 
             <LinearLayout
@@ -136,58 +147,71 @@
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_settings_card"
                 android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:paddingLeft="14dp"
                 android:paddingRight="14dp"
                 android:paddingTop="10dp"
                 android:paddingBottom="10dp">
 
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/text_font_size_label"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:includeFontPadding="false"
-                    android:text="字体大小"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_font_size_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:includeFontPadding="false"
+                        android:text="字体大小"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/button_font_minus"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@drawable/bg_round_icon_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:text="-"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_font_size_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="8dp"
+                        android:layout_marginRight="8dp"
+                        android:includeFontPadding="false"
+                        android:text="14sp"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/button_font_plus"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="@drawable/bg_round_icon_button"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:text="+"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/hey_s_title" />
+                </LinearLayout>
 
                 <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/button_font_minus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingLeft="6dp"
-                    android:paddingRight="6dp"
-                    android:text="-"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
-
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/text_font_size_value"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:includeFontPadding="false"
-                    android:text="14sp"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
-
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/button_font_plus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingLeft="6dp"
-                    android:paddingRight="6dp"
-                    android:text="+"
-                    android:textColor="@android:color/white"
-                    android:textSize="@dimen/hey_s_title" />
+                    android:layout_marginTop="6dp"
+                    android:text="正文阅读字号"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="@dimen/hey_s_desription" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

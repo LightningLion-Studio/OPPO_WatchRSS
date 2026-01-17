@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="apm">
+        <item>AM</item>
+        <item>PM</item>
+    </string-array>
+    <dimen name="hey_hms_textsize">10sp</dimen>
+    <string name="color_counter_picker_hour">giờ</string>
+    <string name="color_counter_picker_minute">phút</string>
+    <string name="color_counter_picker_second">giây</string>
+    <string name="hey_cancel">Hủy</string>
+    <string name="loading_default">Đang tải...</string>
+    <string name="pb_continue">Tiếp tục</string>
+    <string name="pb_download">Tải xuống</string>
+</resources>

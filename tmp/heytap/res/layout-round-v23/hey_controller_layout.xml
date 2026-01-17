@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_height="wrap_content">
+
+    <com.heytap.wearable.support.widget.HeyVolmunImageView
+        android:id="@+id/iv_vol_sub"
+        android:layout_width="@dimen/hey_controller_view_icon_size"
+        android:layout_height="@dimen/hey_controller_view_icon_size"
+        android:layout_weight="0"
+        android:layout_marginRight="@dimen/hey_listitem_marging_right"
+        android:background="@drawable/hey_volume_down" />
+
+    <View android:layout_width="@dimen/hey_controller_view_icon_gap_width"
+        android:layout_height="@dimen/hey_controller_view_icon_gap_height"
+        android:background="#323337"
+        android:layout_weight="0"/>
+
+    <com.heytap.wearable.support.widget.HeyHorizontalProgressBar
+        android:id="@+id/horizontalProgressBar"
+        android:layout_gravity="center_vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/hey_distance_8dp"
+        android:layout_weight="1"/>
+
+    <View android:layout_width="@dimen/hey_controller_view_icon_gap_width"
+        android:layout_height="@dimen/hey_controller_view_icon_gap_height"
+        android:background="#323337"
+        android:layout_weight="0"/>
+
+    <com.heytap.wearable.support.widget.HeyVolmunImageView
+        android:id="@+id/iv_vol_add"
+        android:layout_width="@dimen/hey_controller_view_icon_size"
+        android:layout_height="@dimen/hey_controller_view_icon_size"
+        android:layout_marginLeft="@dimen/hey_listitem_marging_right"
+        android:background="@drawable/hey_volume_add"
+        android:layout_weight="0" />
+</merge>

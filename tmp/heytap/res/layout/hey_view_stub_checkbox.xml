@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.heytap.wearable.support.widget.HeyCheckBox
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/right_checkbox"
+    android:layout_width="@dimen/hey_listitem_widget_size"
+    android:layout_height="@dimen/hey_listitem_widget_size"
+    style="@style/HeyCheckBoxStyle"/>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="@dimen/hey_toast_width"
+    android:background="@drawable/hey_toast_bg"
+    android:paddingVertical="@dimen/hey_toast_padding_vertical"
+    android:layout_marginHorizontal="@dimen/hey_content_horizontal_distance_6_0"
+    >
+    <TextView
+        android:ellipsize="end"
+        android:maxLines="6"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:id="@+id/hey_tv_toast"
+        android:textColor="@color/black"
+        android:paddingHorizontal="@dimen/hey_toast_horizontal_distance"
+        android:breakStrategy="simple"
+        android:textSize="@dimen/hey_s_title"
+        android:layout_width="@dimen/hey_toast_width"
+        android:layout_height="wrap_content"
+        android:fontFamily="oplus-sans-medium">
+    </TextView>
+</FrameLayout>
+

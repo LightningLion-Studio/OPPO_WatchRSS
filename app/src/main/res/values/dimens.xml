@@ -2,7 +2,8 @@
 <resources>
     <dimen name="watch_safe_padding">24dp</dimen>
     <dimen name="detail_block_spacing">8dp</dimen>
-    <dimen name="detail_title_text_size">18sp</dimen>
-    <dimen name="detail_subtitle_text_size">16sp</dimen>
-    <dimen name="detail_body_text_size">14sp</dimen>
+    <dimen name="detail_title_safe_padding">24dp</dimen>
+    <dimen name="detail_title_text_size">20sp</dimen>
+    <dimen name="detail_subtitle_text_size">18sp</dimen>
+    <dimen name="detail_body_text_size">16sp</dimen>
 </resources>

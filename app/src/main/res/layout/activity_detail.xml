@@ -9,6 +9,7 @@
         android:id="@+id/detail_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:scrollbars="none"
         android:fillViewport="true"
         android:padding="@dimen/watch_safe_padding">
 
@@ -22,29 +23,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
+                android:paddingStart="@dimen/detail_title_safe_padding"
+                android:paddingEnd="@dimen/detail_title_safe_padding"
                 android:textSize="@dimen/hey_m_title" />
 
-            <LinearLayout
-                android:id="@+id/detail_actions_top"
-                android:layout_width="match_parent"
+            <com.heytap.wearable.support.widget.HeyButton
+                android:id="@+id/button_open"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <com.heytap.wearable.support.widget.HeyButton
-                    android:id="@+id/button_favorite"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="收藏" />
-
-                <com.heytap.wearable.support.widget.HeyButton
-                    android:id="@+id/button_like"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="8dp"
-                    android:text="点赞" />
-            </LinearLayout>
+                android:text="打开原文"
+                android:visibility="gone" />
 
             <LinearLayout
                 android:id="@+id/content_container"
@@ -61,19 +51,26 @@
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <com.heytap.wearable.support.widget.HeyButton
-                    android:id="@+id/button_open"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="打开原文"
-                    android:visibility="gone" />
+                <ImageButton
+                    android:id="@+id/button_favorite"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_round_icon_button"
+                    android:contentDescription="收藏"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_action_favorite"
+                    android:tint="@android:color/white" />
 
-                <com.heytap.wearable.support.widget.HeyButton
+                <ImageButton
                     android:id="@+id/button_share"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="8dp"
-                    android:text="分享" />
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="12dp"
+                    android:background="@drawable/bg_round_icon_button"
+                    android:contentDescription="分享"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_action_share"
+                    android:tint="@android:color/white" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

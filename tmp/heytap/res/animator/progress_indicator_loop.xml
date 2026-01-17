@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:ordering="sequentially">
+  <set
+      android:ordering="together">
+    <objectAnimator
+        android:duration="@integer/progress_indicator_rotation_anim_duration_ms"
+        android:interpolator="@anim/progress_indicator_easing_outgoing_25_incoming_25"
+        android:propertyName="rotation"
+        android:startOffset="@integer/progress_indicator_rotation_anim_offset_ms"
+        android:valueFrom="0"
+        android:valueTo="360"
+        android:valueType="floatType" />
+    <objectAnimator
+        android:duration="@integer/progress_indicator_start_anim_duration_ms"
+        android:interpolator="@anim/progress_indicator_easing_outgoing_25_incoming_50"
+        android:propertyName="startAngle"
+        android:startOffset="@integer/progress_indicator_start_anim_offset_ms"
+        android:valueFrom="0"
+        android:valueTo="360"
+        android:valueType="floatType" />
+    <objectAnimator
+        android:duration="@integer/progress_indicator_end_anim_duration_ms"
+        android:interpolator="@anim/progress_indicator_easing_outgoing_50_incoming_25"
+        android:propertyName="endAngle"
+        android:startOffset="@integer/progress_indicator_end_anim_offset_ms"
+        android:valueFrom="0"
+        android:valueTo="360"
+        android:valueType="floatType" />
+  </set>
+  <objectAnimator
+      android:startOffset="@integer/progress_indicator_anim_pause_duration_ms"
+      />
+</set>

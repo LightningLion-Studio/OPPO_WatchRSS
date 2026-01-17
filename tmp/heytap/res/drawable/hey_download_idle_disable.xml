@@ -1,0 +1,8 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape>
+            <corners android:radius="@dimen/hey_download_idle_bg_radius" />
+            <solid android:color="#1A1A1A" />
+        </shape>
+    </item>
+</layer-list>

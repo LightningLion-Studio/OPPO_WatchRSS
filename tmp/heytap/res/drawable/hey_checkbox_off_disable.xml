@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/hey_listitem_widget_size"
+    android:height="@dimen/hey_listitem_widget_size"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillAlpha="0.4"
+        android:fillColor="#00000000"
+        android:pathData="M24,9.5L24,9.5A14.5,14.5 0,0 1,38.5 24L38.5,24A14.5,14.5 0,0 1,24 38.5L24,38.5A14.5,14.5 0,0 1,9.5 24L9.5,24A14.5,14.5 0,0 1,24 9.5z"
+        android:strokeWidth="3"
+        android:strokeAlpha="0.4"
+        android:strokeColor="#B3B3B3" />
+</vector>

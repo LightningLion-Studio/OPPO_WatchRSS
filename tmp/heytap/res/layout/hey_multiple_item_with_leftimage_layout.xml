@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <com.heytap.wearable.support.widget.HeyRoundImageAntiAlias
+            android:id="@+id/back_icon"
+            android:layout_width="@dimen/hey_listitem_lefticon_height_width"
+            android:layout_height="@dimen/hey_listitem_lefticon_height_width"
+            android:layout_marginRight="@dimen/hey_listitem_left_icon_margin_right"
+            android:scaleType="centerCrop"/>
+
+        <include
+            layout="@layout/hey_content_summary_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@+id/back_icon"
+            android:orientation="vertical" />
+    </LinearLayout>
+
+    <android.view.ViewStub
+        android:id="@+id/arrow_viewStub"
+        android:layout_marginLeft="@dimen/hey_listitem_widget_margin_left"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout="@layout/hey_arrow_viewstub" />
+</merge>

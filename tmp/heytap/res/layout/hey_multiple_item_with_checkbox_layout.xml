@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical">
+
+    <android.view.ViewStub
+        android:id="@+id/checkbox_viewstub"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="6dp"
+        android:layout="@layout/hey_checkbox_viewstub" />
+
+    <include
+        layout="@layout/hey_content_summary_layout"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:orientation="vertical" />
+
+    <android.view.ViewStub
+        android:id="@+id/heycheckbox_viewstub"
+        android:layout_marginLeft="@dimen/hey_listitem_widget_margin_left"
+        android:layout_width="@dimen/hey_listitem_widget_size"
+        android:layout_height="@dimen/hey_listitem_widget_size"
+        android:layout="@layout/hey_heycheckbox_viewstub" />
+</merge>

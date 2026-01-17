@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical">
+
+    <TextView
+        android:id="@+id/tv_content"
+        style="@style/HeyTextStyle"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:layout_weight="1"/>
+
+    <TextView
+        android:id="@+id/summary_textview"
+        android:layout_marginLeft="@dimen/hey_common_margin_left"
+        style="@style/HeySummaryTextStyle"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:adjustViewBounds="true"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"/>
+</merge>

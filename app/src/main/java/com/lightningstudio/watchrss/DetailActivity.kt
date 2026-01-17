@@ -7,6 +7,7 @@ import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ImageButton
 import androidx.activity.viewModels
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
@@ -34,15 +35,15 @@ class DetailActivity : BaseHeytapActivity() {
     private lateinit var titleView: HeyTextView
     private lateinit var contentContainer: LinearLayout
     private lateinit var openButton: HeyButton
-    private lateinit var shareButton: HeyButton
-    private lateinit var favoriteButton: HeyButton
-    private lateinit var likeButton: HeyButton
+    private lateinit var shareButton: ImageButton
+    private lateinit var favoriteButton: ImageButton
 
     private var currentTitle: String = ""
     private var currentLink: String? = null
     private var currentThemeDark: Boolean = true
     private var currentFontSizeSp: Int = DEFAULT_READING_FONT_SIZE_SP
     private var offlineMedia: Map<String, OfflineMedia> = emptyMap()
+    private var isFavorite: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,7 +55,6 @@ class DetailActivity : BaseHeytapActivity() {
         openButton = findViewById(R.id.button_open)
         shareButton = findViewById(R.id.button_share)
         favoriteButton = findViewById(R.id.button_favorite)
-        likeButton = findViewById(R.id.button_like)
 
         openButton.setOnClickListener {
             val link = it.tag as? String
@@ -68,7 +68,6 @@ class DetailActivity : BaseHeytapActivity() {
         }
 
         favoriteButton.setOnClickListener { viewModel.toggleFavorite() }
-        likeButton.setOnClickListener { viewModel.toggleLike() }
 
         val blockSpacing = resources.getDimensionPixelSize(R.dimen.detail_block_spacing)
         val safePadding = resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
@@ -87,14 +86,14 @@ class DetailActivity : BaseHeytapActivity() {
                         currentTitle = item.title
                         currentLink = item.link
                         titleView.text = item.title
-                        likeButton.text = if (item.isLiked) "已点赞" else "点赞"
                         renderContent(item, blockSpacing, maxImageWidth)
                         updateLinkButton(item.link)
                     }
                 }
                 launch {
                     viewModel.savedState.collect { state ->
-                        favoriteButton.text = if (state.isFavorite) "已收藏" else "收藏"
+                        isFavorite = state.isFavorite
+                        updateActionIconTints()
                     }
                 }
                 launch {
@@ -129,6 +128,14 @@ class DetailActivity : BaseHeytapActivity() {
         val root = findViewById<View>(R.id.detail_root)
         root.setBackgroundColor(if (currentThemeDark) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
         titleView.setTextColor(if (currentThemeDark) 0xFFFFFFFF.toInt() else 0xFF111111.toInt())
+        updateActionIconTints()
+    }
+
+    private fun updateActionIconTints() {
+        val normalColor = if (currentThemeDark) 0xFFFFFFFF.toInt() else 0xFF111111.toInt()
+        val activeColor = resources.getColor(R.color.oppo_orange, theme)
+        favoriteButton.setColorFilter(if (isFavorite) activeColor else normalColor)
+        shareButton.setColorFilter(normalColor)
     }
 
     private fun updateLinkButton(link: String?) {

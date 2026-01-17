@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="oppo_orange">#FFFF6700</color>
     <color name="watch_card_background">#FF1C1C1C</color>
+    <color name="watch_card_background_pinned">#FF333333</color>
 </resources>

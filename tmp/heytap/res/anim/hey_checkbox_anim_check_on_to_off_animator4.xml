@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:ordering="together">
+    <objectAnimator
+        android:duration="20"
+        android:propertyName="trimPathEnd"
+        android:startOffset="0"
+        android:valueFrom="1"
+        android:valueTo="1"
+        android:valueType="floatType">
+        <aapt:attr name="android:interpolator">
+            <pathInterpolator android:pathData="M 0.0,0.0 c0.42,0 0.58,1 1.0,1.0" />
+        </aapt:attr>
+    </objectAnimator>
+    <objectAnimator
+        android:duration="160"
+        android:propertyName="trimPathEnd"
+        android:startOffset="20"
+        android:valueFrom="1"
+        android:valueTo="0"
+        android:valueType="floatType">
+        <aapt:attr name="android:interpolator">
+            <pathInterpolator android:pathData="M 0.0,0.0 c0.42,0 0.58,1 1.0,1.0" />
+        </aapt:attr>
+    </objectAnimator>
+</set>

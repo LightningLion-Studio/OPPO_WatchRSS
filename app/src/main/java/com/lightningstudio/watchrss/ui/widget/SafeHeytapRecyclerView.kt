@@ -9,6 +9,10 @@ class SafeHeytapRecyclerView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : RecyclerView(context, attrs, defStyleAttr) {
+    init {
+        isVerticalScrollBarEnabled = false
+    }
+
     override fun onOverScrolled(
         scrollX: Int,
         scrollY: Int,

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="apm">
+        <item>AM</item>
+        <item>PM</item>
+    </string-array>
+    <dimen name="hey_hms_textsize">8sp</dimen>
+    <string name="color_counter_picker_hour">ชม.</string>
+    <string name="color_counter_picker_minute">นาที</string>
+    <string name="color_counter_picker_second">วินาที</string>
+    <string name="hey_cancel">ยกเลิก</string>
+    <string name="loading_default">กำลังโหลด...</string>
+    <string name="pb_continue">ดำเนินการต่อ</string>
+    <string name="pb_download">ดาวน์โหลด</string>
+</resources>

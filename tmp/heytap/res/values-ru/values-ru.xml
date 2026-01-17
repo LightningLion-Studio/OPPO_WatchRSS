@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="apm">
+        <item>AM</item>
+        <item>PM</item>
+    </string-array>
+    <string name="color_counter_picker_hour">ч</string>
+    <string name="color_counter_picker_minute">м</string>
+    <string name="color_counter_picker_second">с</string>
+    <string name="hey_cancel">Отмена</string>
+    <string name="loading_default">Загрузка...</string>
+    <string name="pb_continue">Возобновить</string>
+    <string name="pb_download">Загрузить</string>
+</resources>

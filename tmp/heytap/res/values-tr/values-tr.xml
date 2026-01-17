@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="apm">
+        <item>ÖÖ</item>
+        <item>ÖS</item>
+    </string-array>
+    <string name="color_counter_picker_hour">sa</string>
+    <string name="color_counter_picker_minute">dk</string>
+    <string name="color_counter_picker_second">sn</string>
+    <string name="hey_cancel">Vazgeç</string>
+    <string name="loading_default">Yükleniyor...</string>
+    <string name="pb_continue">Devam ettir</string>
+    <string name="pb_download">İndir</string>
+</resources>

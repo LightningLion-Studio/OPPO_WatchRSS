@@ -8,6 +8,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:scrollbars="none"
         android:fillViewport="true">
 
         <LinearLayout
@@ -32,7 +33,7 @@
                 android:gravity="center"
                 android:text="功能开发中"
                 android:textColor="@android:color/white"
-                android:textSize="16sp" />
+                android:textSize="18sp" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
