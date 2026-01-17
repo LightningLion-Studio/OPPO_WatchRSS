@@ -1,22 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
 
-    <com.heytap.wearable.support.widget.HeyButton
-        android:id="@+id/button_favorite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="收藏" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="@dimen/watch_safe_padding"
+        android:paddingBottom="12dp"
+        android:scrollbars="none">
 
-    <com.heytap.wearable.support.widget.HeyButton
-        android:id="@+id/button_watch_later"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="6dp"
-        android:text="稍后再看" />
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top|center_horizontal"
+            android:orientation="vertical">
+
+            <com.heytap.wearable.support.widget.HeyTextView
+                android:id="@+id/dialog_title"
+                android:layout_width="320px"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="操作"
+                android:textSize="28px"
+                android:layout_marginBottom="8px" />
+
+            <LinearLayout
+                android:id="@+id/action_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:showDividers="middle"
+                android:divider="@drawable/space_8px">
+
+                <com.heytap.wearable.support.widget.HeyButton
+                    android:id="@+id/button_favorite"
+                    android:layout_width="320px"
+                    android:layout_height="96px"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center"
+                    android:text="收藏"
+                    android:textSize="32px" />
+
+                <com.heytap.wearable.support.widget.HeyButton
+                    android:id="@+id/button_watch_later"
+                    android:layout_width="320px"
+                    android:layout_height="96px"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center"
+                    android:text="稍后再看"
+                    android:textSize="32px" />
+
+                <com.heytap.wearable.support.widget.HeyButton
+                    android:id="@+id/button_cancel"
+                    android:layout_width="320px"
+                    android:layout_height="96px"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center"
+                    android:text="取消"
+                    android:textSize="32px" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="32px" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

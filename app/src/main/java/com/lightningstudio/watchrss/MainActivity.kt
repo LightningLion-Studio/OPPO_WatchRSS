@@ -2,7 +2,6 @@ package com.lightningstudio.watchrss
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -10,11 +9,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.heytap.wearable.support.recycler.widget.LinearLayoutManager
 import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.recycler.widget.helper.ItemTouchHelper
-import com.heytap.wearable.support.widget.HeyButton
-import com.heytap.wearable.support.widget.HeyDialog
 import com.heytap.wearable.support.widget.HeyToast
-import com.lightningstudio.watchrss.data.rss.RssChannel
 import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
+import com.lightningstudio.watchrss.data.rss.RssChannel
 import com.lightningstudio.watchrss.ui.adapter.HomeEntry
 import com.lightningstudio.watchrss.ui.adapter.HomeEntryAdapter
 import com.lightningstudio.watchrss.ui.util.SwipeRevealCallback
@@ -95,59 +92,10 @@ class MainActivity : BaseHeytapActivity() {
     }
 
     private fun showChannelActions(channel: RssChannel, quick: Boolean) {
-        val dialog = HeyDialog.HeyBuilder(this)
-            .setTitle(channel.title)
-            .setContentView(R.layout.dialog_home_actions)
-            .create()
-        dialog.show()
-
-        val moveTopButton = dialog.findViewById<HeyButton>(R.id.button_move_top)
-        val pinButton = dialog.findViewById<HeyButton>(R.id.button_pin)
-        val markReadButton = dialog.findViewById<HeyButton>(R.id.button_mark_read)
-        val deleteButton = dialog.findViewById<HeyButton>(R.id.button_delete)
-
-        moveTopButton?.setOnClickListener {
-            viewModel.moveToTop(channel)
-            dialog.dismiss()
-        }
-
-        pinButton?.text = if (channel.isPinned) "取消置顶" else "置顶"
-        pinButton?.setOnClickListener {
-            viewModel.togglePinned(channel)
-            dialog.dismiss()
-        }
-
-        markReadButton?.isEnabled = channel.unreadCount > 0
-        val isBuiltin = BuiltinChannelType.fromUrl(channel.url) != null
-        if (isBuiltin) {
-            markReadButton?.isEnabled = false
-            markReadButton?.alpha = 0.5f
-            markReadButton?.setOnClickListener(null)
-        } else {
-            markReadButton?.alpha = if (channel.unreadCount > 0) 1f else 0.5f
-            markReadButton?.setOnClickListener {
-                viewModel.markChannelRead(channel)
-                dialog.dismiss()
-            }
-        }
-
-        deleteButton?.visibility = if (quick) View.GONE else View.VISIBLE
-        deleteButton?.setOnClickListener {
-            dialog.dismiss()
-            confirmDelete(channel)
-        }
-    }
-
-    private fun confirmDelete(channel: RssChannel) {
-        HeyDialog.HeyBuilder(this)
-            .setTitle("删除频道")
-            .setMessage("删除后将移除本地缓存")
-            .setPositiveButton("删除") { _ ->
-                viewModel.deleteChannel(channel)
-            }
-            .setNegativeButton("取消") { _ -> }
-            .create()
-            .show()
+        val intent = Intent(this, ChannelActionsActivity::class.java)
+        intent.putExtra(ChannelActionsActivity.EXTRA_CHANNEL_ID, channel.id)
+        intent.putExtra(ChannelActionsActivity.EXTRA_QUICK, quick)
+        startActivity(intent)
     }
 
     private fun openChannel(channel: RssChannel) {

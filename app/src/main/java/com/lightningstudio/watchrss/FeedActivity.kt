@@ -149,28 +149,10 @@ class FeedActivity : BaseHeytapActivity() {
     }
 
     private fun showItemActions(item: com.lightningstudio.watchrss.data.rss.RssItem) {
-        lifecycleScope.launch {
-            val state = viewModel.getSavedState(item.id)
-            val dialog = com.heytap.wearable.support.widget.HeyDialog.HeyBuilder(this@FeedActivity)
-                .setTitle(item.title)
-                .setContentView(R.layout.dialog_feed_actions)
-                .create()
-            dialog.show()
-
-            val favoriteButton = dialog.findViewById<com.heytap.wearable.support.widget.HeyButton>(R.id.button_favorite)
-            val laterButton = dialog.findViewById<com.heytap.wearable.support.widget.HeyButton>(R.id.button_watch_later)
-            favoriteButton?.text = if (state.isFavorite) "取消收藏" else "收藏"
-            laterButton?.text = if (state.isWatchLater) "取消稍后再看" else "稍后再看"
-
-            favoriteButton?.setOnClickListener {
-                viewModel.toggleFavorite(item.id)
-                dialog.dismiss()
-            }
-            laterButton?.setOnClickListener {
-                viewModel.toggleWatchLater(item.id)
-                dialog.dismiss()
-            }
-        }
+        val intent = Intent(this, ItemActionsActivity::class.java)
+        intent.putExtra(ItemActionsActivity.EXTRA_ITEM_ID, item.id)
+        intent.putExtra(ItemActionsActivity.EXTRA_ITEM_TITLE, item.title)
+        startActivity(intent)
     }
 
     private fun openChannelDetail() {

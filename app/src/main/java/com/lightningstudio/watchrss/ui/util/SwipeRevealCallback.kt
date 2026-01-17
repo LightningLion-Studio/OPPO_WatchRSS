@@ -113,17 +113,7 @@ class SwipeRevealCallback(
     }
 
     fun closeOpenItem(): Boolean {
-        if (openPosition == RecyclerView.NO_POSITION) return false
-        val holder = recyclerView.findViewHolderForAdapterPosition(openPosition)
-        if (holder == null) {
-            openPosition = RecyclerView.NO_POSITION
-            return false
-        }
-        resetSwipe(holder)
-        return true
-    }
-
-    private fun resetSwipeState() {
+        var closed = false
         val holder = if (openPosition != RecyclerView.NO_POSITION) {
             recyclerView.findViewHolderForAdapterPosition(openPosition)
         } else {
@@ -131,12 +121,57 @@ class SwipeRevealCallback(
         }
         if (holder != null) {
             resetSwipe(holder)
-        } else {
-            activeHolder?.let { translateSwipe(it, 0f) }
+            closed = true
         }
+        activeHolder?.let { active ->
+            if (active != holder) {
+                resetSwipe(active)
+                closed = true
+            }
+        }
+        if (!closed) {
+            closed = resetVisibleItems()
+        }
+        if (closed) {
+            openPosition = RecyclerView.NO_POSITION
+            activeHolder = null
+            activeDx = 0f
+        }
+        return closed
+    }
+
+    private fun resetSwipeState() {
+        resetVisibleItems()
         openPosition = RecyclerView.NO_POSITION
         activeHolder = null
         activeDx = 0f
+    }
+
+    private fun resetVisibleItems(): Boolean {
+        var changed = false
+        val childCount = recyclerView.childCount
+        for (index in 0 until childCount) {
+            val child = recyclerView.getChildAt(index) ?: continue
+            if (resetSwipeForItemView(child)) {
+                changed = true
+            }
+        }
+        return changed
+    }
+
+    private fun resetSwipeForItemView(itemView: View): Boolean {
+        val content = itemView.findViewById<View>(R.id.swipe_content) ?: return false
+        var changed = false
+        if (content.translationX != 0f) {
+            content.translationX = 0f
+            changed = true
+        }
+        val cover = itemView.findViewById<View>(R.id.swipe_cover)
+        if (cover != null && cover.translationX != 0f) {
+            cover.translationX = 0f
+            changed = true
+        }
+        return changed
     }
 
     private fun settleSwipe(viewHolder: RecyclerView.ViewHolder) {

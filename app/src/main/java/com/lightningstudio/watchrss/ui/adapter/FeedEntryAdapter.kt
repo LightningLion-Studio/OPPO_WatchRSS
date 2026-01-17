@@ -274,24 +274,17 @@ class FeedEntryAdapter(
                 val actions = swipeActions ?: return
                 val cover = swipeCover
                 val content = swipeContent ?: return
-                if (content.height > 0) {
-                    if (actions.layoutParams.height != content.height) {
-                        actions.layoutParams = actions.layoutParams.apply { this.height = content.height }
+                fun updateHeight(height: Int) {
+                    if (height <= 0) return
+                    if (actions.layoutParams.height != height) {
+                        actions.layoutParams = actions.layoutParams.apply { this.height = height }
                     }
-                    if (cover != null && cover.layoutParams.height != content.height) {
-                        cover.layoutParams = cover.layoutParams.apply { this.height = content.height }
-                    }
-                } else {
-                    content.post {
-                        val contentHeight = content.height
-                        if (contentHeight > 0 && actions.layoutParams.height != contentHeight) {
-                            actions.layoutParams = actions.layoutParams.apply { this.height = contentHeight }
-                        }
-                        if (cover != null && contentHeight > 0 && cover.layoutParams.height != contentHeight) {
-                            cover.layoutParams = cover.layoutParams.apply { this.height = contentHeight }
-                        }
+                    if (cover != null && cover.layoutParams.height != height) {
+                        cover.layoutParams = cover.layoutParams.apply { this.height = height }
                     }
                 }
+                updateHeight(content.height)
+                content.post { updateHeight(content.height) }
             }
         }
 
@@ -359,24 +352,17 @@ class FeedEntryAdapter(
                 val actions = swipeActions ?: return
                 val cover = swipeCover
                 val content = swipeContent ?: return
-                if (content.height > 0) {
-                    if (actions.layoutParams.height != content.height) {
-                        actions.layoutParams = actions.layoutParams.apply { this.height = content.height }
+                fun updateHeight(height: Int) {
+                    if (height <= 0) return
+                    if (actions.layoutParams.height != height) {
+                        actions.layoutParams = actions.layoutParams.apply { this.height = height }
                     }
-                    if (cover != null && cover.layoutParams.height != content.height) {
-                        cover.layoutParams = cover.layoutParams.apply { this.height = content.height }
-                    }
-                } else {
-                    content.post {
-                        val contentHeight = content.height
-                        if (contentHeight > 0 && actions.layoutParams.height != contentHeight) {
-                            actions.layoutParams = actions.layoutParams.apply { this.height = contentHeight }
-                        }
-                        if (cover != null && contentHeight > 0 && cover.layoutParams.height != contentHeight) {
-                            cover.layoutParams = cover.layoutParams.apply { this.height = contentHeight }
-                        }
+                    if (cover != null && cover.layoutParams.height != height) {
+                        cover.layoutParams = cover.layoutParams.apply { this.height = height }
                     }
                 }
+                updateHeight(content.height)
+                content.post { updateHeight(content.height) }
             }
         }
     }

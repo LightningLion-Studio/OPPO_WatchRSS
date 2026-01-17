@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="watch_safe_padding">24dp</dimen>
+    <dimen name="detail_page_horizontal_padding">40px</dimen>
     <dimen name="detail_block_spacing">8dp</dimen>
-    <dimen name="detail_title_safe_padding">24dp</dimen>
+    <dimen name="detail_title_safe_padding">0px</dimen>
     <dimen name="detail_title_first_line_max_width">300px</dimen>
-    <dimen name="detail_title_second_line_max_width">1000px</dimen>
+    <dimen name="detail_title_second_line_max_width">368px</dimen>
     <dimen name="detail_title_text_size">20sp</dimen>
     <dimen name="detail_subtitle_text_size">18sp</dimen>
     <dimen name="detail_body_text_size">16sp</dimen>

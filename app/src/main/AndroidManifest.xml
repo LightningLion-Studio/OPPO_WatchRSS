@@ -45,6 +45,14 @@
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity
+            android:name=".ChannelActionsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".ItemActionsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
             android:name=".DetailActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />

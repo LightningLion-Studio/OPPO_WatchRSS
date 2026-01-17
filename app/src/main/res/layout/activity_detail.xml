@@ -11,7 +11,10 @@
         android:layout_height="match_parent"
         android:scrollbars="none"
         android:fillViewport="true"
-        android:padding="@dimen/watch_safe_padding">
+        android:paddingStart="@dimen/detail_page_horizontal_padding"
+        android:paddingEnd="@dimen/detail_page_horizontal_padding"
+        android:paddingTop="@dimen/watch_safe_padding"
+        android:paddingBottom="@dimen/watch_safe_padding">
 
         <LinearLayout
             android:layout_width="match_parent"

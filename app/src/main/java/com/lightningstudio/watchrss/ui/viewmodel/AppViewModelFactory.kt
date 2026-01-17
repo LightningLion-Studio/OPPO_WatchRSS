@@ -20,6 +20,12 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
             modelClass.isAssignableFrom(FeedViewModel::class.java) -> {
                 FeedViewModel(savedStateHandle, container.rssRepository)
             }
+            modelClass.isAssignableFrom(ChannelActionsViewModel::class.java) -> {
+                ChannelActionsViewModel(savedStateHandle, container.rssRepository)
+            }
+            modelClass.isAssignableFrom(ItemActionsViewModel::class.java) -> {
+                ItemActionsViewModel(savedStateHandle, container.rssRepository)
+            }
             modelClass.isAssignableFrom(DetailViewModel::class.java) -> {
                 DetailViewModel(savedStateHandle, container.rssRepository, container.settingsRepository)
             }
