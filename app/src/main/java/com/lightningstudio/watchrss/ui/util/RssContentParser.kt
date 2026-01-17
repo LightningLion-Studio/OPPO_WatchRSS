@@ -8,6 +8,7 @@ import org.jsoup.nodes.TextNode
 sealed class ContentBlock {
     data class Text(val text: String, val style: TextStyle) : ContentBlock()
     data class Image(val url: String, val alt: String?) : ContentBlock()
+    data class Video(val url: String, val poster: String?) : ContentBlock()
 }
 
 enum class TextStyle {
@@ -41,6 +42,7 @@ object RssContentParser {
                 when (node.tagName().lowercase()) {
                     "p" -> appendParagraph(node, blocks)
                     "img" -> addImage(blocks, node)
+                    "video", "iframe" -> addVideo(blocks, node)
                     "h1", "h2" -> addText(blocks, node.text(), TextStyle.TITLE)
                     "h3", "h4", "h5", "h6" -> addText(blocks, node.text(), TextStyle.SUBTITLE)
                     "blockquote" -> appendBlockquote(node, blocks)
@@ -81,6 +83,11 @@ object RssContentParser {
                     if (child.tagName().equals("img", ignoreCase = true)) {
                         flushText()
                         addImage(blocks, child)
+                    } else if (child.tagName().equals("video", ignoreCase = true) ||
+                        child.tagName().equals("iframe", ignoreCase = true)
+                    ) {
+                        flushText()
+                        addVideo(blocks, child)
                     } else {
                         buffer.append(child.text())
                     }
@@ -118,6 +125,23 @@ object RssContentParser {
         if (url.isNotEmpty()) {
             val alt = element.attr("alt").trim().ifBlank { null }
             blocks.add(ContentBlock.Image(url, alt))
+        }
+    }
+
+    private fun addVideo(blocks: MutableList<ContentBlock>, element: Element) {
+        val tag = element.tagName().lowercase()
+        val poster = element.attr("poster").trim().ifBlank { null }
+        val url = when (tag) {
+            "video" -> {
+                element.attr("src").trim().ifBlank {
+                    element.selectFirst("source[src]")?.attr("src")?.trim().orEmpty()
+                }
+            }
+            "iframe" -> element.attr("src").trim()
+            else -> ""
+        }
+        if (url.isNotEmpty()) {
+            blocks.add(ContentBlock.Video(url, poster))
         }
     }
 

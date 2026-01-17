@@ -34,6 +34,7 @@ data class RssItemEntity(
     val audioUrl: String?,
     val videoUrl: String?,
     val isRead: Boolean,
+    val isLiked: Boolean,
     val dedupKey: String,
     val fetchedAt: Long,
     val contentSizeBytes: Long

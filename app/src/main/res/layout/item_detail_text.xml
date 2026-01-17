@@ -3,4 +3,6 @@
     android:id="@+id/detail_text"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:gravity="start"
+    android:textAlignment="viewStart"
     android:textSize="@dimen/detail_body_text_size" />

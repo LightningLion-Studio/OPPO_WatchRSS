@@ -21,6 +21,12 @@ class HomeViewModel(private val repository: RssRepository) : ViewModel() {
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            repository.ensureBuiltinChannels()
+        }
+    }
+
     fun refresh(channel: RssChannel) {
         viewModelScope.launch {
             _isRefreshing.value = true

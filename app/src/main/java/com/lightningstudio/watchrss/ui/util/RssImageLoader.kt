@@ -1,5 +1,6 @@
 package com.lightningstudio.watchrss.ui.util
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.LruCache
@@ -9,8 +10,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
 
 object RssImageLoader {
     private const val cacheSizeBytes = 8 * 1024 * 1024
@@ -19,7 +22,7 @@ object RssImageLoader {
         override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
     }
 
-    fun load(url: String, imageView: ImageView, scope: CoroutineScope, maxWidthPx: Int) {
+    fun load(context: Context, url: String, imageView: ImageView, scope: CoroutineScope, maxWidthPx: Int) {
         imageView.tag = url
         val cached = cache.get(url)
         if (cached != null) {
@@ -27,9 +30,27 @@ object RssImageLoader {
             imageView.visibility = View.VISIBLE
             return
         }
+        if (isLocalPath(url)) {
+            val bitmap = decodeLocalBitmap(url, maxWidthPx)
+            if (bitmap != null) {
+                cache.put(url, bitmap)
+                imageView.setImageBitmap(bitmap)
+                imageView.visibility = View.VISIBLE
+            } else {
+                imageView.visibility = View.GONE
+            }
+            return
+        }
+        val diskBitmap = decodeDiskBitmap(context, url, maxWidthPx)
+        if (diskBitmap != null) {
+            cache.put(url, diskBitmap)
+            imageView.setImageBitmap(diskBitmap)
+            imageView.visibility = View.VISIBLE
+            return
+        }
         imageView.visibility = View.GONE
         scope.launch(Dispatchers.IO) {
-            val bitmap = fetchBitmap(url, maxWidthPx)
+            val bitmap = fetchBitmap(context, url, maxWidthPx)
             withContext(Dispatchers.Main) {
                 if (imageView.tag != url) {
                     return@withContext
@@ -45,7 +66,27 @@ object RssImageLoader {
         }
     }
 
-    private fun fetchBitmap(urlString: String, maxWidthPx: Int): Bitmap? {
+    fun preload(context: Context, url: String, scope: CoroutineScope, maxWidthPx: Int) {
+        if (cache.get(url) != null) return
+        if (isLocalPath(url)) {
+            val bitmap = decodeLocalBitmap(url, maxWidthPx) ?: return
+            cache.put(url, bitmap)
+            return
+        }
+        val diskBitmap = decodeDiskBitmap(context, url, maxWidthPx)
+        if (diskBitmap != null) {
+            cache.put(url, diskBitmap)
+            return
+        }
+        scope.launch(Dispatchers.IO) {
+            val bitmap = fetchBitmap(context, url, maxWidthPx)
+            if (bitmap != null) {
+                cache.put(url, bitmap)
+            }
+        }
+    }
+
+    private fun fetchBitmap(context: Context, urlString: String, maxWidthPx: Int): Bitmap? {
         var connection: HttpURLConnection? = null
         return try {
             val url = URL(urlString)
@@ -55,6 +96,7 @@ object RssImageLoader {
                 instanceFollowRedirects = true
             }
             val bytes = connection.inputStream.use { it.readBytes() }
+            persistToDisk(context, urlString, bytes)
             val bounds = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
             }
@@ -67,6 +109,63 @@ object RssImageLoader {
             null
         } finally {
             connection?.disconnect()
+        }
+    }
+
+    private fun isLocalPath(url: String): Boolean {
+        return url.startsWith("/") || url.startsWith("file://")
+    }
+
+    private fun decodeLocalBitmap(url: String, maxWidthPx: Int): Bitmap? {
+        return try {
+            val path = if (url.startsWith("file://")) url.removePrefix("file://") else url
+            val bytes = java.io.File(path).takeIf { it.exists() }?.readBytes() ?: return null
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+            val options = BitmapFactory.Options().apply {
+                inSampleSize = calculateInSampleSize(bounds, maxWidthPx)
+            }
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun decodeDiskBitmap(context: Context, url: String, maxWidthPx: Int): Bitmap? {
+        val file = cacheFile(context, url)
+        if (!file.exists()) return null
+        return try {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.absolutePath, bounds)
+            val options = BitmapFactory.Options().apply {
+                inSampleSize = calculateInSampleSize(bounds, maxWidthPx)
+            }
+            BitmapFactory.decodeFile(file.absolutePath, options)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun persistToDisk(context: Context, url: String, bytes: ByteArray) {
+        val file = cacheFile(context, url)
+        if (file.exists()) return
+        runCatching {
+            file.outputStream().use { it.write(bytes) }
+        }
+    }
+
+    private fun cacheFile(context: Context, url: String): File {
+        val dir = File(context.cacheDir, "rss_images").apply { mkdirs() }
+        return File(dir, "${hashUrl(url)}.img")
+    }
+
+    private fun hashUrl(url: String): String {
+        return try {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val bytes = digest.digest(url.toByteArray())
+            bytes.joinToString("") { "%02x".format(it) }
+        } catch (e: Exception) {
+            url.hashCode().toString()
         }
     }
 

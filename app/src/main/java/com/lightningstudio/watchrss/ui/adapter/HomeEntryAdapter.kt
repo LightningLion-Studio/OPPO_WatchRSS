@@ -11,22 +11,15 @@ import com.lightningstudio.watchrss.ui.util.formatTime
 
 sealed class HomeEntry {
     data object Profile : HomeEntry()
-    data class Platform(val type: PlatformType) : HomeEntry()
     data class Channel(val channel: RssChannel) : HomeEntry()
     data object Empty : HomeEntry()
     data object AddRss : HomeEntry()
-}
-
-enum class PlatformType(val title: String, val summary: String) {
-    BILI("B站", "进入后登录获取推荐内容"),
-    DOUYIN("抖音", "进入后登录获取推荐内容")
 }
 
 class HomeEntryAdapter(
     private val onProfileClick: () -> Unit,
     private val onChannelClick: (RssChannel) -> Unit,
     private val onChannelLongClick: (RssChannel) -> Unit,
-    private val onPlatformClick: (PlatformType) -> Unit,
     private val onAddRssClick: () -> Unit
 ) : RecyclerView.Adapter<HomeEntryAdapter.EntryViewHolder>() {
     private val items = mutableListOf<HomeEntry>()
@@ -34,8 +27,6 @@ class HomeEntryAdapter(
     fun submitList(channels: List<RssChannel>) {
         items.clear()
         items.add(HomeEntry.Profile)
-        items.add(HomeEntry.Platform(PlatformType.BILI))
-        items.add(HomeEntry.Platform(PlatformType.DOUYIN))
         if (channels.isEmpty()) {
             items.add(HomeEntry.Empty)
         } else {
@@ -61,7 +52,6 @@ class HomeEntryAdapter(
                     view,
                     onChannelClick,
                     onChannelLongClick,
-                    onPlatformClick,
                     onAddRssClick
                 )
             }
@@ -109,7 +99,6 @@ class HomeEntryAdapter(
             private val itemView: HeyMultipleDefaultItem,
             private val onChannelClick: (RssChannel) -> Unit,
             private val onChannelLongClick: (RssChannel) -> Unit,
-            private val onPlatformClick: (PlatformType) -> Unit,
             private val onAddRssClick: () -> Unit
         ) : EntryViewHolder(itemView) {
             override fun bind(entry: HomeEntry) {
@@ -119,18 +108,11 @@ class HomeEntryAdapter(
                 itemView.setOnLongClickListener(null)
 
                 when (entry) {
-                    is HomeEntry.Platform -> bindPlatform(entry.type)
                     is HomeEntry.Channel -> bindChannel(entry.channel, indicator)
                     HomeEntry.Empty -> bindEmpty()
                     HomeEntry.AddRss -> bindAddRss()
                     HomeEntry.Profile -> Unit
                 }
-            }
-
-            private fun bindPlatform(type: PlatformType) {
-                itemView.setTitle(type.title)
-                itemView.setSummary(type.summary)
-                itemView.setOnClickListener { onPlatformClick(type) }
             }
 
             private fun bindChannel(channel: RssChannel, indicator: android.widget.ImageView?) {

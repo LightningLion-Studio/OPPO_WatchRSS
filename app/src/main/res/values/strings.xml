@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">WatchRSS</string>
+    <string name="about_intro_content">WatchRSS 是一款面向 OPPO 手表的 RSS 阅读与内容聚合工具，聚焦轻量阅读、快速刷新与离线收藏。</string>
+    <string name="about_privacy_content">本应用仅在本地存储你的订阅、阅读记录与收藏数据，不会上传至第三方服务。网络访问仅用于拉取 RSS 内容。</string>
+    <string name="about_terms_content">使用本应用即代表你同意遵守当地法律法规，并自行承担因订阅内容产生的责任与风险。</string>
+    <string name="about_licenses_content">本应用使用了开源库（例如 RSS-Parser、Jsoup、OkHttp）。具体清单与许可证信息将在正式发布版本中展示。</string>
 </resources>

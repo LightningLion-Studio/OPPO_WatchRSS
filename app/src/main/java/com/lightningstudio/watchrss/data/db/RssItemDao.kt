@@ -14,6 +14,9 @@ interface RssItemDao {
     @Query("SELECT * FROM rss_items WHERE id = :id")
     fun observeItem(id: Long): Flow<RssItemEntity?>
 
+    @Query("SELECT * FROM rss_items WHERE id = :id LIMIT 1")
+    suspend fun getItem(id: Long): RssItemEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertItems(items: List<RssItemEntity>): List<Long>
 
@@ -23,8 +26,14 @@ interface RssItemDao {
     @Query("UPDATE rss_items SET isRead = 1 WHERE channelId = :channelId")
     suspend fun markReadByChannel(channelId: Long)
 
+    @Query("UPDATE rss_items SET isLiked = :liked WHERE id = :id")
+    suspend fun updateLiked(id: Long, liked: Boolean)
+
     @Query("SELECT channelId, COUNT(*) as unreadCount FROM rss_items WHERE isRead = 0 GROUP BY channelId")
     fun observeUnreadCounts(): Flow<List<RssChannelUnreadCount>>
+
+    @Query("SELECT COUNT(*) FROM rss_items WHERE channelId = :channelId AND isRead = 0")
+    fun observeUnreadCount(channelId: Long): Flow<Int>
 
     @Query("SELECT SUM(contentSizeBytes) FROM rss_items")
     fun observeTotalCacheBytes(): Flow<Long?>
@@ -34,6 +43,15 @@ interface RssItemDao {
 
     @Query("SELECT id, contentSizeBytes FROM rss_items ORDER BY fetchedAt ASC, id ASC")
     suspend fun loadOldestItems(): List<RssItemSize>
+
+    @Query(
+        """
+        SELECT id, contentSizeBytes FROM rss_items
+        WHERE id NOT IN (SELECT itemId FROM saved_entries)
+        ORDER BY fetchedAt ASC, id ASC
+        """
+    )
+    suspend fun loadOldestItemsExcludingSaved(): List<RssItemSize>
 
     @Query("DELETE FROM rss_items WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: List<Long>)

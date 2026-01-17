@@ -7,6 +7,7 @@ import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.widget.HeyMultipleDefaultItem
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.data.rss.RssItem
+import com.lightningstudio.watchrss.ui.util.formatRssSummary
 
 class RssItemAdapter(
     private val onClick: (RssItem) -> Unit
@@ -43,8 +44,7 @@ class RssItemAdapter(
             itemView.scaleY = 1f
             itemView.alpha = 1f
             itemView.setTitle(item.title)
-            val summary = item.description?.takeIf { it.isNotBlank() }
-                ?: "暂无摘要"
+            val summary = formatRssSummary(item.description) ?: "暂无摘要"
             itemView.setSummary(summary)
 
             val indicator = itemView.getMinorImageView()

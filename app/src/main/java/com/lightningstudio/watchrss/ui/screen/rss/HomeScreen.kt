@@ -43,7 +43,7 @@ fun HomeScreen(
     onMessageShown: () -> Unit,
     onAddRss: () -> Unit,
     onOpenSettings: () -> Unit,
-    onChannelClick: (Long) -> Unit
+    onChannelClick: (RssChannel) -> Unit
 ) {
     val channelList by channels.collectAsState()
     val refreshing by isRefreshing.collectAsState()
@@ -103,7 +103,7 @@ fun HomeScreen(
                     items(channelList, key = { it.id }) { channel ->
                         ChannelCard(
                             channel = channel,
-                            onClick = { onChannelClick(channel.id) },
+                            onClick = { onChannelClick(channel) },
                             onRefresh = { onRefresh(channel) }
                         )
                     }

@@ -10,7 +10,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.lightningstudio.watchrss.BiliEntryActivity
+import com.lightningstudio.watchrss.DouyinEntryActivity
 import com.lightningstudio.watchrss.WatchRssApplication
+import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
 import com.lightningstudio.watchrss.ui.screen.rss.AddRssScreen
 import com.lightningstudio.watchrss.ui.screen.rss.DetailScreen
 import com.lightningstudio.watchrss.ui.screen.rss.FeedScreen
@@ -56,8 +59,16 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
                 onMessageShown = viewModel::clearMessage,
                 onAddRss = { navController.navigate(Routes.ADD_RSS) },
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },
-                onChannelClick = { channelId ->
-                    navController.navigate(Routes.feed(channelId))
+                onChannelClick = { channel ->
+                    when (BuiltinChannelType.fromUrl(channel.url)) {
+                        BuiltinChannelType.BILI -> {
+                            context.startActivity(android.content.Intent(context, BiliEntryActivity::class.java))
+                        }
+                        BuiltinChannelType.DOUYIN -> {
+                            context.startActivity(android.content.Intent(context, DouyinEntryActivity::class.java))
+                        }
+                        null -> navController.navigate(Routes.feed(channel.id))
+                    }
                 }
             )
         }

@@ -20,14 +20,18 @@ class ProfileActivity : BaseHeytapActivity() {
         favorites.setTitle("我的收藏")
         favorites.setSummary("RSS / B站 / 抖音")
         favorites.setOnClickListener {
-            HeyToast.showToast(this, "收藏功能开发中", android.widget.Toast.LENGTH_SHORT)
+            val intent = Intent(this, SavedItemsActivity::class.java)
+            intent.putExtra(SavedItemsActivity.EXTRA_SAVE_TYPE, com.lightningstudio.watchrss.data.rss.SaveType.FAVORITE.name)
+            startActivity(intent)
         }
 
         val watchLater = findViewById<HeyMultipleDefaultItem>(R.id.item_watch_later)
         watchLater.setTitle("稍后再看")
         watchLater.setSummary("跨平台统一列表")
         watchLater.setOnClickListener {
-            HeyToast.showToast(this, "稍后再看功能开发中", android.widget.Toast.LENGTH_SHORT)
+            val intent = Intent(this, SavedItemsActivity::class.java)
+            intent.putExtra(SavedItemsActivity.EXTRA_SAVE_TYPE, com.lightningstudio.watchrss.data.rss.SaveType.WATCH_LATER.name)
+            startActivity(intent)
         }
 
         val settings = findViewById<HeyMultipleDefaultItem>(R.id.item_settings)

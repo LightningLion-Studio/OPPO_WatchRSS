@@ -2,16 +2,29 @@ package com.lightningstudio.watchrss.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lightningstudio.watchrss.data.rss.AddRssPreview
+import com.lightningstudio.watchrss.data.rss.RssChannel
+import com.lightningstudio.watchrss.data.rss.RssChannelPreview
 import com.lightningstudio.watchrss.data.rss.RssRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+enum class AddRssStep {
+    INPUT,
+    PREVIEW,
+    EXISTING
+}
+
 data class AddRssUiState(
     val url: String = "",
+    val step: AddRssStep = AddRssStep.INPUT,
     val isSubmitting: Boolean = false,
+    val isLoadingPreview: Boolean = false,
     val errorMessage: String? = null,
+    val preview: RssChannelPreview? = null,
+    val existingChannel: RssChannel? = null,
     val createdChannelId: Long? = null
 )
 
@@ -31,8 +44,42 @@ class AddRssViewModel(private val repository: RssRepository) : ViewModel() {
         }
 
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingPreview = true, errorMessage = null)
+            val result = repository.previewChannel(url)
+            _uiState.value = if (result.isSuccess) {
+                when (val preview = result.getOrNull()) {
+                    is AddRssPreview.Existing -> {
+                        _uiState.value.copy(
+                            step = AddRssStep.EXISTING,
+                            existingChannel = preview.channel,
+                            preview = null,
+                            isLoadingPreview = false
+                        )
+                    }
+                    is AddRssPreview.Ready -> {
+                        _uiState.value.copy(
+                            step = AddRssStep.PREVIEW,
+                            preview = preview.preview,
+                            existingChannel = null,
+                            isLoadingPreview = false
+                        )
+                    }
+                    null -> _uiState.value.copy(isLoadingPreview = false)
+                }
+            } else {
+                _uiState.value.copy(
+                    isLoadingPreview = false,
+                    errorMessage = result.exceptionOrNull()?.message ?: "解析失败"
+                )
+            }
+        }
+    }
+
+    fun confirmAdd() {
+        val preview = _uiState.value.preview ?: return
+        viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSubmitting = true, errorMessage = null)
-            val result = repository.addChannel(url)
+            val result = repository.confirmAddChannel(preview)
             _uiState.value = if (result.isSuccess) {
                 _uiState.value.copy(
                     isSubmitting = false,
@@ -47,7 +94,22 @@ class AddRssViewModel(private val repository: RssRepository) : ViewModel() {
         }
     }
 
+    fun backToInput() {
+        _uiState.value = _uiState.value.copy(
+            step = AddRssStep.INPUT,
+            preview = null,
+            existingChannel = null,
+            errorMessage = null,
+            isSubmitting = false,
+            isLoadingPreview = false
+        )
+    }
+
     fun consumeCreatedChannel() {
         _uiState.value = _uiState.value.copy(createdChannelId = null)
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 }

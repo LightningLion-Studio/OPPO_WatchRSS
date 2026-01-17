@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.lightningstudio.watchrss.ui.widget.WatchMaskLayout
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -34,6 +35,48 @@ open class BaseHeytapActivity : ComponentActivity() {
         window.decorView.removeCallbacks(resetRunnable)
         swipeCommitted = false
         resetViewState(window.decorView)
+    }
+
+    override fun setContentView(layoutResID: Int) {
+        val maskLayout = WatchMaskLayout(this)
+        layoutInflater.inflate(layoutResID, maskLayout, true)
+        super.setContentView(maskLayout)
+    }
+
+    override fun setContentView(view: View?) {
+        if (view == null) {
+            super.setContentView(view)
+            return
+        }
+        val maskLayout = WatchMaskLayout(this)
+        maskLayout.addView(
+            view,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        super.setContentView(maskLayout)
+    }
+
+    override fun setContentView(view: View?, params: ViewGroup.LayoutParams?) {
+        if (view == null) {
+            super.setContentView(view, params)
+            return
+        }
+        val maskLayout = WatchMaskLayout(this)
+        maskLayout.addView(
+            view,
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        if (params == null) {
+            super.setContentView(maskLayout)
+        } else {
+            super.setContentView(maskLayout, params)
+        }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {

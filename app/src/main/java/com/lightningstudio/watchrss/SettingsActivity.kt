@@ -19,11 +19,18 @@ class SettingsActivity : BaseHeytapActivity() {
         10L, 20L, 30L, 40L, 50L, 60L, 70L, 80L, 90L, 100L, 200L, 300L
     )
     private var currentLimitMb: Long = cacheOptions.first()
+    private val fontOptions = listOf(12, 14, 16)
+    private var currentFontSp: Int = fontOptions[1]
 
     private lateinit var usageView: HeyTextView
     private lateinit var valueView: HeyTextView
     private lateinit var minusButton: HeyTextView
     private lateinit var plusButton: HeyTextView
+    private lateinit var themeValue: HeyTextView
+    private lateinit var themeToggle: HeyTextView
+    private lateinit var fontValue: HeyTextView
+    private lateinit var fontMinus: HeyTextView
+    private lateinit var fontPlus: HeyTextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +41,11 @@ class SettingsActivity : BaseHeytapActivity() {
         valueView = findViewById(R.id.text_cache_value)
         minusButton = findViewById(R.id.button_cache_minus)
         plusButton = findViewById(R.id.button_cache_plus)
+        themeValue = findViewById(R.id.text_reading_theme_value)
+        themeToggle = findViewById(R.id.button_reading_theme_toggle)
+        fontValue = findViewById(R.id.text_font_size_value)
+        fontMinus = findViewById(R.id.button_font_minus)
+        fontPlus = findViewById(R.id.button_font_plus)
 
         minusButton.setOnClickListener {
             val next = cacheOptions.lastOrNull { it < currentLimitMb } ?: return@setOnClickListener
@@ -46,6 +58,22 @@ class SettingsActivity : BaseHeytapActivity() {
             viewModel.updateCacheLimitMb(next)
         }
 
+        themeToggle.setOnClickListener {
+            viewModel.toggleReadingTheme()
+        }
+
+        fontMinus.setOnClickListener {
+            val next = fontOptions.lastOrNull { it < currentFontSp } ?: return@setOnClickListener
+            applyFontSelection(next)
+            viewModel.updateReadingFontSizeSp(next)
+        }
+
+        fontPlus.setOnClickListener {
+            val next = fontOptions.firstOrNull { it > currentFontSp } ?: return@setOnClickListener
+            applyFontSelection(next)
+            viewModel.updateReadingFontSizeSp(next)
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -56,6 +84,16 @@ class SettingsActivity : BaseHeytapActivity() {
                 launch {
                     viewModel.cacheLimitMb.collect { limit ->
                         applySelection(limit)
+                    }
+                }
+                launch {
+                    viewModel.readingThemeDark.collect { isDark ->
+                        themeValue.text = if (isDark) "深色" else "浅色"
+                    }
+                }
+                launch {
+                    viewModel.readingFontSizeSp.collect { value ->
+                        applyFontSelection(value)
                     }
                 }
             }
@@ -71,5 +109,16 @@ class SettingsActivity : BaseHeytapActivity() {
         plusButton.isEnabled = canIncrease
         minusButton.alpha = if (canDecrease) 1f else 0.4f
         plusButton.alpha = if (canIncrease) 1f else 0.4f
+    }
+
+    private fun applyFontSelection(valueSp: Int) {
+        currentFontSp = valueSp
+        fontValue.text = "${valueSp}sp"
+        val canDecrease = fontOptions.any { it < valueSp }
+        val canIncrease = fontOptions.any { it > valueSp }
+        fontMinus.isEnabled = canDecrease
+        fontPlus.isEnabled = canIncrease
+        fontMinus.alpha = if (canDecrease) 1f else 0.4f
+        fontPlus.alpha = if (canIncrease) 1f else 0.4f
     }
 }

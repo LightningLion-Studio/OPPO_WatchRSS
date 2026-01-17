@@ -1,10 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.heytap.wearable.support.widget.HeyTextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/text_feed_empty"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center"
-    android:padding="12dp"
-    android:text="暂无内容"
-    android:textColor="@android:color/darker_gray"
-    android:textSize="@dimen/hey_m_desription" />
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <com.heytap.wearable.support.widget.HeyTextView
+        android:id="@+id/text_feed_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="暂无内容"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="@dimen/hey_m_desription" />
+
+    <com.heytap.wearable.support.widget.HeyButton
+        android:id="@+id/button_empty_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="刷新" />
+
+    <com.heytap.wearable.support.widget.HeyButton
+        android:id="@+id/button_empty_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="返回" />
+</LinearLayout>

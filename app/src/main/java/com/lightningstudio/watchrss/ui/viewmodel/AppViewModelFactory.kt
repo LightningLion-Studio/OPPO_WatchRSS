@@ -21,10 +21,16 @@ class AppViewModelFactory(private val container: AppContainer) : ViewModelProvid
                 FeedViewModel(savedStateHandle, container.rssRepository)
             }
             modelClass.isAssignableFrom(DetailViewModel::class.java) -> {
-                DetailViewModel(savedStateHandle, container.rssRepository)
+                DetailViewModel(savedStateHandle, container.rssRepository, container.settingsRepository)
             }
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> {
                 SettingsViewModel(container.settingsRepository, container.rssRepository)
+            }
+            modelClass.isAssignableFrom(ChannelDetailViewModel::class.java) -> {
+                ChannelDetailViewModel(savedStateHandle, container.rssRepository)
+            }
+            modelClass.isAssignableFrom(SavedItemsViewModel::class.java) -> {
+                SavedItemsViewModel(savedStateHandle, container.rssRepository)
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         } as T

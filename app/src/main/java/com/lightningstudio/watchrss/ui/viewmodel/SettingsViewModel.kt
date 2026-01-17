@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lightningstudio.watchrss.data.rss.RssRepository
 import com.lightningstudio.watchrss.data.settings.DEFAULT_CACHE_LIMIT_MB
+import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
 import com.lightningstudio.watchrss.data.settings.MB_BYTES
 import com.lightningstudio.watchrss.data.settings.SettingsRepository
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,10 +25,29 @@ class SettingsViewModel(
         .map { it / MB_BYTES }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0L)
 
+    val readingThemeDark: StateFlow<Boolean> = settingsRepository.readingThemeDark
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    val readingFontSizeSp: StateFlow<Int> = settingsRepository.readingFontSizeSp
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DEFAULT_READING_FONT_SIZE_SP)
+
     fun updateCacheLimitMb(value: Long) {
         viewModelScope.launch {
             settingsRepository.setCacheLimitBytes(value * MB_BYTES)
             rssRepository.trimCacheToLimit()
+        }
+    }
+
+    fun toggleReadingTheme() {
+        viewModelScope.launch {
+            val current = readingThemeDark.value
+            settingsRepository.setReadingThemeDark(!current)
+        }
+    }
+
+    fun updateReadingFontSizeSp(value: Int) {
+        viewModelScope.launch {
+            settingsRepository.setReadingFontSizeSp(value)
         }
     }
 }

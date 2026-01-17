@@ -8,14 +8,18 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 @Database(
     entities = [
         RssChannelEntity::class,
-        RssItemEntity::class
+        RssItemEntity::class,
+        SavedEntryEntity::class,
+        OfflineMediaEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class WatchRssDatabase : RoomDatabase() {
     abstract fun rssChannelDao(): RssChannelDao
     abstract fun rssItemDao(): RssItemDao
+    abstract fun savedEntryDao(): SavedEntryDao
+    abstract fun offlineMediaDao(): OfflineMediaDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -28,6 +32,50 @@ abstract class WatchRssDatabase : RoomDatabase() {
                 )
                 database.execSQL(
                     "UPDATE rss_channels SET sortOrder = createdAt"
+                )
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE rss_items ADD COLUMN isLiked INTEGER NOT NULL DEFAULT 0"
+                )
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS saved_entries (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        itemId INTEGER NOT NULL,
+                        saveType TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        FOREIGN KEY(itemId) REFERENCES rss_items(id) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_saved_entries_itemId ON saved_entries(itemId)"
+                )
+                database.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS index_saved_entries_itemId_saveType ON saved_entries(itemId, saveType)"
+                )
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS offline_media (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        itemId INTEGER NOT NULL,
+                        mediaType TEXT NOT NULL,
+                        originUrl TEXT NOT NULL,
+                        localPath TEXT,
+                        createdAt INTEGER NOT NULL,
+                        FOREIGN KEY(itemId) REFERENCES rss_items(id) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_offline_media_itemId ON offline_media(itemId)"
+                )
+                database.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS index_offline_media_itemId_originUrl ON offline_media(itemId, originUrl)"
                 )
             }
         }

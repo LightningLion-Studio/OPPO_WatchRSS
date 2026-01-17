@@ -22,7 +22,10 @@ class DefaultAppContainer(context: Context) : AppContainer {
             appContext,
             WatchRssDatabase::class.java,
             "watchrss.db"
-        ).addMigrations(WatchRssDatabase.MIGRATION_1_2)
+        ).addMigrations(
+            WatchRssDatabase.MIGRATION_1_2,
+            WatchRssDatabase.MIGRATION_2_3
+        )
             .build()
     }
 
@@ -35,8 +38,11 @@ class DefaultAppContainer(context: Context) : AppContainer {
 
     override val rssRepository: RssRepository by lazy {
         DefaultRssRepository(
+            appContext = appContext,
             channelDao = database.rssChannelDao(),
             itemDao = database.rssItemDao(),
+            savedEntryDao = database.savedEntryDao(),
+            offlineMediaDao = database.offlineMediaDao(),
             settingsRepository = settingsRepository
         )
     }

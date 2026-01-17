@@ -24,5 +24,6 @@ data class RssItem(
     val audioUrl: String?,
     val videoUrl: String?,
     val isRead: Boolean,
+    val isLiked: Boolean,
     val fetchedAt: Long
 )

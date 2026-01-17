@@ -14,9 +14,9 @@ import com.heytap.wearable.support.widget.HeyButton
 import com.heytap.wearable.support.widget.HeyDialog
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.data.rss.RssChannel
+import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
 import com.lightningstudio.watchrss.ui.adapter.HomeEntry
 import com.lightningstudio.watchrss.ui.adapter.HomeEntryAdapter
-import com.lightningstudio.watchrss.ui.adapter.PlatformType
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -39,18 +39,10 @@ class MainActivity : BaseHeytapActivity() {
                 startActivity(Intent(this, ProfileActivity::class.java))
             },
             onChannelClick = { channel ->
-                val intent = Intent(this, FeedActivity::class.java)
-                intent.putExtra(FeedActivity.EXTRA_CHANNEL_ID, channel.id)
-                startActivity(intent)
+                openChannel(channel)
             },
             onChannelLongClick = { channel ->
                 showChannelActions(channel, quick = false)
-            },
-            onPlatformClick = { platform ->
-                when (platform) {
-                    PlatformType.BILI -> startActivity(Intent(this, BiliEntryActivity::class.java))
-                    PlatformType.DOUYIN -> startActivity(Intent(this, DouyinEntryActivity::class.java))
-                }
             },
             onAddRssClick = {
                 startActivity(Intent(this, AddRssActivity::class.java))
@@ -132,10 +124,17 @@ class MainActivity : BaseHeytapActivity() {
         }
 
         markReadButton?.isEnabled = channel.unreadCount > 0
-        markReadButton?.alpha = if (channel.unreadCount > 0) 1f else 0.5f
-        markReadButton?.setOnClickListener {
-            viewModel.markChannelRead(channel)
-            dialog.dismiss()
+        val isBuiltin = BuiltinChannelType.fromUrl(channel.url) != null
+        if (isBuiltin) {
+            markReadButton?.isEnabled = false
+            markReadButton?.alpha = 0.5f
+            markReadButton?.setOnClickListener(null)
+        } else {
+            markReadButton?.alpha = if (channel.unreadCount > 0) 1f else 0.5f
+            markReadButton?.setOnClickListener {
+                viewModel.markChannelRead(channel)
+                dialog.dismiss()
+            }
         }
 
         deleteButton?.visibility = if (quick) View.GONE else View.VISIBLE
@@ -155,5 +154,17 @@ class MainActivity : BaseHeytapActivity() {
             .setNegativeButton("取消") { _ -> }
             .create()
             .show()
+    }
+
+    private fun openChannel(channel: RssChannel) {
+        when (BuiltinChannelType.fromUrl(channel.url)) {
+            BuiltinChannelType.BILI -> startActivity(Intent(this, BiliEntryActivity::class.java))
+            BuiltinChannelType.DOUYIN -> startActivity(Intent(this, DouyinEntryActivity::class.java))
+            null -> {
+                val intent = Intent(this, FeedActivity::class.java)
+                intent.putExtra(FeedActivity.EXTRA_CHANNEL_ID, channel.id)
+                startActivity(intent)
+            }
+        }
     }
 }
