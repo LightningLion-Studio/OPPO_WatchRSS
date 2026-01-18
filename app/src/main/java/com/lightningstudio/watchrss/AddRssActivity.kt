@@ -2,6 +2,7 @@ package com.lightningstudio.watchrss
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -58,6 +59,13 @@ class AddRssActivity : BaseHeytapActivity() {
             }
             override fun afterTextChanged(s: Editable?) = Unit
         })
+
+        val presetUrl = intent.getStringExtra(EXTRA_URL)?.trim().orEmpty()
+        if (presetUrl.isNotEmpty()) {
+            input.setText(presetUrl)
+            input.setSelection(presetUrl.length)
+            viewModel.updateUrl(presetUrl)
+        }
 
         input.setOnEditorActionListener { _, actionId, _ ->
             val shouldSubmit = actionId == EditorInfo.IME_ACTION_DONE ||
@@ -148,18 +156,13 @@ class AddRssActivity : BaseHeytapActivity() {
                     if (existing != null) {
                         existingHint.text = "已存在：${existing.title}"
                         goChannelButton.setOnClickListener {
-                            val intent = Intent(this@AddRssActivity, FeedActivity::class.java)
-                            intent.putExtra(FeedActivity.EXTRA_CHANNEL_ID, existing.id)
-                            startActivity(intent)
-                            finish()
+                            openChannel(existing.url, existing.id)
                         }
                     }
 
                     val createdChannelId = state.createdChannelId
                     if (createdChannelId != null) {
-                        val intent = Intent(this@AddRssActivity, FeedActivity::class.java)
-                        intent.putExtra(FeedActivity.EXTRA_CHANNEL_ID, createdChannelId)
-                        startActivity(intent)
+                        openChannel(state.url, createdChannelId)
                         viewModel.consumeCreatedChannel()
                         finish()
                     }
@@ -171,5 +174,34 @@ class AddRssActivity : BaseHeytapActivity() {
     private fun hideKeyboard(view: View) {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         imm?.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    private fun openChannel(url: String?, channelId: Long) {
+        val builtin = com.lightningstudio.watchrss.data.rss.BuiltinChannelType.fromUrl(url)
+            ?: builtinFromInputUrl(url)
+        when (builtin) {
+            com.lightningstudio.watchrss.data.rss.BuiltinChannelType.BILI -> {
+                startActivity(Intent(this, BiliEntryActivity::class.java))
+            }
+            com.lightningstudio.watchrss.data.rss.BuiltinChannelType.DOUYIN -> {
+                startActivity(Intent(this, DouyinEntryActivity::class.java))
+            }
+            null -> {
+                val intent = Intent(this, FeedActivity::class.java)
+                intent.putExtra(FeedActivity.EXTRA_CHANNEL_ID, channelId)
+                startActivity(intent)
+            }
+        }
+        finish()
+    }
+
+    private fun builtinFromInputUrl(url: String?): com.lightningstudio.watchrss.data.rss.BuiltinChannelType? {
+        if (url.isNullOrBlank()) return null
+        val host = runCatching { Uri.parse(url).host }.getOrNull()
+        return com.lightningstudio.watchrss.data.rss.BuiltinChannelType.fromHost(host)
+    }
+
+    companion object {
+        const val EXTRA_URL = "extra_url"
     }
 }

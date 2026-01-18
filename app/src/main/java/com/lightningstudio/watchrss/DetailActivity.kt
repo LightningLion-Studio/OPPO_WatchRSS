@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.heytap.wearable.support.widget.HeyButton
 import com.heytap.wearable.support.widget.HeyTextView
+import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.data.rss.OfflineMedia
 import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
@@ -57,6 +58,7 @@ class DetailActivity : BaseHeytapActivity() {
     private var offlineMedia: Map<String, OfflineMedia> = emptyMap()
     private var isFavorite: Boolean = false
     private var progressIndicatorEnabled: Boolean = true
+    private var shareUseSystem: Boolean = true
     private var baseSafePadding: Int = 0
     private var fromWatchLater: Boolean = false
     private var reachedBottom: Boolean = false
@@ -96,7 +98,11 @@ class DetailActivity : BaseHeytapActivity() {
         }
 
         shareButton.setOnClickListener {
-            shareCurrent()
+            if (shareUseSystem) {
+                shareCurrent()
+            } else {
+                showShareQr()
+            }
         }
 
         favoriteButton.setOnClickListener { viewModel.toggleFavorite() }
@@ -142,15 +148,15 @@ class DetailActivity : BaseHeytapActivity() {
                         reachedBottom = false
                         lastSavedProgress = -1f
                         lastProgressSavedAt = 0L
-                        applyTitleText(item.title)
-                        renderContentWithRestore(
-                            item,
-                            blockSpacing,
-                            maxImageWidth,
-                            progressOverride = item.readingProgress
-                        )
-                        updateLinkButton(item.link)
-                    }
+        applyTitleText(item.title)
+        renderContentWithRestore(
+            item,
+            blockSpacing,
+            maxImageWidth,
+            progressOverride = item.readingProgress
+        )
+        updateLinkButton(item.link)
+    }
                 }
                 launch {
                     viewModel.savedState.collect { state ->
@@ -175,6 +181,7 @@ class DetailActivity : BaseHeytapActivity() {
                 launch {
                     viewModel.readingFontSizeSp.collect { sizeSp ->
                         currentFontSizeSp = sizeSp
+                        applyReadingFontSizeToOpenButton()
                         renderContentIfReady(blockSpacing, maxImageWidth)
                     }
                 }
@@ -188,8 +195,18 @@ class DetailActivity : BaseHeytapActivity() {
                         }
                     }
                 }
+                launch {
+                    viewModel.shareUseSystem.collect { useSystem ->
+                        shareUseSystem = useSystem
+                    }
+                }
             }
         }
+    }
+
+    private fun applyReadingFontSizeToOpenButton() {
+        val sizePx = adjustedTextSize(R.dimen.detail_body_text_size)
+        openButton.setTextSize(TypedValue.COMPLEX_UNIT_PX, sizePx)
     }
 
     private fun renderContentIfReady(blockSpacing: Int, maxImageWidth: Int) {
@@ -587,6 +604,15 @@ class DetailActivity : BaseHeytapActivity() {
             putExtra(Intent.EXTRA_TEXT, text)
         }
         startActivity(Intent.createChooser(intent, "分享"))
+    }
+
+    private fun showShareQr() {
+        val link = currentLink?.trim().orEmpty()
+        if (link.isBlank()) {
+            HeyToast.showToast(this, "暂无可分享链接", android.widget.Toast.LENGTH_SHORT)
+            return
+        }
+        startActivity(ShareQrActivity.createIntent(this, currentTitle, link))
     }
 
     private fun openLinkInApp(link: String) {

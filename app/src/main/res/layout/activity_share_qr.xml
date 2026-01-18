@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/share_qr_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:padding="@dimen/watch_safe_padding">
+
+    <ImageView
+        android:id="@+id/image_share_qr"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:layout_gravity="center"
+        android:adjustViewBounds="true"
+        android:contentDescription="二维码"
+        android:scaleType="fitCenter" />
+
+    <com.heytap.wearable.support.widget.HeyButton
+        android:id="@+id/button_share_qr_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="8.738dp"
+        android:text="关闭" />
+</FrameLayout>

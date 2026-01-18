@@ -18,11 +18,13 @@ sealed class HomeEntry {
     data object Profile : HomeEntry()
     data class Channel(val channel: RssChannel) : HomeEntry()
     data object Empty : HomeEntry()
+    data object Recommend : HomeEntry()
     data object AddRss : HomeEntry()
 }
 
 class HomeEntryAdapter(
     private val onProfileClick: () -> Unit,
+    private val onRecommendClick: () -> Unit,
     private val onChannelClick: (RssChannel) -> Unit,
     private val onChannelLongClick: (RssChannel) -> Unit,
     private val onAddRssClick: () -> Unit,
@@ -48,6 +50,7 @@ class HomeEntryAdapter(
         } else {
             items.addAll(channels.map { HomeEntry.Channel(it) })
         }
+        items.add(HomeEntry.Recommend)
         items.add(HomeEntry.AddRss)
         notifyDataSetChanged()
     }
@@ -60,6 +63,11 @@ class HomeEntryAdapter(
                 val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.item_home_profile, parent, false)
                 EntryViewHolder.ProfileViewHolder(view, onProfileClick)
+            }
+            TYPE_RECOMMEND -> {
+                val view = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.item_home_recommend, parent, false)
+                EntryViewHolder.RecommendViewHolder(view, onRecommendClick)
             }
             TYPE_ADD -> {
                 val view = LayoutInflater.from(parent.context)
@@ -95,6 +103,7 @@ class HomeEntryAdapter(
 
     override fun getItemViewType(position: Int): Int = when (items[position]) {
         HomeEntry.Profile -> TYPE_PROFILE
+        HomeEntry.Recommend -> TYPE_RECOMMEND
         HomeEntry.AddRss -> TYPE_ADD
         else -> TYPE_DEFAULT
     }
@@ -181,6 +190,7 @@ class HomeEntryAdapter(
                 when (entry) {
                     is HomeEntry.Channel -> bindChannel(entry.channel, indicator)
                     HomeEntry.Empty -> bindEmpty()
+                    HomeEntry.Recommend -> Unit
                     HomeEntry.AddRss -> Unit
                     HomeEntry.Profile -> Unit
                 }
@@ -316,12 +326,40 @@ class HomeEntryAdapter(
                 view.alpha = 1f
             }
         }
+
+        class RecommendViewHolder(
+            itemView: View,
+            private val onRecommendClick: () -> Unit
+        ) : EntryViewHolder(itemView) {
+            private val recommendItem =
+                itemView.findViewById<com.heytap.wearable.support.widget.HeyMultipleDefaultItem>(
+                    R.id.home_recommend_item
+                )
+
+            override fun bind(entry: HomeEntry) {
+                if (entry !is HomeEntry.Recommend) return
+                resetViewState(recommendItem)
+                recommendItem.setTitle("RSS推荐")
+                recommendItem.setSummary("一键加入官方支持频道")
+                recommendItem.setOnClickListener { onRecommendClick() }
+            }
+
+            private fun resetViewState(view: View) {
+                view.isPressed = false
+                view.isSelected = false
+                view.isActivated = false
+                view.scaleX = 1f
+                view.scaleY = 1f
+                view.alpha = 1f
+            }
+        }
     }
 
     companion object {
         private const val TYPE_PROFILE = 0
         private const val TYPE_DEFAULT = 1
         private const val TYPE_ADD = 2
+        private const val TYPE_RECOMMEND = 3
         private const val PRESS_SCALE = 0.97f
         private const val PRESS_DOWN_DURATION_MS = 240L
         private const val PRESS_UP_DURATION_MS = 360L

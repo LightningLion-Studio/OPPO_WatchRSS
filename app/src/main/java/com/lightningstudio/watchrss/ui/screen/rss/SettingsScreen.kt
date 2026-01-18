@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,11 +29,14 @@ import kotlinx.coroutines.flow.StateFlow
 fun SettingsScreen(
     cacheLimitMb: StateFlow<Long>,
     cacheUsageMb: StateFlow<Long>,
+    shareUseSystem: StateFlow<Boolean>,
     onBack: () -> Unit,
-    onSelectCacheLimit: (Long) -> Unit
+    onSelectCacheLimit: (Long) -> Unit,
+    onToggleShareMode: () -> Unit
 ) {
     val selectedLimit by cacheLimitMb.collectAsState()
     val usage by cacheUsageMb.collectAsState()
+    val useSystemShare by shareUseSystem.collectAsState()
     val options = listOf(
         10L, 20L, 30L, 40L, 50L, 60L, 70L, 80L, 90L, 100L, 200L, 300L
     )
@@ -74,6 +78,11 @@ fun SettingsScreen(
                 canIncrease = higherOption != null,
                 onDecrease = { lowerOption?.let(onSelectCacheLimit) },
                 onIncrease = { higherOption?.let(onSelectCacheLimit) }
+            )
+            Spacer(modifier = Modifier.height(7.281.dp))
+            ShareModeToggle(
+                useSystemShare = useSystemShare,
+                onToggle = onToggleShareMode
             )
         }
     }
@@ -122,6 +131,39 @@ private fun CacheLimitStepper(
                     Text(text = "+", style = MaterialTheme.typography.labelLarge)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ShareModeToggle(
+    useSystemShare: Boolean,
+    onToggle: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(11.65.dp),
+        tonalElevation = 1.456.dp,
+        color = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 11.65.dp, vertical = 8.738.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "分享方式",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.369.dp))
+            Text(
+                text = if (useSystemShare) "系统分享" else "二维码",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.369.dp))
+            Switch(checked = useSystemShare, onCheckedChange = { onToggle() })
         }
     }
 }

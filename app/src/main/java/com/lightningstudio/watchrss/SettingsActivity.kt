@@ -31,6 +31,8 @@ class SettingsActivity : BaseHeytapActivity() {
     private lateinit var themeToggle: HeySwitch
     private lateinit var progressIndicatorValue: HeyTextView
     private lateinit var progressIndicatorToggle: HeySwitch
+    private lateinit var shareModeValue: HeyTextView
+    private lateinit var shareModeToggle: HeySwitch
     private lateinit var fontValue: HeyTextView
     private lateinit var fontMinus: HeyTextView
     private lateinit var fontPlus: HeyTextView
@@ -48,6 +50,8 @@ class SettingsActivity : BaseHeytapActivity() {
         themeToggle = findViewById(R.id.button_reading_theme_toggle)
         progressIndicatorValue = findViewById(R.id.text_progress_indicator_value)
         progressIndicatorToggle = findViewById(R.id.button_progress_indicator_toggle)
+        shareModeValue = findViewById(R.id.text_share_mode_value)
+        shareModeToggle = findViewById(R.id.button_share_mode_toggle)
         fontValue = findViewById(R.id.text_font_size_value)
         fontMinus = findViewById(R.id.button_font_minus)
         fontPlus = findViewById(R.id.button_font_plus)
@@ -65,6 +69,7 @@ class SettingsActivity : BaseHeytapActivity() {
 
         themeToggle.setOnClickListener { viewModel.toggleReadingTheme() }
         progressIndicatorToggle.setOnClickListener { viewModel.toggleDetailProgressIndicator() }
+        shareModeToggle.setOnClickListener { viewModel.toggleShareUseSystem() }
 
         fontMinus.setOnClickListener {
             val next = fontOptions.lastOrNull { it < currentFontSp } ?: return@setOnClickListener
@@ -100,6 +105,12 @@ class SettingsActivity : BaseHeytapActivity() {
                     viewModel.detailProgressIndicatorEnabled.collect { enabled ->
                         progressIndicatorValue.text = if (enabled) "开启" else "关闭"
                         progressIndicatorToggle.isChecked = enabled
+                    }
+                }
+                launch {
+                    viewModel.shareUseSystem.collect { useSystem ->
+                        shareModeValue.text = if (useSystem) "系统分享" else "二维码"
+                        shareModeToggle.isChecked = useSystem
                     }
                 }
                 launch {

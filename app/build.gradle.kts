@@ -88,6 +88,7 @@ dependencies {
     implementation(libs.swipe.reveal.layout) {
         exclude(group = "com.android.support", module = "support-v4")
     }
+    implementation(libs.zxing.core)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

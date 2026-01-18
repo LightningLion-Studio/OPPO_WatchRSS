@@ -119,8 +119,10 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             SettingsScreen(
                 cacheLimitMb = viewModel.cacheLimitMb,
                 cacheUsageMb = viewModel.cacheUsageMb,
+                shareUseSystem = viewModel.shareUseSystem,
                 onBack = { navController.popBackStack() },
-                onSelectCacheLimit = viewModel::updateCacheLimitMb
+                onSelectCacheLimit = viewModel::updateCacheLimitMb,
+                onToggleShareMode = viewModel::toggleShareUseSystem
             )
         }
     }

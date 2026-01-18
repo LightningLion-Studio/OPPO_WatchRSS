@@ -193,6 +193,54 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/share_mode_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7.281dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/share_mode_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="87.375px"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="23.3px"
+                    android:paddingRight="10.194dp"
+                    android:paddingTop="7.281dp"
+                    android:paddingBottom="7.281dp">
+
+                    <com.heytap.wearable.support.widget.HeyTextView
+                        android:id="@+id/text_share_mode_label"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="分享方式"
+                        android:textColor="@android:color/white"
+                        android:textSize="@dimen/profile_entry_text_size" />
+
+                    <com.heytap.wearable.support.widget.HeySwitch
+                        android:id="@+id/button_share_mode_toggle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <com.heytap.wearable.support.widget.HeyTextView
+                    android:id="@+id/text_share_mode_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="23.3px"
+                    android:layout_marginTop="4.369dp"
+                    android:includeFontPadding="false"
+                    android:text="系统分享"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="@dimen/settings_detail_text_size" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/font_size_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

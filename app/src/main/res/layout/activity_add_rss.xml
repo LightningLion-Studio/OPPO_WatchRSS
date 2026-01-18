@@ -33,14 +33,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <com.heytap.wearable.support.widget.HeyTextView
-                    android:id="@+id/text_label"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="7.281dp"
-                    android:text="RSS 地址"
-                    android:textSize="@dimen/hey_s_title" />
-
                 <EditText
                     android:id="@+id/input_url"
                     style="@style/HeyEditTextStyle"

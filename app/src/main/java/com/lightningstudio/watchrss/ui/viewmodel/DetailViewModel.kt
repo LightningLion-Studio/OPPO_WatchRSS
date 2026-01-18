@@ -34,6 +34,7 @@ class DetailViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DEFAULT_READING_FONT_SIZE_SP)
 
     val detailProgressIndicatorEnabled = settingsRepository.detailProgressIndicatorEnabled
+    val shareUseSystem = settingsRepository.shareUseSystem
 
     init {
         if (itemId > 0L) {

@@ -49,6 +49,11 @@ class MainActivity : BaseHeytapActivity() {
                 if (!allowNavigation()) return@HomeEntryAdapter
                 startActivity(Intent(this, ProfileActivity::class.java))
             },
+            onRecommendClick = {
+                if (homeAdapter.closeOpenSwipe()) return@HomeEntryAdapter
+                if (!allowNavigation()) return@HomeEntryAdapter
+                startActivity(Intent(this, RssRecommendActivity::class.java))
+            },
             onChannelClick = { channel ->
                 if (homeAdapter.closeOpenSwipe()) return@HomeEntryAdapter
                 if (!allowNavigation()) return@HomeEntryAdapter

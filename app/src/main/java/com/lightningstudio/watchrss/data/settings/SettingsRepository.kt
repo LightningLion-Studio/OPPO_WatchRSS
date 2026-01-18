@@ -14,6 +14,7 @@ private val BUILTIN_CHANNELS_INITIALIZED = booleanPreferencesKey("builtin_channe
 private val READING_THEME_DARK = booleanPreferencesKey("reading_theme_dark")
 private val READING_FONT_SIZE_SP = intPreferencesKey("reading_font_size_sp")
 private val DETAIL_PROGRESS_INDICATOR_ENABLED = booleanPreferencesKey("detail_progress_indicator_enabled")
+private val SHARE_USE_SYSTEM = booleanPreferencesKey("share_use_system")
 const val DEFAULT_CACHE_LIMIT_MB: Long = 50
 const val MB_BYTES: Long = 1024 * 1024
 const val DEFAULT_READING_FONT_SIZE_SP: Int = 14
@@ -33,6 +34,9 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     }
     val detailProgressIndicatorEnabled: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[DETAIL_PROGRESS_INDICATOR_ENABLED] ?: true
+    }
+    val shareUseSystem: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[SHARE_USE_SYSTEM] ?: true
     }
 
     suspend fun setCacheLimitBytes(bytes: Long) {
@@ -62,6 +66,12 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setDetailProgressIndicatorEnabled(value: Boolean) {
         dataStore.edit { preferences ->
             preferences[DETAIL_PROGRESS_INDICATOR_ENABLED] = value
+        }
+    }
+
+    suspend fun setShareUseSystem(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[SHARE_USE_SYSTEM] = value
         }
     }
 }

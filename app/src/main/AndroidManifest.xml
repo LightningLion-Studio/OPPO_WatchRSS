@@ -46,6 +46,14 @@
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity
+            android:name=".RssRecommendActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".RssRecommendGroupActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
             android:name=".FeedActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
@@ -59,6 +67,10 @@
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity
             android:name=".DetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".ShareQrActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity

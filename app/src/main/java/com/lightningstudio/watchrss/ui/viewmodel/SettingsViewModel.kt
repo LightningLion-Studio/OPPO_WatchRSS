@@ -34,6 +34,9 @@ class SettingsViewModel(
     val detailProgressIndicatorEnabled: StateFlow<Boolean> = settingsRepository.detailProgressIndicatorEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
+    val shareUseSystem: StateFlow<Boolean> = settingsRepository.shareUseSystem
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
     fun updateCacheLimitMb(value: Long) {
         viewModelScope.launch {
             settingsRepository.setCacheLimitBytes(value * MB_BYTES)
@@ -58,6 +61,13 @@ class SettingsViewModel(
         viewModelScope.launch {
             val current = detailProgressIndicatorEnabled.value
             settingsRepository.setDetailProgressIndicatorEnabled(!current)
+        }
+    }
+
+    fun toggleShareUseSystem() {
+        viewModelScope.launch {
+            val current = shareUseSystem.value
+            settingsRepository.setShareUseSystem(!current)
         }
     }
 }
