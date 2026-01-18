@@ -1,6 +1,7 @@
 package com.lightningstudio.watchrss
 
 import android.content.Context
+import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -22,6 +23,7 @@ open class BaseHeytapActivity : ComponentActivity() {
     private var swipeIntercepting = false
     private var swipeLastDx = 0f
     private var swipeCommitted = false
+    private var lastNavigationAt = 0L
     private val swipeSlop by lazy { ViewConfiguration.get(this).scaledTouchSlop.toFloat() }
     private val minSwipeDistance by lazy {
         max(swipeSlop * 2f, resources.displayMetrics.density * 48f)
@@ -223,6 +225,15 @@ open class BaseHeytapActivity : ComponentActivity() {
 
     protected open fun onSwipeBackAttempt(dx: Float, dy: Float): Boolean = false
 
+    protected fun allowNavigation(minIntervalMs: Long = NAVIGATION_THROTTLE_MS): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastNavigationAt < minIntervalMs) {
+            return false
+        }
+        lastNavigationAt = now
+        return true
+    }
+
     private fun shouldStartSwipe(root: View, ev: MotionEvent): Boolean {
         val width = root.width
         if (width <= 0 || ev.pointerCount != 1) {
@@ -275,5 +286,6 @@ open class BaseHeytapActivity : ComponentActivity() {
         private const val SWIPE_START_RATIO = 0.65f
         private const val SWIPE_COMMIT_RATIO = 0.35f
         private const val SWIPE_ANIM_DURATION_MS = 200L
+        private const val NAVIGATION_THROTTLE_MS = 600L
     }
 }

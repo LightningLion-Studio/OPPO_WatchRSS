@@ -46,16 +46,19 @@ class MainActivity : BaseHeytapActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.channel_list)
         homeAdapter = HomeEntryAdapter(
             onProfileClick = {
+                if (!allowNavigation()) return@HomeEntryAdapter
                 startActivity(Intent(this, ProfileActivity::class.java))
             },
             onChannelClick = { channel ->
                 if (homeAdapter.closeOpenSwipe()) return@HomeEntryAdapter
+                if (!allowNavigation()) return@HomeEntryAdapter
                 openChannel(channel)
             },
             onChannelLongClick = { channel ->
                 showChannelActions(channel, quick = false)
             },
             onAddRssClick = {
+                if (!allowNavigation()) return@HomeEntryAdapter
                 startActivity(Intent(this, AddRssActivity::class.java))
             },
             onMoveTopClick = { channel ->

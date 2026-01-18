@@ -16,6 +16,7 @@ class ProfileActivity : BaseHeytapActivity() {
 
         val favorites = findViewById<android.view.View>(R.id.item_favorites)
         favorites.setOnClickListener {
+            if (!allowNavigation()) return@setOnClickListener
             val intent = Intent(this, SavedItemsActivity::class.java)
             intent.putExtra(SavedItemsActivity.EXTRA_SAVE_TYPE, com.lightningstudio.watchrss.data.rss.SaveType.FAVORITE.name)
             startActivity(intent)
@@ -23,6 +24,7 @@ class ProfileActivity : BaseHeytapActivity() {
 
         val watchLater = findViewById<android.view.View>(R.id.item_watch_later)
         watchLater.setOnClickListener {
+            if (!allowNavigation()) return@setOnClickListener
             val intent = Intent(this, SavedItemsActivity::class.java)
             intent.putExtra(SavedItemsActivity.EXTRA_SAVE_TYPE, com.lightningstudio.watchrss.data.rss.SaveType.WATCH_LATER.name)
             startActivity(intent)
@@ -30,11 +32,13 @@ class ProfileActivity : BaseHeytapActivity() {
 
         val settings = findViewById<android.view.View>(R.id.item_settings)
         settings.setOnClickListener {
+            if (!allowNavigation()) return@setOnClickListener
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
         val about = findViewById<android.view.View>(R.id.item_about)
         about.setOnClickListener {
+            if (!allowNavigation()) return@setOnClickListener
             startActivity(Intent(this, AboutActivity::class.java))
         }
     }

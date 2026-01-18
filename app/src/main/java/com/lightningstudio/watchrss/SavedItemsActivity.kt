@@ -54,6 +54,7 @@ class SavedItemsActivity : BaseHeytapActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = SavedItemAdapter(
             onItemClick = { savedItem ->
+                if (!allowNavigation()) return@SavedItemAdapter
                 val intent = Intent(this, DetailActivity::class.java)
                 intent.putExtra(DetailActivity.EXTRA_ITEM_ID, savedItem.item.id)
                 intent.putExtra(

@@ -53,11 +53,13 @@ class FeedActivity : BaseHeytapActivity() {
             scope = lifecycleScope,
             onItemClick = { item ->
                 if (feedAdapter.closeOpenSwipe()) return@FeedEntryAdapter
+                if (!allowNavigation()) return@FeedEntryAdapter
                 val intent = Intent(this, DetailActivity::class.java)
                 intent.putExtra(DetailActivity.EXTRA_ITEM_ID, item.id)
                 startActivity(intent)
             },
             onItemLongClick = { item ->
+                if (!allowNavigation()) return@FeedEntryAdapter
                 showItemActions(item)
             },
             onFavoriteClick = { item ->
@@ -68,7 +70,10 @@ class FeedActivity : BaseHeytapActivity() {
                 feedAdapter.closeOpenSwipe()
                 viewModel.toggleWatchLater(item.id)
             },
-            onHeaderClick = { openChannelDetail() },
+            onHeaderClick = {
+                if (!allowNavigation()) return@FeedEntryAdapter
+                openChannelDetail()
+            },
             onRefreshClick = { viewModel.refresh() },
             onLoadMoreClick = { viewModel.loadMore() },
             onBackClick = { finish() }
