@@ -1,7 +1,5 @@
 package com.lightningstudio.watchrss.ui.screen.rss
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.lightningstudio.watchrss.WebViewActivity
 import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.ui.components.WatchSurface
 import com.lightningstudio.watchrss.ui.theme.OppoOrange
@@ -41,7 +40,7 @@ fun DetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 18.dp, vertical = 12.dp)
+                .padding(horizontal = 13.106.dp, vertical = 8.738.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -59,19 +58,20 @@ fun DetailScreen(
                 if (!detail?.link.isNullOrBlank()) {
                     TextButton(
                         onClick = {
-                            val uri = Uri.parse(detail?.link)
-                            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                            detail?.link?.let { link ->
+                                context.startActivity(WebViewActivity.createIntent(context, link))
+                            }
                         }
                     ) {
                         Text(text = "打开", color = OppoOrange)
                     }
                 } else {
-                    Spacer(modifier = Modifier.width(48.dp))
+                    Spacer(modifier = Modifier.width(34.95.dp))
                 }
             }
 
             if (detail == null) {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(17.475.dp))
                 Text(
                     text = "加载中...",
                     style = MaterialTheme.typography.bodySmall,
@@ -80,7 +80,7 @@ fun DetailScreen(
                 return@Column
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(7.281.dp))
             Text(
                 text = detail!!.title,
                 style = MaterialTheme.typography.headlineSmall,
@@ -88,7 +88,7 @@ fun DetailScreen(
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(7.281.dp))
 
             val contentText = detail!!.content?.ifBlank { null }
                 ?: detail!!.description?.ifBlank { null }
@@ -104,7 +104,7 @@ fun DetailScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.738.dp))
             }
         }
     }

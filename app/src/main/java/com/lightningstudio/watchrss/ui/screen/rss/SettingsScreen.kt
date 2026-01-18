@@ -43,7 +43,7 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 18.dp, vertical = 12.dp)
+                .padding(horizontal = 13.106.dp, vertical = 8.738.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -61,13 +61,13 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(0.dp))
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(5.825.dp))
             Text(
                 text = "当前已用 ${usage}MB",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(7.281.dp))
             CacheLimitStepper(
                 sizeMb = selectedLimit,
                 canDecrease = lowerOption != null,
@@ -88,14 +88,14 @@ private fun CacheLimitStepper(
     onIncrease: () -> Unit
 ) {
     Surface(
-        shape = RoundedCornerShape(16.dp),
-        tonalElevation = 2.dp,
+        shape = RoundedCornerShape(11.65.dp),
+        tonalElevation = 1.456.dp,
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 11.65.dp, vertical = 8.738.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -103,13 +103,13 @@ private fun CacheLimitStepper(
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.369.dp))
             Text(
                 text = "${sizeMb}MB",
                 style = MaterialTheme.typography.labelLarge,
                 color = OppoOrange
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.369.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
@@ -117,7 +117,7 @@ private fun CacheLimitStepper(
                 TextButton(onClick = onDecrease, enabled = canDecrease) {
                     Text(text = "-", style = MaterialTheme.typography.labelLarge)
                 }
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(4.369.dp))
                 TextButton(onClick = onIncrease, enabled = canIncrease) {
                     Text(text = "+", style = MaterialTheme.typography.labelLarge)
                 }

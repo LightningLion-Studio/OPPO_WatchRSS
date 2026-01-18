@@ -48,8 +48,8 @@ fun AddRssScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 18.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 13.106.dp, vertical = 10.194.dp),
+            verticalArrangement = Arrangement.spacedBy(8.738.dp)
         ) {
             Text(
                 text = "添加 RSS",
@@ -90,7 +90,7 @@ fun AddRssScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.369.dp))
             Text(
                 text = "支持 RSS/Atom/RDF，添加后会自动拉取最新内容。",
                 style = MaterialTheme.typography.bodySmall,

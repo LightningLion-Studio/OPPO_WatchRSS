@@ -14,8 +14,8 @@
 
     <ImageButton
         android:id="@+id/button_undo"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="34.95dp"
+        android:layout_height="34.95dp"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="@dimen/watch_safe_padding"
         android:background="@drawable/bg_floating_undo"

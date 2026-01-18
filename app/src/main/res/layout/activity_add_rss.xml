@@ -24,7 +24,7 @@
                 android:gravity="center"
                 android:text="添加 RSS"
                 android:textColor="@android:color/white"
-                android:textSize="32px"
+                android:textSize="23.3px"
                 android:textStyle="bold" />
 
             <LinearLayout
@@ -37,7 +37,7 @@
                     android:id="@+id/text_label"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="7.281dp"
                     android:text="RSS 地址"
                     android:textSize="@dimen/hey_s_title" />
 
@@ -46,7 +46,7 @@
                     style="@style/HeyEditTextStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="4.369dp"
                     android:hint="https://example.com/feed.xml"
                     android:imeOptions="actionDone"
                     android:inputType="textUri"
@@ -56,7 +56,7 @@
                     android:id="@+id/text_error"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="4.369dp"
                     android:textColor="#ED4735"
                     android:visibility="gone" />
 
@@ -64,7 +64,7 @@
                     android:id="@+id/container_error_actions"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="4.369dp"
                     android:gravity="center"
                     android:orientation="horizontal"
                     android:visibility="gone">
@@ -79,7 +79,7 @@
                         android:id="@+id/button_cancel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
+                        android:layout_marginLeft="5.825dp"
                         android:text="取消" />
                 </LinearLayout>
 
@@ -88,14 +88,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="8.738dp"
                     android:text="添加" />
 
                 <com.heytap.wearable.support.widget.HeyTextView
                     android:id="@+id/text_hint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="5.825dp"
                     android:gravity="center"
                     android:text="支持 RSS/Atom/RDF，添加后自动拉取内容"
                     android:textSize="@dimen/hey_s_desription" />
@@ -105,7 +105,7 @@
                 android:id="@+id/container_preview"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8.738dp"
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:visibility="gone">
@@ -116,18 +116,18 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:text="频道标题"
-                android:textSize="32px" />
+                android:textSize="23.3px" />
 
             <com.heytap.wearable.support.widget.HeyTextView
                 android:id="@+id/text_preview_desc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4.369dp"
                 android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="2"
                 android:text="频道简介"
-                android:textSize="24px" />
+                android:textSize="17.475px" />
 
             <Space
                 android:layout_width="match_parent"
@@ -138,28 +138,28 @@
                 android:id="@+id/container_preview_actions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32px"
+                android:layout_marginBottom="23.3px"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
                 <com.heytap.wearable.support.widget.HeyButton
                     android:id="@+id/button_confirm"
-                    android:layout_width="320px"
-                    android:layout_height="96px"
+                    android:layout_width="233px"
+                    android:layout_height="69.9px"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center"
                     android:text="确认添加"
-                    android:textSize="32px" />
+                    android:textSize="23.3px" />
 
                 <com.heytap.wearable.support.widget.HeyButton
                     android:id="@+id/button_edit"
-                    android:layout_width="320px"
-                    android:layout_height="96px"
-                    android:layout_marginTop="24px"
+                    android:layout_width="233px"
+                    android:layout_height="69.9px"
+                    android:layout_marginTop="17.475px"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center"
                     android:text="修改地址"
-                    android:textSize="32px" />
+                    android:textSize="23.3px" />
             </LinearLayout>
         </LinearLayout>
 
@@ -167,7 +167,7 @@
                 android:id="@+id/container_existing"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8.738dp"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:visibility="gone">
@@ -185,7 +185,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="8.738dp"
                     android:text="跳转频道" />
 
                 <com.heytap.wearable.support.widget.HeyButton
@@ -193,7 +193,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="4.369dp"
                     android:text="返回" />
             </LinearLayout>
         </LinearLayout>

@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="8.738dp">
 
     <com.heytap.wearable.support.widget.HeyTextView
         android:id="@+id/text_feed_empty"
@@ -19,13 +19,13 @@
         android:id="@+id/button_empty_refresh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="5.825dp"
         android:text="刷新" />
 
     <com.heytap.wearable.support.widget.HeyButton
         android:id="@+id/button_empty_back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="4.369dp"
         android:text="返回" />
 </LinearLayout>

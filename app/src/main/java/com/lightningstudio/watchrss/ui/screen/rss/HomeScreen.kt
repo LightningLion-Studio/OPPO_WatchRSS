@@ -60,7 +60,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 18.dp, vertical = 12.dp)
+                .padding(horizontal = 13.106.dp, vertical = 8.738.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -77,7 +77,7 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.369.dp))
 
             if (refreshing) {
                 Text(
@@ -85,12 +85,12 @@ fun HomeScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.369.dp))
             }
 
             LazyColumn(
-                contentPadding = PaddingValues(bottom = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PaddingValues(bottom = 8.738.dp),
+                verticalArrangement = Arrangement.spacedBy(7.281.dp)
             ) {
                 if (channelList.isEmpty()) {
                     item {
@@ -129,14 +129,14 @@ private fun ChannelCard(
 ) {
     Surface(
         onClick = onClick,
-        tonalElevation = 2.dp,
-        shape = RoundedCornerShape(18.dp),
+        tonalElevation = 1.456.dp,
+        shape = RoundedCornerShape(13.106.dp),
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 11.65.dp, vertical = 8.738.dp)
         ) {
             Text(
                 text = channel.title,
@@ -145,7 +145,7 @@ private fun ChannelCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.913.dp))
             Text(
                 text = channel.description ?: channel.url,
                 style = MaterialTheme.typography.bodySmall,
@@ -153,7 +153,7 @@ private fun ChannelCard(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(5.825.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -177,20 +177,20 @@ private fun AddRssCard(onAdd: () -> Unit) {
     Surface(
         onClick = onAdd,
         tonalElevation = 0.dp,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(13.106.dp),
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .padding(horizontal = 11.65.dp, vertical = 10.194.dp)
         ) {
             Text(
                 text = "添加 RSS",
                 style = MaterialTheme.typography.titleMedium,
                 color = OppoOrange
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(2.913.dp))
             Text(
                 text = "手动输入或粘贴订阅地址",
                 style = MaterialTheme.typography.bodySmall,

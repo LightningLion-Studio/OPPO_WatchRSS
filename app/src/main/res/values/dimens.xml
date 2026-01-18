@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="watch_safe_padding">24dp</dimen>
+    <dimen name="watch_safe_padding">17.475dp</dimen>
     <dimen name="detail_page_horizontal_padding">40px</dimen>
-    <dimen name="detail_block_spacing">8dp</dimen>
+    <dimen name="detail_block_spacing">5.825dp</dimen>
     <dimen name="detail_title_safe_padding">0px</dimen>
-    <dimen name="detail_title_first_line_max_width">300px</dimen>
-    <dimen name="detail_title_second_line_max_width">368px</dimen>
-    <dimen name="detail_title_text_size">20sp</dimen>
-    <dimen name="detail_subtitle_text_size">18sp</dimen>
-    <dimen name="detail_body_text_size">16sp</dimen>
-    <dimen name="list_option_text_size">36px</dimen>
-    <dimen name="profile_entry_text_size">36px</dimen>
-    <dimen name="settings_detail_text_size">28px</dimen>
-    <dimen name="settings_title_text_size">36px</dimen>
-    <dimen name="feed_card_title_text_size">32px</dimen>
-    <dimen name="feed_card_summary_text_size">24px</dimen>
-    <dimen name="feed_card_action_text_size">24px</dimen>
+    <dimen name="detail_title_first_line_max_width">280px</dimen>
+    <dimen name="detail_title_second_line_max_width">380px</dimen>
+    <dimen name="detail_title_text_size">14.562sp</dimen>
+    <dimen name="detail_subtitle_text_size">13.106sp</dimen>
+    <dimen name="detail_body_text_size">11.65sp</dimen>
+    <dimen name="list_option_text_size">26.213px</dimen>
+    <dimen name="profile_entry_text_size">26.213px</dimen>
+    <dimen name="settings_detail_text_size">20.387px</dimen>
+    <dimen name="settings_title_text_size">26.213px</dimen>
+    <dimen name="feed_card_title_text_size">23.3px</dimen>
+    <dimen name="feed_card_summary_text_size">17.475px</dimen>
+    <dimen name="feed_card_action_text_size">17.475px</dimen>
 </resources>

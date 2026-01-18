@@ -19,20 +19,20 @@ import androidx.compose.ui.unit.dp
 fun EmptyStateCard(title: String, subtitle: String) {
     Surface(
         tonalElevation = 0.dp,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(13.106.dp),
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .padding(horizontal = 11.65.dp, vertical = 10.194.dp)
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.369.dp))
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
@@ -47,19 +47,19 @@ fun ToastMessage(text: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 22.dp, vertical = 16.dp),
+            .padding(horizontal = 16.019.dp, vertical = 11.65.dp),
         contentAlignment = Alignment.BottomCenter
     ) {
         Surface(
             color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(14.dp),
-            tonalElevation = 3.dp
+            shape = RoundedCornerShape(10.194.dp),
+            tonalElevation = 2.184.dp
         ) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 10.194.dp, vertical = 5.825.dp)
             )
         }
     }

@@ -65,7 +65,7 @@ fun FeedScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 18.dp, vertical = 12.dp)
+                .padding(horizontal = 13.106.dp, vertical = 8.738.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -87,11 +87,11 @@ fun FeedScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.369.dp))
 
             LazyColumn(
-                contentPadding = PaddingValues(bottom = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PaddingValues(bottom = 8.738.dp),
+                verticalArrangement = Arrangement.spacedBy(7.281.dp)
             ) {
                 if (itemList.isEmpty()) {
                     item {
@@ -124,14 +124,14 @@ private fun ItemCard(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(18.dp),
-        tonalElevation = 2.dp,
+        shape = RoundedCornerShape(13.106.dp),
+        tonalElevation = 1.456.dp,
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 11.65.dp, vertical = 8.738.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -139,11 +139,11 @@ private fun ItemCard(
                 if (!item.isRead) {
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(5.825.dp)
                             .clip(CircleShape)
                             .background(OppoOrange)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(5.825.dp))
                 }
                 Text(
                     text = item.title,
@@ -155,7 +155,7 @@ private fun ItemCard(
                 )
             }
             if (!item.description.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.369.dp))
                 Text(
                     text = item.description,
                     style = MaterialTheme.typography.bodySmall,

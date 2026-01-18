@@ -28,11 +28,18 @@ class ProgressRingView @JvmOverloads constructor(
     }
     private val arcBounds = RectF()
     private var progress = 0f
+    private var showBase = true
 
     fun setProgress(value: Float) {
         val clamped = value.coerceIn(0f, 1f)
         if (clamped == progress) return
         progress = clamped
+        invalidate()
+    }
+
+    fun setShowBase(value: Boolean) {
+        if (showBase == value) return
+        showBase = value
         invalidate()
     }
 
@@ -43,7 +50,9 @@ class ProgressRingView @JvmOverloads constructor(
         val radius = size / 2f - strokeWidthPx / 2f
         val cx = width / 2f
         val cy = height / 2f
-        canvas.drawCircle(cx, cy, radius, basePaint)
+        if (showBase) {
+            canvas.drawCircle(cx, cy, radius, basePaint)
+        }
         if (progress <= 0f) return
         arcBounds.set(cx - radius, cy - radius, cx + radius, cy + radius)
         canvas.drawArc(arcBounds, -90f, progress * 360f, false, progressPaint)

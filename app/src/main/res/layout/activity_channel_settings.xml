@@ -22,20 +22,20 @@
                 android:id="@+id/original_content_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="8.738dp"
                 android:orientation="vertical">
 
                 <LinearLayout
                     android:id="@+id/layout_channel_original_content"
                     android:layout_width="match_parent"
-                    android:layout_height="120px"
+                    android:layout_height="87.375px"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingLeft="32px"
-                    android:paddingRight="14dp"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
+                    android:paddingLeft="23.3px"
+                    android:paddingRight="10.194dp"
+                    android:paddingTop="7.281dp"
+                    android:paddingBottom="7.281dp">
 
                     <com.heytap.wearable.support.widget.HeyTextView
                         android:id="@+id/text_channel_original_content_label"
@@ -58,8 +58,8 @@
                     android:id="@+id/text_channel_original_content_hint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="32px"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="23.3px"
+                    android:layout_marginTop="4.369dp"
                     android:text="刷新时抓取原文正文与图片"
                     android:textColor="@android:color/darker_gray"
                     android:textSize="@dimen/settings_detail_text_size" />
@@ -69,22 +69,22 @@
                 android:id="@+id/delete_channel_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="7.281dp"
                 android:orientation="vertical">
 
                 <LinearLayout
                     android:id="@+id/button_channel_delete"
                     android:layout_width="match_parent"
-                    android:layout_height="120px"
+                    android:layout_height="87.375px"
                     android:background="@drawable/bg_settings_pill"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingLeft="32px"
-                    android:paddingRight="14dp"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp">
+                    android:paddingLeft="23.3px"
+                    android:paddingRight="10.194dp"
+                    android:paddingTop="7.281dp"
+                    android:paddingBottom="7.281dp">
 
                     <com.heytap.wearable.support.widget.HeyTextView
                         android:id="@+id/text_channel_delete_label"
@@ -100,7 +100,7 @@
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="64px" />
+                android:layout_height="46.6px" />
         </LinearLayout>
     </ScrollView>
 </FrameLayout>

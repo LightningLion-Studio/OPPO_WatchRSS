@@ -101,7 +101,7 @@ fun WebViewLoginScreen(
                             text = "✓ 您已登录完成",
                             color = Color.White,
                             style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(11.65.dp)
                         )
                     }
                 } else if (errorMessage != null) {
@@ -114,7 +114,7 @@ fun WebViewLoginScreen(
                             text = "加载失败: $errorMessage",
                             color = Color.Red,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(11.65.dp)
                         )
                     }
                 } else {
@@ -174,7 +174,7 @@ fun WebViewLoginScreen(
                     progress = { loadProgress },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp)
+                        .height(2.913.dp)
                         .align(Alignment.TopCenter),
                     color = Color(0xFF1E88E5),
                     trackColor = Color.Transparent
@@ -189,7 +189,7 @@ fun WebViewLoginScreen(
                 ) {
                     CircularProgressIndicator(
                         color = Color(0xFF1E88E5),
-                        strokeWidth = 3.dp
+                        strokeWidth = 2.184.dp
                     )
                 }
             }
@@ -200,9 +200,9 @@ fun WebViewLoginScreen(
                     onClick = { showConfirmDialog = true },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 24.dp)
+                        .padding(bottom = 17.475.dp)
                         .fillMaxWidth(0.7f)
-                        .height(48.dp),
+                        .height(34.95.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF1E88E5)
                     )

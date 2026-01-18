@@ -27,7 +27,7 @@
                 android:id="@+id/text_info_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="7.281dp"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/hey_s_desription" />
         </LinearLayout>

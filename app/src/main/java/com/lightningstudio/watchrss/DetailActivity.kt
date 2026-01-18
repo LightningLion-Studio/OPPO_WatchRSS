@@ -91,7 +91,7 @@ class DetailActivity : BaseHeytapActivity() {
         openButton.setOnClickListener {
             val link = it.tag as? String
             if (!link.isNullOrBlank()) {
-                openLink(link)
+                openLinkInApp(link)
             }
         }
 
@@ -555,7 +555,7 @@ class DetailActivity : BaseHeytapActivity() {
         )
         params.topMargin = topMargin
         view.layoutParams = params
-        view.setOnClickListener { openLink(resolveMediaUrl(url)) }
+        view.setOnClickListener { openExternalLink(resolveMediaUrl(url)) }
         return view
     }
 
@@ -589,7 +589,13 @@ class DetailActivity : BaseHeytapActivity() {
         startActivity(Intent.createChooser(intent, "分享"))
     }
 
-    private fun openLink(link: String) {
+    private fun openLinkInApp(link: String) {
+        val trimmed = link.trim()
+        if (trimmed.isEmpty()) return
+        startActivity(WebViewActivity.createIntent(this, trimmed))
+    }
+
+    private fun openExternalLink(link: String) {
         val uri = if (link.startsWith("/")) {
             FileProvider.getUriForFile(this, "${packageName}.fileprovider", File(link))
         } else {

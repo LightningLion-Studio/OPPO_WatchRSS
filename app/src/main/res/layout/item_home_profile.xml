@@ -3,14 +3,14 @@
     android:id="@+id/profile_entry"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
+    android:layout_marginBottom="5.825dp"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="6dp">
+    android:padding="4.369dp">
 
     <FrameLayout
-        android:layout_width="48dp"
-        android:layout_height="48dp">
+        android:layout_width="34.95dp"
+        android:layout_height="34.95dp">
 
         <com.heytap.wearable.support.widget.HeyTextView
             android:id="@+id/text_avatar"
@@ -20,17 +20,17 @@
             android:gravity="center"
             android:text="我"
             android:textColor="@android:color/white"
-            android:textSize="20sp" />
+            android:textSize="14.562sp" />
     </FrameLayout>
 
     <com.heytap.wearable.support.widget.HeyTextView
         android:id="@+id/text_profile_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="4.369dp"
         android:text="未登录"
         android:textColor="@android:color/white"
-        android:textSize="18sp" />
+        android:textSize="13.106sp" />
 
     <com.heytap.wearable.support.widget.HeyTextView
         android:id="@+id/text_profile_hint"
@@ -38,5 +38,5 @@
         android:layout_height="wrap_content"
         android:text="点击进入我的"
         android:textColor="@android:color/darker_gray"
-        android:textSize="14sp" />
+        android:textSize="10.194sp" />
 </LinearLayout>

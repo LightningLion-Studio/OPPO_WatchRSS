@@ -29,11 +29,11 @@
                 android:id="@+id/text_platform_message"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="11.65dp"
                 android:gravity="center"
                 android:text="功能开发中"
                 android:textColor="@android:color/white"
-                android:textSize="18sp" />
+                android:textSize="13.106sp" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
