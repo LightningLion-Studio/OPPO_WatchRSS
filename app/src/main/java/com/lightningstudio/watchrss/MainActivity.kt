@@ -3,6 +3,7 @@ package com.lightningstudio.watchrss
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -39,6 +40,7 @@ class MainActivity : BaseHeytapActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         setupSystemBars()
         setContentView(R.layout.activity_main)
