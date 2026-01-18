@@ -26,17 +26,9 @@ class ItemActionsActivity : BaseHeytapActivity() {
             return
         }
 
-        val titleView = findViewById<HeyTextView>(R.id.dialog_title)
         val favoriteButton = findViewById<HeyButton>(R.id.button_favorite)
         val laterButton = findViewById<HeyButton>(R.id.button_watch_later)
         val cancelButton = findViewById<HeyButton>(R.id.button_cancel)
-
-        val initialTitle = intent.getStringExtra(EXTRA_ITEM_TITLE)
-        if (!initialTitle.isNullOrBlank()) {
-            titleView.text = initialTitle
-        } else {
-            titleView.text = "加载中..."
-        }
 
         favoriteButton.setOnClickListener {
             viewModel.toggleFavorite()
@@ -50,13 +42,6 @@ class ItemActionsActivity : BaseHeytapActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.item.collect { item ->
-                        if (item != null) {
-                            titleView.text = item.title
-                        }
-                    }
-                }
                 launch {
                     viewModel.savedState.collect { state ->
                         favoriteButton.text = if (state.isFavorite) "取消收藏" else "收藏"

@@ -9,5 +9,5 @@
 
     <com.heytap.wearable.support.widget.HeyShapeButton
         android:id="@+id/positive_id"
-        style="@style/HeyRoundButtonTextDefaultStyle"/>
+        style=="@style/HeyBigShapeButtonStyle"/>
 </RelativeLayout>

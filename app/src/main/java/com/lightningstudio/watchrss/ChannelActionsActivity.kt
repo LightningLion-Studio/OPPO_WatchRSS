@@ -29,7 +29,6 @@ class ChannelActionsActivity : BaseHeytapActivity() {
             return
         }
 
-        val titleView = findViewById<HeyTextView>(R.id.dialog_title)
         val moveTopButton = findViewById<HeyButton>(R.id.button_move_top)
         val pinButton = findViewById<HeyButton>(R.id.button_pin)
         val markReadButton = findViewById<HeyButton>(R.id.button_mark_read)
@@ -58,7 +57,6 @@ class ChannelActionsActivity : BaseHeytapActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.channel.collect { channel ->
                     if (channel == null) {
-                        titleView.text = "加载中..."
                         moveTopButton.isEnabled = false
                         pinButton.isEnabled = false
                         markReadButton.isEnabled = false
@@ -67,7 +65,6 @@ class ChannelActionsActivity : BaseHeytapActivity() {
                         deleteButton.alpha = 0.5f
                         return@collect
                     }
-                    titleView.text = channel.title
                     moveTopButton.isEnabled = true
                     pinButton.isEnabled = true
                     deleteButton.isEnabled = true

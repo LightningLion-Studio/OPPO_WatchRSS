@@ -17,4 +17,7 @@
     <dimen name="feed_card_summary_text_size">@dimen/hey_caption</dimen>
     <dimen name="feed_card_action_text_size">@dimen/hey_s_desription</dimen>
     <dimen name="feed_card_image_height">100dp</dimen>
+    <dimen name="watch_action_button_width">320px</dimen>
+    <dimen name="watch_swipe_action_button_width">72dp</dimen>
+    <dimen name="watch_action_button_height">96px</dimen>
 </resources>

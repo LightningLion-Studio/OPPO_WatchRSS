@@ -59,23 +59,25 @@
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/hey_s_desription" />
 
-            <com.heytap.wearable.support.widget.HeyButton
+            <com.heytap.wearable.support.widget.HeyShapeButton
                 android:id="@+id/button_channel_settings"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/hey_button_height"
+                style="@style/HeySmallShapeButtonStyle"
+                android:layout_width="@dimen/watch_action_button_width"
+                android:layout_height="@dimen/watch_action_button_height"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/hey_content_horizontal_distance"
+                android:layout_marginTop="8px"
                 android:background="@drawable/bg_settings_pill"
                 android:gravity="center"
                 android:textSize="@dimen/hey_m_title"
                 android:text="设置" />
 
-            <com.heytap.wearable.support.widget.HeyButton
+            <com.heytap.wearable.support.widget.HeyShapeButton
                 android:id="@+id/button_channel_mark_read"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/hey_button_height"
+                style="@style/HeySmallShapeButtonStyle"
+                android:layout_width="@dimen/watch_action_button_width"
+                android:layout_height="@dimen/watch_action_button_height"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="@dimen/hey_distance_10dp"
+                android:layout_marginTop="8px"
                 android:background="@drawable/bg_settings_pill"
                 android:gravity="center"
                 android:textSize="@dimen/hey_m_title"
