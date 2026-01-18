@@ -1,5 +1,6 @@
 package com.lightningstudio.watchrss
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
@@ -7,7 +8,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.heytap.wearable.support.widget.HeyButton
-import com.heytap.wearable.support.widget.HeyDialog
 import com.heytap.wearable.support.widget.HeyTextView
 import com.lightningstudio.watchrss.ui.util.formatTime
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
@@ -29,13 +29,17 @@ class ChannelDetailActivity : BaseHeytapActivity() {
         val urlView = findViewById<HeyTextView>(R.id.text_channel_url)
         val timeView = findViewById<HeyTextView>(R.id.text_channel_time)
         val unreadView = findViewById<HeyTextView>(R.id.text_channel_unread)
-        val refreshButton = findViewById<HeyButton>(R.id.button_channel_refresh)
+        val settingsButton = findViewById<HeyButton>(R.id.button_channel_settings)
         val markReadButton = findViewById<HeyButton>(R.id.button_channel_mark_read)
-        val deleteButton = findViewById<HeyButton>(R.id.button_channel_delete)
+        val channelId = intent.getLongExtra(EXTRA_CHANNEL_ID, 0L)
 
-        refreshButton.setOnClickListener { viewModel.refresh() }
         markReadButton.setOnClickListener { viewModel.markRead() }
-        deleteButton.setOnClickListener { confirmDelete() }
+        settingsButton.setOnClickListener {
+            if (channelId <= 0L) return@setOnClickListener
+            val intent = Intent(this, ChannelSettingsActivity::class.java)
+            intent.putExtra(ChannelSettingsActivity.EXTRA_CHANNEL_ID, channelId)
+            startActivity(intent)
+        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -46,7 +50,10 @@ class ChannelDetailActivity : BaseHeytapActivity() {
                         urlView.visibility = View.GONE
                         timeView.visibility = View.GONE
                         unreadView.visibility = View.GONE
+                        settingsButton.isEnabled = false
+                        settingsButton.alpha = 0.5f
                         markReadButton.isEnabled = false
+                        markReadButton.alpha = 0.5f
                         return@collect
                     }
                     titleView.text = channel.title
@@ -58,24 +65,13 @@ class ChannelDetailActivity : BaseHeytapActivity() {
                     timeView.visibility = View.VISIBLE
                     unreadView.text = "未读 ${channel.unreadCount}"
                     unreadView.visibility = View.VISIBLE
+                    settingsButton.isEnabled = true
+                    settingsButton.alpha = 1f
                     markReadButton.isEnabled = channel.unreadCount > 0
                     markReadButton.alpha = if (channel.unreadCount > 0) 1f else 0.5f
                 }
             }
         }
-    }
-
-    private fun confirmDelete() {
-        HeyDialog.HeyBuilder(this)
-            .setTitle("删除频道")
-            .setMessage("删除后将移除本地缓存")
-            .setPositiveButton("删除") { _ ->
-                viewModel.delete()
-                finish()
-            }
-            .setNegativeButton("取消") { _ -> }
-            .create()
-            .show()
     }
 
     companion object {

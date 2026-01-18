@@ -9,6 +9,7 @@ data class RssChannel(
     val lastFetchedAt: Long?,
     val sortOrder: Long,
     val isPinned: Boolean,
+    val useOriginalContent: Boolean,
     val unreadCount: Int
 )
 

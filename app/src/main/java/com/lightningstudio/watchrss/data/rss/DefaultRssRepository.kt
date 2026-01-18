@@ -11,21 +11,29 @@ import com.lightningstudio.watchrss.data.db.RssItemEntity
 import com.lightningstudio.watchrss.data.db.SavedEntryDao
 import com.lightningstudio.watchrss.data.db.SavedEntryEntity
 import com.lightningstudio.watchrss.data.db.SavedRssItem
+import com.lightningstudio.watchrss.debug.DebugLogBuffer
 import com.lightningstudio.watchrss.data.settings.SettingsRepository
 import com.prof18.rssparser.RssParser
 import com.prof18.rssparser.RssParserBuilder
 import com.prof18.rssparser.model.RssChannel as ParsedChannel
 import com.prof18.rssparser.model.RssItem as ParsedItem
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import java.util.concurrent.TimeUnit
 import java.io.File
+import java.net.URL
+import java.util.concurrent.ConcurrentHashMap
 
 class DefaultRssRepository(
     private val appContext: Context,
@@ -33,7 +41,8 @@ class DefaultRssRepository(
     private val itemDao: RssItemDao,
     private val savedEntryDao: SavedEntryDao,
     private val offlineMediaDao: OfflineMediaDao,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val appScope: CoroutineScope
 ) : RssRepository {
     private val offlineRoot: File = File(appContext.filesDir, "offline/rss").apply {
         if (!exists()) {
@@ -60,6 +69,12 @@ class DefaultRssRepository(
             .readTimeout(20, TimeUnit.SECONDS)
             .build()
     }
+
+    private val originalContentUserAgent =
+        "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 " +
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+
+    private val refreshJobs = ConcurrentHashMap<Long, Job>()
 
     override fun observeChannels(): Flow<List<RssChannel>> =
         combine(
@@ -285,7 +300,10 @@ class DefaultRssRepository(
         confirmAddChannel((preview as AddRssPreview.Ready).preview)
     }
 
-    override suspend fun refreshChannel(channelId: Long): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun refreshChannel(
+        channelId: Long,
+        refreshAll: Boolean
+    ): Result<Unit> = withContext(Dispatchers.IO) {
         val channel = channelDao.getChannel(channelId)
             ?: return@withContext Result.failure(IllegalArgumentException("频道不存在"))
         if (BuiltinChannelType.fromUrl(channel.url) != null) {
@@ -295,15 +313,67 @@ class DefaultRssRepository(
         runCatching {
             val fetchedAt = System.currentTimeMillis()
             val parsed = parser.getRssChannel(channel.url)
+            val baseLink = parsed.link?.trim()?.ifEmpty { null } ?: channel.url
+            val useOriginalContent = channel.useOriginalContent
+            if (useOriginalContent) {
+                DebugLogBuffer.log(
+                    "orig",
+                    "refresh channelId=$channelId items=${parsed.items.size} base=$baseLink"
+                )
+            }
             val items = parsed.items.map { item ->
-                item.toEntity(
+                val originalContent = if (useOriginalContent) {
+                    fetchOriginalContent(item.link, baseLink)
+                } else {
+                    null
+                }
+                val entity = item.toEntity(
                     channelId = channelId,
                     isRead = false,
-                    fetchedAt = fetchedAt
+                    fetchedAt = fetchedAt,
+                    contentOverride = originalContent
+                )
+                if (useOriginalContent && originalContent != null && entity.content == null) {
+                    DebugLogBuffer.log(
+                        "orig",
+                        "drop link=${item.link} override=${originalContent.length}"
+                    )
+                }
+                entity
+            }
+            if (useOriginalContent) {
+                DebugLogBuffer.log(
+                    "orig",
+                    "store total=${items.size} withContent=${items.count { it.content != null }} refreshAll=$refreshAll"
                 )
             }
             if (items.isNotEmpty()) {
-                itemDao.insertItems(items)
+                val insertResults = itemDao.insertItems(items)
+                if (refreshAll) {
+                    var updated = 0
+                    insertResults.forEachIndexed { index, rowId ->
+                        if (rowId <= 0L) {
+                            val entity = items[index]
+                            itemDao.updateContentByDedupKey(
+                                channelId = channelId,
+                                dedupKey = entity.dedupKey,
+                                description = entity.description,
+                                content = entity.content,
+                                imageUrl = entity.imageUrl,
+                                audioUrl = entity.audioUrl,
+                                videoUrl = entity.videoUrl,
+                                contentSizeBytes = entity.contentSizeBytes
+                            )
+                            updated += 1
+                        }
+                    }
+                    if (useOriginalContent) {
+                        DebugLogBuffer.log(
+                            "orig",
+                            "inserted=${insertResults.count { it > 0 }} updated=$updated"
+                        )
+                    }
+                }
             }
             channelDao.updateChannel(channel.copy(
                 title = channelTitle(parsed, channel.url),
@@ -313,6 +383,19 @@ class DefaultRssRepository(
             ))
             trimCacheToLimit()
         }.mapError()
+    }
+
+    override fun refreshChannelInBackground(channelId: Long, refreshAll: Boolean) {
+        refreshJobs[channelId]?.cancel()
+        refreshJobs[channelId] = appScope.launch {
+            val result = refreshChannel(channelId, refreshAll)
+            if (refreshAll && result.isFailure) {
+                DebugLogBuffer.log(
+                    "orig",
+                    "refresh failed channelId=$channelId error=${result.exceptionOrNull()?.message}"
+                )
+            }
+        }
     }
 
     override suspend fun markItemRead(itemId: Long) {
@@ -353,6 +436,14 @@ class DefaultRssRepository(
             val channel = channelDao.getChannel(channelId) ?: return@withContext
             val newOrder = if (pinned) System.currentTimeMillis() else channel.sortOrder
             channelDao.updateChannel(channel.copy(isPinned = pinned, sortOrder = newOrder))
+        }
+    }
+
+    override suspend fun setChannelOriginalContent(channelId: Long, enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            val channel = channelDao.getChannel(channelId) ?: return@withContext
+            if (channel.useOriginalContent == enabled) return@withContext
+            channelDao.updateChannel(channel.copy(useOriginalContent = enabled))
         }
     }
 
@@ -440,13 +531,15 @@ class DefaultRssRepository(
     private fun ParsedItem.toEntity(
         channelId: Long,
         isRead: Boolean,
-        fetchedAt: Long
+        fetchedAt: Long,
+        contentOverride: String? = null
     ): RssItemEntity {
         val safeTitle = title?.trim().takeUnless { it.isNullOrEmpty() }
             ?: link?.trim().takeUnless { it.isNullOrEmpty() }
             ?: "未命名内容"
         val safeDescription = description?.trim()?.ifEmpty { null }
-        val safeContent = content?.trim()?.ifEmpty { null }
+        val safeContent = contentOverride?.trim()?.ifEmpty { null }
+            ?: content?.trim()?.ifEmpty { null }
         val safeLink = link?.trim()?.ifEmpty { null }
         val safeGuid = guid?.trim()?.ifEmpty { null }
         val safePubDate = pubDate?.trim()?.ifEmpty { null }
@@ -637,6 +730,116 @@ class DefaultRssRepository(
         }
     }
 
+    private fun fetchOriginalContent(link: String?, baseUrl: String?): String? {
+        val resolved = resolveItemLink(link, baseUrl)
+            ?: run {
+                DebugLogBuffer.log("orig", "skip no-link base=$baseUrl")
+                return null
+            }
+        return try {
+            val request = Request.Builder()
+                .url(resolved)
+                .header("User-Agent", originalContentUserAgent)
+                .build()
+            downloadClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    DebugLogBuffer.log(
+                        "orig",
+                        "http ${response.code} ${response.message} url=$resolved"
+                    )
+                    return null
+                }
+                val body = response.body?.string()?.takeIf { it.isNotBlank() }
+                if (body == null) {
+                    DebugLogBuffer.log("orig", "empty-body url=$resolved")
+                    return null
+                }
+                val extracted = extractReadableHtml(body, resolved)
+                if (extracted == null) {
+                    DebugLogBuffer.log("orig", "no-readable-content url=$resolved")
+                } else {
+                    DebugLogBuffer.log(
+                        "orig",
+                        "ok url=$resolved size=${extracted.length}"
+                    )
+                }
+                extracted
+            }
+        } catch (e: Exception) {
+            DebugLogBuffer.log(
+                "orig",
+                "error ${e.javaClass.simpleName} url=$resolved msg=${e.message}"
+            )
+            null
+        }
+    }
+
+    private fun resolveItemLink(link: String?, baseUrl: String?): String? {
+        val trimmed = link?.trim()?.ifEmpty { null } ?: return null
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed
+        if (baseUrl.isNullOrBlank()) return null
+        return try {
+            URL(URL(baseUrl), trimmed).toString()
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun extractReadableHtml(html: String, baseUrl: String): String? {
+        val doc = Jsoup.parse(html, baseUrl)
+        doc.outputSettings().prettyPrint(false)
+        doc.select("script,style,noscript").remove()
+        val candidates = doc.select(
+            "article, main, [role=main], div#content, div#article, div#article_content, div.content, div.left_zw"
+        )
+        val root = candidates.maxByOrNull { it.text().length } ?: doc.body()
+        if (root == null) return null
+        sanitizeReadableRoot(root)
+        val text = root.text().trim()
+        val hasMedia = root.select("img,video,iframe").isNotEmpty()
+        if (text.isEmpty() && !hasMedia) return null
+        val content = root.outerHtml().trim()
+        return content.ifEmpty { null }
+    }
+
+    private fun sanitizeReadableRoot(root: Element) {
+        root.select("script,style,noscript,header,footer,nav,form,aside,button,svg").remove()
+        normalizeMediaUrls(root)
+    }
+
+    private fun normalizeMediaUrls(root: Element) {
+        val imageFallbacks = listOf("data-src", "data-original", "data-lazy-src", "data-actualsrc", "data-url")
+        root.select("img").forEach { img ->
+            val src = pickFirstAttr(img, "src", imageFallbacks)
+            updateAbsUrl(img, "src", src)
+            if (img.hasAttr("srcset")) {
+                img.removeAttr("srcset")
+            }
+        }
+        root.select("video[src], source[src], iframe[src]").forEach { element ->
+            updateAbsUrl(element, "src", element.attr("src").trim())
+        }
+    }
+
+    private fun pickFirstAttr(element: Element, primary: String, fallbacks: List<String>): String? {
+        val direct = element.attr(primary).trim()
+        if (direct.isNotBlank()) return direct
+        for (attr in fallbacks) {
+            val value = element.attr(attr).trim()
+            if (value.isNotBlank()) return value
+        }
+        return null
+    }
+
+    private fun updateAbsUrl(element: Element, attr: String, value: String?) {
+        val trimmed = value?.trim()?.ifEmpty { null } ?: return
+        element.attr(attr, trimmed)
+        val abs = element.absUrl(attr)
+        if (abs.isNotBlank()) {
+            element.attr(attr, abs)
+        }
+    }
+
     private fun computeDedupKey(guid: String?, link: String?, title: String): String = when {
         !guid.isNullOrBlank() -> "guid:$guid"
         !link.isNullOrBlank() -> "link:$link"
@@ -691,6 +894,7 @@ class DefaultRssRepository(
         lastFetchedAt = lastFetchedAt,
         sortOrder = sortOrder,
         isPinned = isPinned,
+        useOriginalContent = useOriginalContent,
         unreadCount = unreadCount
     )
 

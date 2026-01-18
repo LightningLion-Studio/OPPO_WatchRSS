@@ -8,6 +8,9 @@ import com.lightningstudio.watchrss.data.db.WatchRssDatabase
 import com.lightningstudio.watchrss.data.rss.DefaultRssRepository
 import com.lightningstudio.watchrss.data.rss.RssRepository
 import com.lightningstudio.watchrss.data.settings.SettingsRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 interface AppContainer {
     val rssRepository: RssRepository
@@ -16,6 +19,7 @@ interface AppContainer {
 
 class DefaultAppContainer(context: Context) : AppContainer {
     private val appContext = context.applicationContext
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val database: WatchRssDatabase by lazy {
         Room.databaseBuilder(
@@ -24,7 +28,8 @@ class DefaultAppContainer(context: Context) : AppContainer {
             "watchrss.db"
         ).addMigrations(
             WatchRssDatabase.MIGRATION_1_2,
-            WatchRssDatabase.MIGRATION_2_3
+            WatchRssDatabase.MIGRATION_2_3,
+            WatchRssDatabase.MIGRATION_3_4
         )
             .build()
     }
@@ -43,7 +48,8 @@ class DefaultAppContainer(context: Context) : AppContainer {
             itemDao = database.rssItemDao(),
             savedEntryDao = database.savedEntryDao(),
             offlineMediaDao = database.offlineMediaDao(),
-            settingsRepository = settingsRepository
+            settingsRepository = settingsRepository,
+            appScope = appScope
         )
     }
 }

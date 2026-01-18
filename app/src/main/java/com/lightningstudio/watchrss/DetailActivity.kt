@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ImageButton
+import android.widget.ScrollView
 import androidx.activity.viewModels
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
@@ -19,12 +20,14 @@ import com.heytap.wearable.support.widget.HeyTextView
 import com.lightningstudio.watchrss.data.rss.OfflineMedia
 import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
+import com.lightningstudio.watchrss.debug.DebugLogBuffer
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
 import com.lightningstudio.watchrss.ui.util.ContentBlock
 import com.lightningstudio.watchrss.ui.util.RssContentParser
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import com.lightningstudio.watchrss.ui.util.TextStyle
+import com.lightningstudio.watchrss.ui.widget.ProgressRingView
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -35,9 +38,13 @@ class DetailActivity : BaseHeytapActivity() {
 
     private lateinit var titleView: HeyTextView
     private lateinit var contentContainer: LinearLayout
+    private lateinit var detailScroll: ScrollView
+    private lateinit var safeTopSpacer: View
+    private lateinit var safeBottomSpacer: View
     private lateinit var openButton: HeyButton
     private lateinit var shareButton: ImageButton
     private lateinit var favoriteButton: ImageButton
+    private lateinit var progressRing: ProgressRingView
 
     private var currentTitle: String = ""
     private var currentLink: String? = null
@@ -45,6 +52,8 @@ class DetailActivity : BaseHeytapActivity() {
     private var currentFontSizeSp: Int = DEFAULT_READING_FONT_SIZE_SP
     private var offlineMedia: Map<String, OfflineMedia> = emptyMap()
     private var isFavorite: Boolean = false
+    private var progressIndicatorEnabled: Boolean = true
+    private var baseSafePadding: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,9 +62,14 @@ class DetailActivity : BaseHeytapActivity() {
 
         titleView = findViewById(R.id.text_title)
         contentContainer = findViewById(R.id.content_container)
+        detailScroll = findViewById(R.id.detail_scroll)
+        safeTopSpacer = findViewById(R.id.detail_safe_top)
+        safeBottomSpacer = findViewById(R.id.detail_safe_bottom)
         openButton = findViewById(R.id.button_open)
         shareButton = findViewById(R.id.button_share)
         favoriteButton = findViewById(R.id.button_favorite)
+        progressRing = findViewById(R.id.detail_progress_ring)
+        baseSafePadding = resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
 
         openButton.setOnClickListener {
             val link = it.tag as? String
@@ -74,6 +88,10 @@ class DetailActivity : BaseHeytapActivity() {
         val safePadding = resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
         val maxImageWidth = (resources.displayMetrics.widthPixels - safePadding * 2).coerceAtLeast(1)
 
+        detailScroll.setOnScrollChangeListener { _, _, _, _, _ ->
+            updateProgressIndicator()
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -84,11 +102,16 @@ class DetailActivity : BaseHeytapActivity() {
                             openButton.visibility = View.GONE
                             return@collect
                         }
+                        DebugLogBuffer.log(
+                            "orig",
+                            "detail itemId=${item.id} contentLen=${item.content?.length ?: 0} descLen=${item.description?.length ?: 0}"
+                        )
                         currentTitle = item.title
                         currentLink = item.link
                         applyTitleText(item.title)
                         renderContent(item, blockSpacing, maxImageWidth)
                         updateLinkButton(item.link)
+                        detailScroll.post { updateProgressIndicator() }
                     }
                 }
                 launch {
@@ -101,6 +124,7 @@ class DetailActivity : BaseHeytapActivity() {
                     viewModel.offlineMedia.collect { list ->
                         offlineMedia = list.associateBy { it.originUrl }
                         renderContentIfReady(blockSpacing, maxImageWidth)
+                        detailScroll.post { updateProgressIndicator() }
                     }
                 }
                 launch {
@@ -108,12 +132,24 @@ class DetailActivity : BaseHeytapActivity() {
                         currentThemeDark = isDark
                         applyReadingTheme()
                         renderContentIfReady(blockSpacing, maxImageWidth)
+                        detailScroll.post { updateProgressIndicator() }
                     }
                 }
                 launch {
                     viewModel.readingFontSizeSp.collect { sizeSp ->
                         currentFontSizeSp = sizeSp
                         renderContentIfReady(blockSpacing, maxImageWidth)
+                        detailScroll.post { updateProgressIndicator() }
+                    }
+                }
+                launch {
+                    viewModel.detailProgressIndicatorEnabled.collect { enabled ->
+                        progressIndicatorEnabled = enabled
+                        progressRing.visibility = if (enabled) View.VISIBLE else View.GONE
+                        applyProgressPadding(enabled)
+                        if (enabled) {
+                            detailScroll.post { updateProgressIndicator() }
+                        }
                     }
                 }
             }
@@ -239,6 +275,35 @@ class DetailActivity : BaseHeytapActivity() {
                     )
                 }
             }
+        }
+    }
+
+    private fun updateProgressIndicator() {
+        if (!progressIndicatorEnabled) return
+        val child = detailScroll.getChildAt(0) ?: run {
+            progressRing.setProgress(0f)
+            return
+        }
+        val scrollRange = (child.height - detailScroll.height).coerceAtLeast(0)
+        val progress = if (scrollRange == 0) {
+            0f
+        } else {
+            detailScroll.scrollY.toFloat() / scrollRange.toFloat()
+        }
+        progressRing.setProgress(progress)
+    }
+
+    private fun applyProgressPadding(enabled: Boolean) {
+        val extra = if (enabled) 16 else 0
+        updateSpacerHeight(safeTopSpacer, baseSafePadding + extra)
+        updateSpacerHeight(safeBottomSpacer, baseSafePadding + extra)
+    }
+
+    private fun updateSpacerHeight(view: View, height: Int) {
+        val params = view.layoutParams ?: return
+        if (params.height != height) {
+            params.height = height
+            view.layoutParams = params
         }
     }
 

@@ -11,4 +11,5 @@
     <color name="watch_card_background">#FF1C1C1C</color>
     <color name="watch_card_background_pinned">#FF333333</color>
     <color name="watch_pill_background">#FF2A2A2A</color>
+    <color name="danger_red">#FFE54D4D</color>
 </resources>

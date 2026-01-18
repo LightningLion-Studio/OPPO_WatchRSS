@@ -35,5 +35,12 @@ class ChannelDetailViewModel(
         }
     }
 
+    fun setOriginalContentEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            repository.setChannelOriginalContent(channelId, enabled)
+            repository.refreshChannelInBackground(channelId, refreshAll = true)
+        }
+    }
+
     fun isValid(): Boolean = channelId > 0L
 }

@@ -60,28 +60,26 @@
                 android:textSize="@dimen/hey_s_desription" />
 
             <com.heytap.wearable.support.widget.HeyButton
-                android:id="@+id/button_channel_refresh"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:id="@+id/button_channel_settings"
+                android:layout_width="320px"
+                android:layout_height="96px"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="12dp"
-                android:text="刷新频道" />
+                android:background="@drawable/bg_settings_pill"
+                android:gravity="center"
+                android:textSize="32px"
+                android:text="设置" />
 
             <com.heytap.wearable.support.widget.HeyButton
                 android:id="@+id/button_channel_mark_read"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="320px"
+                android:layout_height="96px"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="24px"
+                android:background="@drawable/bg_settings_pill"
+                android:gravity="center"
+                android:textSize="32px"
                 android:text="标记已读" />
-
-            <com.heytap.wearable.support.widget.HeyButton
-                android:id="@+id/button_channel_delete"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="6dp"
-                android:text="删除频道" />
         </LinearLayout>
     </ScrollView>
 </FrameLayout>

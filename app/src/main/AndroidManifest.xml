@@ -25,6 +25,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        <provider
+            android:name=".debug.DebugLogProvider"
+            android:authorities="${applicationId}.debuglog"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -58,6 +62,10 @@
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity
             android:name=".ChannelDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".ChannelSettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity

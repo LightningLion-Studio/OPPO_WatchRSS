@@ -12,14 +12,17 @@
         android:scrollbars="none"
         android:fillViewport="true"
         android:paddingStart="@dimen/detail_page_horizontal_padding"
-        android:paddingEnd="@dimen/detail_page_horizontal_padding"
-        android:paddingTop="@dimen/watch_safe_padding"
-        android:paddingBottom="@dimen/watch_safe_padding">
+        android:paddingEnd="@dimen/detail_page_horizontal_padding">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
+            <View
+                android:id="@+id/detail_safe_top"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/watch_safe_padding" />
 
             <com.heytap.wearable.support.widget.HeyTextView
                 android:id="@+id/text_title"
@@ -75,6 +78,19 @@
                     android:src="@drawable/ic_action_share"
                     android:tint="@android:color/white" />
             </LinearLayout>
+
+            <View
+                android:id="@+id/detail_safe_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/watch_safe_padding" />
         </LinearLayout>
     </ScrollView>
+
+    <com.lightningstudio.watchrss.ui.widget.ProgressRingView
+        android:id="@+id/detail_progress_ring"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        android:importantForAccessibility="no" />
 </FrameLayout>

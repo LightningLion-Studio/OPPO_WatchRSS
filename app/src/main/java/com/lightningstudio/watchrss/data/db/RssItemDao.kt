@@ -29,6 +29,29 @@ interface RssItemDao {
     @Query("UPDATE rss_items SET isLiked = :liked WHERE id = :id")
     suspend fun updateLiked(id: Long, liked: Boolean)
 
+    @Query(
+        """
+        UPDATE rss_items SET
+            description = :description,
+            content = :content,
+            imageUrl = :imageUrl,
+            audioUrl = :audioUrl,
+            videoUrl = :videoUrl,
+            contentSizeBytes = :contentSizeBytes
+        WHERE channelId = :channelId AND dedupKey = :dedupKey
+        """
+    )
+    suspend fun updateContentByDedupKey(
+        channelId: Long,
+        dedupKey: String,
+        description: String?,
+        content: String?,
+        imageUrl: String?,
+        audioUrl: String?,
+        videoUrl: String?,
+        contentSizeBytes: Long
+    )
+
     @Query("SELECT channelId, COUNT(*) as unreadCount FROM rss_items WHERE isRead = 0 GROUP BY channelId")
     fun observeUnreadCounts(): Flow<List<RssChannelUnreadCount>>
 

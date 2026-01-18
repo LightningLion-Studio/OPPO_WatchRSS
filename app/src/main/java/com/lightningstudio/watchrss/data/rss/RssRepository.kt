@@ -16,7 +16,8 @@ interface RssRepository {
     suspend fun previewChannel(url: String): Result<AddRssPreview>
     suspend fun confirmAddChannel(preview: RssChannelPreview): Result<RssChannel>
     suspend fun addChannel(url: String): Result<RssChannel>
-    suspend fun refreshChannel(channelId: Long): Result<Unit>
+    suspend fun refreshChannel(channelId: Long, refreshAll: Boolean = false): Result<Unit>
+    fun refreshChannelInBackground(channelId: Long, refreshAll: Boolean = false)
     suspend fun markItemRead(itemId: Long)
     suspend fun toggleFavorite(itemId: Long): Result<SavedState>
     suspend fun toggleWatchLater(itemId: Long): Result<SavedState>
@@ -24,6 +25,7 @@ interface RssRepository {
     suspend fun markChannelRead(channelId: Long)
     suspend fun moveChannelToTop(channelId: Long)
     suspend fun setChannelPinned(channelId: Long, pinned: Boolean)
+    suspend fun setChannelOriginalContent(channelId: Long, enabled: Boolean)
     suspend fun deleteChannel(channelId: Long)
     suspend fun trimCacheToLimit()
 }

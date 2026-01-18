@@ -33,6 +33,9 @@ class DetailViewModel(
     val readingFontSizeSp = settingsRepository.readingFontSizeSp
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DEFAULT_READING_FONT_SIZE_SP)
 
+    val detailProgressIndicatorEnabled = settingsRepository.detailProgressIndicatorEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
     init {
         if (itemId > 0L) {
             viewModelScope.launch {

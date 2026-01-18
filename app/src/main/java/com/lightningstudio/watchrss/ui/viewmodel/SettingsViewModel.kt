@@ -31,6 +31,9 @@ class SettingsViewModel(
     val readingFontSizeSp: StateFlow<Int> = settingsRepository.readingFontSizeSp
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DEFAULT_READING_FONT_SIZE_SP)
 
+    val detailProgressIndicatorEnabled: StateFlow<Boolean> = settingsRepository.detailProgressIndicatorEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
     fun updateCacheLimitMb(value: Long) {
         viewModelScope.launch {
             settingsRepository.setCacheLimitBytes(value * MB_BYTES)
@@ -48,6 +51,13 @@ class SettingsViewModel(
     fun updateReadingFontSizeSp(value: Int) {
         viewModelScope.launch {
             settingsRepository.setReadingFontSizeSp(value)
+        }
+    }
+
+    fun toggleDetailProgressIndicator() {
+        viewModelScope.launch {
+            val current = detailProgressIndicatorEnabled.value
+            settingsRepository.setDetailProgressIndicatorEnabled(!current)
         }
     }
 }

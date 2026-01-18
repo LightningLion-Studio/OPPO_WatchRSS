@@ -436,7 +436,6 @@ class FeedEntryAdapter(
     private fun resolveThumbUrl(item: RssItem): String? {
         return thumbUrlCache.getOrPut(item.id) {
             val candidate = item.imageUrl?.takeIf { it.isNotBlank() }
-                ?: firstImageFromHtml(item.content)
                 ?: firstImageFromHtml(item.description)
             normalizeMediaUrl(candidate, item.link)
         }

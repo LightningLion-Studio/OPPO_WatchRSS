@@ -29,6 +29,8 @@ class SettingsActivity : BaseHeytapActivity() {
     private lateinit var plusButton: HeyTextView
     private lateinit var themeValue: HeyTextView
     private lateinit var themeToggle: HeySwitch
+    private lateinit var progressIndicatorValue: HeyTextView
+    private lateinit var progressIndicatorToggle: HeySwitch
     private lateinit var fontValue: HeyTextView
     private lateinit var fontMinus: HeyTextView
     private lateinit var fontPlus: HeyTextView
@@ -44,6 +46,8 @@ class SettingsActivity : BaseHeytapActivity() {
         plusButton = findViewById(R.id.button_cache_plus)
         themeValue = findViewById(R.id.text_reading_theme_value)
         themeToggle = findViewById(R.id.button_reading_theme_toggle)
+        progressIndicatorValue = findViewById(R.id.text_progress_indicator_value)
+        progressIndicatorToggle = findViewById(R.id.button_progress_indicator_toggle)
         fontValue = findViewById(R.id.text_font_size_value)
         fontMinus = findViewById(R.id.button_font_minus)
         fontPlus = findViewById(R.id.button_font_plus)
@@ -60,6 +64,7 @@ class SettingsActivity : BaseHeytapActivity() {
         }
 
         themeToggle.setOnClickListener { viewModel.toggleReadingTheme() }
+        progressIndicatorToggle.setOnClickListener { viewModel.toggleDetailProgressIndicator() }
 
         fontMinus.setOnClickListener {
             val next = fontOptions.lastOrNull { it < currentFontSp } ?: return@setOnClickListener
@@ -89,6 +94,12 @@ class SettingsActivity : BaseHeytapActivity() {
                     viewModel.readingThemeDark.collect { isDark ->
                         themeValue.text = if (isDark) "深色" else "浅色"
                         themeToggle.isChecked = isDark
+                    }
+                }
+                launch {
+                    viewModel.detailProgressIndicatorEnabled.collect { enabled ->
+                        progressIndicatorValue.text = if (enabled) "开启" else "关闭"
+                        progressIndicatorToggle.isChecked = enabled
                     }
                 }
                 launch {
