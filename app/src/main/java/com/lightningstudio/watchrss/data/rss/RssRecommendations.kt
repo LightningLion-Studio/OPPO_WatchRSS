@@ -17,7 +17,7 @@ object RssRecommendations {
         RssRecommendGroup(
             id = "bilibili",
             name = "B站",
-            description = "进入后登录获取推荐内容。",
+            description = "进入后登录获取内容。",
             channels = listOf(
                 RssRecommendChannel("推荐入口", "https://www.bilibili.com")
             )
@@ -25,7 +25,7 @@ object RssRecommendations {
         RssRecommendGroup(
             id = "douyin",
             name = "抖音",
-            description = "进入后登录获取推荐内容。",
+            description = "进入后登录获取内容。",
             channels = listOf(
                 RssRecommendChannel("推荐入口", "https://www.douyin.com")
             )

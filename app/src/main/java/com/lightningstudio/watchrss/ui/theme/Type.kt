@@ -18,49 +18,49 @@ val Typography = Typography(
     headlineLarge = TextStyle(
         fontFamily = WatchFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 24.028.sp,
-        lineHeight = 29.125.sp
+        fontSize = 31.sp,
+        lineHeight = 38.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = WatchFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 20.387.sp,
-        lineHeight = 24.756.sp
+        fontSize = 26.sp,
+        lineHeight = 31.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = WatchFontFamily,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 16.747.sp,
-        lineHeight = 20.387.sp
+        fontSize = 24.sp,
+        lineHeight = 29.sp
     ),
     titleMedium = TextStyle(
         fontFamily = WatchFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 13.834.sp,
-        lineHeight = 17.475.sp
+        fontSize = 21.sp,
+        lineHeight = 26.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = WatchFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 13.834.sp,
-        lineHeight = 17.475.sp
+        fontSize = 17.sp,
+        lineHeight = 21.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = WatchFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 11.65.sp,
-        lineHeight = 14.562.sp
+        fontSize = 14.sp,
+        lineHeight = 17.sp
     ),
     bodySmall = TextStyle(
         fontFamily = WatchFontFamily,
         fontWeight = FontWeight.Normal,
-        fontSize = 10.194.sp,
-        lineHeight = 13.106.sp
+        fontSize = 12.sp,
+        lineHeight = 14.sp
     ),
     labelSmall = TextStyle(
         fontFamily = WatchFontFamily,
         fontWeight = FontWeight.Medium,
-        fontSize = 8.009.sp,
-        lineHeight = 10.194.sp
+        fontSize = 9.sp,
+        lineHeight = 11.sp
     )
 )

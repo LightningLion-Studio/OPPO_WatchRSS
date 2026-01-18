@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="4.369dp">
+    android:padding="@dimen/hey_distance_4dp">
 
     <com.heytap.wearable.support.widget.HeyTextView
         android:id="@+id/text_feed_title"
@@ -20,5 +20,5 @@
         android:layout_height="wrap_content"
         android:text="下拉刷新"
         android:textColor="@android:color/darker_gray"
-        android:textSize="@dimen/hey_s_desription" />
+        android:textSize="@dimen/hey_caption" />
 </LinearLayout>

@@ -66,26 +66,26 @@ fun CollaboratorsScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 18.931.dp)
-                        .padding(top = 13.106.dp, bottom = 16.019.dp),
+                        .padding(horizontal = 18.dp)
+                        .padding(top = 14.dp, bottom = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.height(13.106.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    Spacer(modifier = Modifier.height(5.825.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
                         text = "协作者名单",
                         color = Color.White,
-                        fontSize = 17.475.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
 
-                    Spacer(modifier = Modifier.height(13.106.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(10.194.dp)
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         CollaboratorPill(
                             name = "闪电狮",
@@ -116,20 +116,20 @@ private fun CollaboratorPill(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(52.425.dp),
+            .height(52.dp),
         color = pillColor,
-        shape = RoundedCornerShape(29.125.dp),
-        shadowElevation = 7.281.dp,
+        shape = RoundedCornerShape(30.dp),
+        shadowElevation = 8.dp,
         tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(PaddingValues(horizontal = 14.562.dp, vertical = 10.194.dp)),
+                .padding(PaddingValues(horizontal = 14.dp, vertical = 10.dp)),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(26.213.dp),
+                modifier = Modifier.size(24.dp),
                 shape = CircleShape,
                 color = Color.White.copy(alpha = 0.12f),
                 tonalElevation = 0.dp,
@@ -139,13 +139,13 @@ private fun CollaboratorPill(
                     Text(
                         text = leadingText,
                         color = Color.White.copy(alpha = 0.95f),
-                        fontSize = 11.65.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.size(10.194.dp))
+            Spacer(modifier = Modifier.size(10.dp))
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -154,15 +154,15 @@ private fun CollaboratorPill(
                 Text(
                     text = name,
                     color = Color.White,
-                    fontSize = 13.106.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1
                 )
-                Spacer(modifier = Modifier.height(1.456.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = role,
                     color = Color.White.copy(alpha = 0.65f),
-                    fontSize = 9.466.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1
                 )

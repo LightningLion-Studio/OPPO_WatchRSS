@@ -35,7 +35,7 @@ class AddRssActivity : BaseHeytapActivity() {
 
         val input = findViewById<EditText>(R.id.input_url)
         val errorText = findViewById<HeyTextView>(R.id.text_error)
-        val submitButton = findViewById<HeyButton>(R.id.button_submit)
+        val submitButton = findViewById<View>(R.id.button_submit)
         val inputContainer = findViewById<LinearLayout>(R.id.container_input)
         val previewContainer = findViewById<LinearLayout>(R.id.container_preview)
         val existingContainer = findViewById<LinearLayout>(R.id.container_existing)
@@ -127,8 +127,9 @@ class AddRssActivity : BaseHeytapActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    submitButton.isEnabled = !state.isLoadingPreview && !state.isSubmitting
-                    submitButton.text = if (state.isLoadingPreview) "解析中" else "添加"
+                    val canSubmit = !state.isLoadingPreview && !state.isSubmitting
+                    submitButton.isEnabled = canSubmit
+                    submitButton.alpha = if (canSubmit) 1f else 0.6f
                     confirmButton.isEnabled = !state.isSubmitting
                     confirmButton.text = if (state.isSubmitting) "添加中" else "确认添加"
 
@@ -143,6 +144,7 @@ class AddRssActivity : BaseHeytapActivity() {
                     }
 
                     inputContainer.visibility = if (state.step == AddRssStep.INPUT) View.VISIBLE else View.GONE
+                    submitButton.visibility = if (state.step == AddRssStep.INPUT) View.VISIBLE else View.GONE
                     previewContainer.visibility = if (state.step == AddRssStep.PREVIEW) View.VISIBLE else View.GONE
                     existingContainer.visibility = if (state.step == AddRssStep.EXISTING) View.VISIBLE else View.GONE
 

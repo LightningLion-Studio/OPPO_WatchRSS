@@ -40,7 +40,7 @@ fun DetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 13.106.dp, vertical = 8.738.dp)
+                .padding(horizontal = 14.dp, vertical = 9.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -66,12 +66,12 @@ fun DetailScreen(
                         Text(text = "打开", color = OppoOrange)
                     }
                 } else {
-                    Spacer(modifier = Modifier.width(34.95.dp))
+                    Spacer(modifier = Modifier.width(36.dp))
                 }
             }
 
             if (detail == null) {
-                Spacer(modifier = Modifier.height(17.475.dp))
+                Spacer(modifier = Modifier.height(18.dp))
                 Text(
                     text = "加载中...",
                     style = MaterialTheme.typography.bodySmall,
@@ -80,7 +80,7 @@ fun DetailScreen(
                 return@Column
             }
 
-            Spacer(modifier = Modifier.height(7.281.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = detail!!.title,
                 style = MaterialTheme.typography.headlineSmall,
@@ -88,7 +88,7 @@ fun DetailScreen(
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(7.281.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             val contentText = detail!!.content?.ifBlank { null }
                 ?: detail!!.description?.ifBlank { null }
@@ -104,7 +104,7 @@ fun DetailScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(8.738.dp))
+                Spacer(modifier = Modifier.height(9.dp))
             }
         }
     }

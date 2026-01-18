@@ -1,13 +1,17 @@
 package com.lightningstudio.watchrss.ui.screen.rss
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.lightningstudio.watchrss.ui.components.WatchSurface
@@ -45,38 +50,56 @@ fun AddRssScreen(
     }
 
     WatchSurface {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 13.106.dp, vertical = 10.194.dp),
-            verticalArrangement = Arrangement.spacedBy(8.738.dp)
+                .padding(start = 14.dp, end = 14.dp, top = 10.dp)
         ) {
-            Text(
-                text = "添加 RSS",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            OutlinedTextField(
-                value = state.url,
-                onValueChange = onUrlChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = "订阅地址") },
-                placeholder = { Text(text = "https://example.com/feed.xml") },
-                singleLine = true
-            )
-
-            state.errorMessage?.let { message ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 70.dp)
+            ) {
                 Text(
-                    text = message,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                    text = "添加 RSS",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+
+                Spacer(modifier = Modifier.height(9.dp))
+                OutlinedTextField(
+                    value = state.url,
+                    onValueChange = onUrlChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = "订阅地址") },
+                    placeholder = { Text(text = "https://example.com/feed.xml") },
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "支持 RSS/Atom/RDF，添加后会自动拉取最新内容。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                state.errorMessage?.let { message ->
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 26.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(onClick = onBack) {
                     Text(text = "返回")
@@ -84,18 +107,14 @@ fun AddRssScreen(
                 Button(
                     onClick = onSubmit,
                     enabled = !state.isSubmitting,
+                    shape = CircleShape,
+                    modifier = Modifier.size(44.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = OppoOrange)
                 ) {
-                    Text(text = if (state.isSubmitting) "添加中" else "添加")
+                    Text(text = "+", style = MaterialTheme.typography.titleMedium)
                 }
             }
-
-            Spacer(modifier = Modifier.height(4.369.dp))
-            Text(
-                text = "支持 RSS/Atom/RDF，添加后会自动拉取最新内容。",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

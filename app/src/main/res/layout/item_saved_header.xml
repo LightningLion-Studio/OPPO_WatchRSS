@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:padding="4.369dp">
+    android:padding="@dimen/hey_distance_4dp">
 
     <com.heytap.wearable.support.widget.HeyTextView
         android:id="@+id/text_saved_title"

@@ -27,7 +27,7 @@
                 android:id="@+id/text_channel_desc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5.825dp"
+                android:layout_marginTop="@dimen/hey_distance_6dp"
                 android:gravity="center"
                 android:textColor="@android:color/darker_gray"
                 android:textSize="@dimen/hey_s_desription" />
@@ -36,7 +36,7 @@
                 android:id="@+id/text_channel_url"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4.369dp"
+                android:layout_marginTop="@dimen/hey_distance_4dp"
                 android:gravity="center"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/hey_s_desription" />
@@ -45,7 +45,7 @@
                 android:id="@+id/text_channel_time"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4.369dp"
+                android:layout_marginTop="@dimen/hey_distance_4dp"
                 android:gravity="center"
                 android:textColor="@android:color/darker_gray"
                 android:textSize="@dimen/hey_s_desription" />
@@ -54,31 +54,31 @@
                 android:id="@+id/text_channel_unread"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4.369dp"
+                android:layout_marginTop="@dimen/hey_distance_4dp"
                 android:gravity="center"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/hey_s_desription" />
 
             <com.heytap.wearable.support.widget.HeyButton
                 android:id="@+id/button_channel_settings"
-                android:layout_width="233px"
-                android:layout_height="69.9px"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/hey_button_height"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8.738dp"
+                android:layout_marginTop="@dimen/hey_content_horizontal_distance"
                 android:background="@drawable/bg_settings_pill"
                 android:gravity="center"
-                android:textSize="23.3px"
+                android:textSize="@dimen/hey_m_title"
                 android:text="设置" />
 
             <com.heytap.wearable.support.widget.HeyButton
                 android:id="@+id/button_channel_mark_read"
-                android:layout_width="233px"
-                android:layout_height="69.9px"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/hey_button_height"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="17.475px"
+                android:layout_marginTop="@dimen/hey_distance_10dp"
                 android:background="@drawable/bg_settings_pill"
                 android:gravity="center"
-                android:textSize="23.3px"
+                android:textSize="@dimen/hey_m_title"
                 android:text="标记已读" />
         </LinearLayout>
     </ScrollView>

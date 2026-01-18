@@ -3,6 +3,6 @@
     android:shape="oval">
     <solid android:color="@color/watch_card_background" />
     <stroke
-        android:width="1.456dp"
+        android:width="@dimen/hey_dotStrokeWidth"
         android:color="@color/oppo_orange" />
 </shape>

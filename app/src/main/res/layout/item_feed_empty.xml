@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="8.738dp">
+    android:padding="@dimen/hey_content_horizontal_distance">
 
     <com.heytap.wearable.support.widget.HeyTextView
         android:id="@+id/text_feed_empty"
@@ -13,19 +13,19 @@
         android:gravity="center"
         android:text="暂无内容"
         android:textColor="@android:color/darker_gray"
-        android:textSize="@dimen/hey_m_desription" />
+        android:textSize="@dimen/hey_caption" />
 
     <com.heytap.wearable.support.widget.HeyButton
         android:id="@+id/button_empty_refresh"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5.825dp"
+        android:layout_marginTop="@dimen/hey_distance_6dp"
         android:text="刷新" />
 
     <com.heytap.wearable.support.widget.HeyButton
         android:id="@+id/button_empty_back"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4.369dp"
+        android:layout_marginTop="@dimen/hey_distance_4dp"
         android:text="返回" />
 </LinearLayout>

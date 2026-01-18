@@ -9,10 +9,10 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:fillViewport="true"
-        android:paddingStart="8.738dp"
-        android:paddingEnd="8.738dp"
+        android:paddingStart="@dimen/hey_content_horizontal_distance"
+        android:paddingEnd="@dimen/hey_content_horizontal_distance"
         android:paddingTop="@dimen/watch_safe_padding"
-        android:paddingBottom="8.738dp"
+        android:paddingBottom="@dimen/hey_content_horizontal_distance"
         android:scrollbars="none">
 
         <LinearLayout
@@ -23,15 +23,15 @@
 
             <com.heytap.wearable.support.widget.HeyTextView
                 android:id="@+id/dialog_title"
-                android:layout_width="233px"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
                 android:text="操作"
-                android:textSize="20.387px"
-                android:layout_marginBottom="5.825px" />
+                android:textSize="@dimen/hey_m_title"
+                android:layout_marginBottom="@dimen/hey_distance_4dp" />
 
             <LinearLayout
                 android:id="@+id/action_list"
@@ -43,37 +43,37 @@
 
                 <com.heytap.wearable.support.widget.HeyButton
                     android:id="@+id/button_favorite"
-                    android:layout_width="233px"
-                    android:layout_height="69.9px"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/hey_button_height"
                     android:layout_gravity="center_horizontal"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center"
                     android:text="收藏"
-                    android:textSize="23.3px" />
+                    android:textSize="@dimen/hey_s_title" />
 
                 <com.heytap.wearable.support.widget.HeyButton
                     android:id="@+id/button_watch_later"
-                    android:layout_width="233px"
-                    android:layout_height="69.9px"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/hey_button_height"
                     android:layout_gravity="center_horizontal"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center"
                     android:text="稍后再看"
-                    android:textSize="23.3px" />
+                    android:textSize="@dimen/hey_s_title" />
 
                 <com.heytap.wearable.support.widget.HeyButton
                     android:id="@+id/button_cancel"
-                    android:layout_width="233px"
-                    android:layout_height="69.9px"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/hey_button_height"
                     android:layout_gravity="center_horizontal"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center"
                     android:text="取消"
-                    android:textSize="23.3px" />
+                    android:textSize="@dimen/hey_s_title" />
 
                 <Space
                     android:layout_width="match_parent"
-                    android:layout_height="23.3px" />
+                    android:layout_height="@dimen/hey_content_horizontal_distance_6_0" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

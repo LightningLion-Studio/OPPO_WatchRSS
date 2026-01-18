@@ -10,72 +10,72 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="11.65dp">
+        android:padding="@dimen/hey_distance_12dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Heytap Widget Demo"
-            android:textSize="14.562sp" />
+            android:textSize="@dimen/hey_m_desription" />
 
         <com.heytap.wearable.support.widget.HeyTextView
             android:id="@+id/hey_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8.738dp"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance"
             android:text="HeyTextView" />
 
         <com.heytap.wearable.support.widget.HeyButton
             android:id="@+id/hey_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8.738dp"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance"
             android:text="Show HeyDialog" />
 
         <com.heytap.wearable.support.widget.HeyButton
             android:id="@+id/hey_loading_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8.738dp"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance"
             android:text="Show HeyLoadingDialog" />
 
         <com.heytap.wearable.support.widget.HeyCheckBox
             android:id="@+id/hey_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8.738dp"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance"
             android:text="HeyCheckBox" />
 
         <com.heytap.wearable.support.widget.HeySwitch
             android:id="@+id/hey_switch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8.738dp"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance"
             android:text="HeySwitch" />
 
         <com.heytap.wearable.support.widget.HeyProgressButton
             android:id="@+id/hey_progress_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8.738dp" />
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance" />
 
         <com.heytap.wearable.support.widget.HeyHorizontalProgressBar
             android:id="@+id/hey_horizontal_progress"
             android:layout_width="match_parent"
-            android:layout_height="17.475dp"
-            android:layout_marginTop="8.738dp" />
+            android:layout_height="@dimen/hey_distance_18dp"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance" />
 
         <com.heytap.wearable.support.widget.HeyRoundProgress
             android:id="@+id/hey_round_progress"
-            android:layout_width="58.25dp"
-            android:layout_height="58.25dp"
-            android:layout_marginTop="8.738dp" />
+            android:layout_width="@dimen/hey_card_small_height"
+            android:layout_height="@dimen/hey_card_small_height"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance" />
 
         <com.heytap.wearable.support.widget.HeyNumberPicker
             android:id="@+id/hey_number_picker"
             android:layout_width="match_parent"
             android:layout_height="@dimen/hey_widget_number_picker"
-            android:layout_marginTop="8.738dp"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance"
             app:heyMaxValue="10"
             app:heyMinValue="0"
             app:heyTextArray="@array/demo_number_picker" />
@@ -84,18 +84,18 @@
             android:id="@+id/hey_time_picker"
             android:layout_width="match_parent"
             android:layout_height="@dimen/hey_widget_number_picker"
-            android:layout_marginTop="8.738dp" />
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance" />
 
         <com.heytap.wearable.support.widget.pageindicator.HeyPageIndicator
             android:id="@+id/hey_page_indicator"
             android:layout_width="match_parent"
-            android:layout_height="23.3dp"
-            android:layout_marginTop="8.738dp" />
+            android:layout_height="@dimen/hey_page_indicator_height"
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance" />
 
         <com.heytap.wearable.support.widget.progressindicator.HeyProgressSpinnerIndicator
             android:id="@+id/hey_spinner_indicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8.738dp" />
+            android:layout_marginTop="@dimen/hey_content_horizontal_distance" />
     </LinearLayout>
 </ScrollView>

@@ -72,7 +72,7 @@ class SettingsEntryAdapter(
                 itemView.scaleY = 1f
                 itemView.alpha = 1f
                 itemView.setTitle("缓存上限")
-                itemView.setSummary("${option}MB")
+                itemView.setSummary("${option}M")
                 itemView.setChecked(option == selected)
                 itemView.setOnClickListener { onSelect(option) }
             }

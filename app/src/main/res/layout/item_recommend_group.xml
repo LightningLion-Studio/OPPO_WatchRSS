@@ -2,13 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="4.369dp"
+    android:layout_marginBottom="@dimen/hey_distance_4dp"
     android:background="@drawable/bg_settings_card"
     android:orientation="vertical"
-    android:paddingLeft="11.65dp"
-    android:paddingRight="11.65dp"
-    android:paddingTop="8.738dp"
-    android:paddingBottom="8.738dp">
+    android:paddingLeft="@dimen/hey_distance_12dp"
+    android:paddingRight="@dimen/hey_distance_12dp"
+    android:paddingTop="@dimen/hey_content_horizontal_distance"
+    android:paddingBottom="@dimen/hey_content_horizontal_distance">
 
     <com.heytap.wearable.support.widget.HeyTextView
         android:id="@+id/text_group_title"
@@ -24,7 +24,7 @@
         android:id="@+id/text_group_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2.913dp"
+        android:layout_marginTop="@dimen/hey_distance_2dp"
         android:includeFontPadding="false"
         android:text="说明"
         android:textColor="@android:color/darker_gray"

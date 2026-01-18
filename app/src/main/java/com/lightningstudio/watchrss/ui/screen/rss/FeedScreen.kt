@@ -65,7 +65,7 @@ fun FeedScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 13.106.dp, vertical = 8.738.dp)
+                .padding(horizontal = 14.dp, vertical = 9.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -73,25 +73,29 @@ fun FeedScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextButton(onClick = onBack) {
-                    Text(text = "返回")
+                    Text(text = "返回", style = MaterialTheme.typography.labelSmall)
                 }
                 Text(
                     text = currentChannel?.title ?: "RSS",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 TextButton(onClick = onRefresh) {
-                    Text(text = "刷新", color = OppoOrange)
+                    Text(
+                        text = "刷新",
+                        color = OppoOrange,
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.369.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             LazyColumn(
-                contentPadding = PaddingValues(bottom = 8.738.dp),
-                verticalArrangement = Arrangement.spacedBy(7.281.dp)
+                contentPadding = PaddingValues(bottom = 9.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 if (itemList.isEmpty()) {
                     item {
@@ -124,14 +128,14 @@ private fun ItemCard(
 ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(13.106.dp),
-        tonalElevation = 1.456.dp,
+        shape = RoundedCornerShape(14.dp),
+        tonalElevation = 2.dp,
         color = MaterialTheme.colorScheme.surfaceVariant
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 11.65.dp, vertical = 8.738.dp)
+                .padding(horizontal = 12.dp, vertical = 14.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -139,15 +143,15 @@ private fun ItemCard(
                 if (!item.isRead) {
                     Box(
                         modifier = Modifier
-                            .size(5.825.dp)
+                            .size(6.dp)
                             .clip(CircleShape)
                             .background(OppoOrange)
                     )
-                    Spacer(modifier = Modifier.width(5.825.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                 }
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = if (item.isRead) FontWeight.Normal else FontWeight.SemiBold,
                     maxLines = 2,
@@ -155,10 +159,10 @@ private fun ItemCard(
                 )
             }
             if (!item.description.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.369.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = item.description,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis

@@ -2,15 +2,15 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="8.738dp"
-    android:layout_marginBottom="5.825dp"
+    android:layout_marginStart="@dimen/hey_content_horizontal_distance"
+    android:layout_marginBottom="@dimen/hey_distance_6dp"
     android:background="@drawable/bg_settings_card"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingLeft="11.65dp"
-    android:paddingRight="8.738dp"
-    android:paddingTop="7.281dp"
-    android:paddingBottom="7.281dp">
+    android:paddingLeft="@dimen/hey_distance_12dp"
+    android:paddingRight="@dimen/hey_content_horizontal_distance"
+    android:paddingTop="@dimen/hey_distance_8dp"
+    android:paddingBottom="@dimen/hey_distance_8dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -32,7 +32,7 @@
             android:id="@+id/text_channel_url"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2.913dp"
+            android:layout_marginTop="@dimen/hey_distance_2dp"
             android:includeFontPadding="false"
             android:maxLines="2"
             android:text="https://example.com/feed"
@@ -42,9 +42,9 @@
 
     <FrameLayout
         android:id="@+id/button_add_channel"
-        android:layout_width="20.387dp"
-        android:layout_height="20.387dp"
-        android:layout_marginStart="8.738dp"
+        android:layout_width="@dimen/hey_distance_20dp"
+        android:layout_height="@dimen/hey_distance_20dp"
+        android:layout_marginStart="@dimen/hey_content_horizontal_distance"
         android:background="@drawable/bg_round_icon_button"
         android:clickable="true"
         android:contentDescription="添加 RSS"

@@ -4,7 +4,7 @@
     android:id="@+id/swipe_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="5.825dp"
+    android:layout_marginBottom="@dimen/hey_distance_6dp"
     app:dragEdge="right">
 
     <LinearLayout
@@ -14,18 +14,18 @@
         android:layout_gravity="end|center_vertical"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingLeft="4.369dp"
-        android:paddingRight="4.369dp">
+        android:paddingLeft="@dimen/hey_distance_4dp"
+        android:paddingRight="@dimen/hey_distance_4dp">
 
         <com.heytap.wearable.support.widget.HeyTextView
             android:id="@+id/action_move_top"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginEnd="4.369dp"
+            android:layout_marginEnd="@dimen/hey_distance_4dp"
             android:background="@drawable/bg_swipe_action_button"
             android:gravity="center"
-            android:paddingLeft="7.281dp"
-            android:paddingRight="7.281dp"
+            android:paddingLeft="@dimen/hey_distance_8dp"
+            android:paddingRight="@dimen/hey_distance_8dp"
             android:text="移到顶"
             android:textColor="@android:color/white"
             android:textSize="@dimen/feed_card_action_text_size" />
@@ -36,8 +36,8 @@
             android:layout_height="match_parent"
             android:background="@drawable/bg_swipe_action_button"
             android:gravity="center"
-            android:paddingLeft="7.281dp"
-            android:paddingRight="7.281dp"
+            android:paddingLeft="@dimen/hey_distance_8dp"
+            android:paddingRight="@dimen/hey_distance_8dp"
             android:text="标记已读"
             android:textColor="@android:color/white"
             android:textSize="@dimen/feed_card_action_text_size" />

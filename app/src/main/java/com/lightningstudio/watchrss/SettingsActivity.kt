@@ -124,7 +124,7 @@ class SettingsActivity : BaseHeytapActivity() {
 
     private fun applySelection(limitMb: Long) {
         currentLimitMb = limitMb
-        valueView.text = "${limitMb}MB"
+        valueView.text = "${limitMb}M"
         val canDecrease = cacheOptions.any { it < limitMb }
         val canIncrease = cacheOptions.any { it > limitMb }
         minusButton.isEnabled = canDecrease

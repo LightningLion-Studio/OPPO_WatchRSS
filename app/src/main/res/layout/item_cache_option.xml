@@ -3,4 +3,4 @@
     android:id="@+id/cache_option_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="5.825dp" />
+    android:layout_marginBottom="@dimen/hey_distance_6dp" />
