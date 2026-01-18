@@ -404,6 +404,13 @@ class DefaultRssRepository(
         }
     }
 
+    override suspend fun updateItemReadingProgress(itemId: Long, progress: Float) {
+        withContext(Dispatchers.IO) {
+            val clamped = progress.coerceIn(0f, 1f)
+            itemDao.updateReadingProgress(itemId, clamped)
+        }
+    }
+
     override suspend fun toggleFavorite(itemId: Long): Result<SavedState> =
         toggleSaved(itemId, SaveType.FAVORITE)
 
@@ -561,6 +568,7 @@ class DefaultRssRepository(
             videoUrl = safeVideo,
             isRead = isRead,
             isLiked = false,
+            readingProgress = 0f,
             dedupKey = dedupKey,
             fetchedAt = fetchedAt,
             contentSizeBytes = estimateContentSize(
@@ -618,6 +626,7 @@ class DefaultRssRepository(
             videoUrl = safeVideo,
             isRead = isRead,
             isLiked = false,
+            readingProgress = 0f,
             dedupKey = dedupKey,
             fetchedAt = fetchedAt,
             contentSizeBytes = estimateContentSize(
@@ -911,6 +920,7 @@ class DefaultRssRepository(
         videoUrl = videoUrl,
         isRead = isRead,
         isLiked = isLiked,
+        readingProgress = readingProgress,
         fetchedAt = fetchedAt
     )
 }

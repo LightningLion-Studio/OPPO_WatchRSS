@@ -3,13 +3,16 @@ package com.lightningstudio.watchrss
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.SystemClock
 import android.text.TextPaint
 import android.util.TypedValue
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ImageButton
 import android.widget.ScrollView
+import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
@@ -30,6 +33,7 @@ import com.lightningstudio.watchrss.ui.util.TextStyle
 import com.lightningstudio.watchrss.ui.widget.ProgressRingView
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.math.abs
 
 class DetailActivity : BaseHeytapActivity() {
     private val viewModel: DetailViewModel by viewModels {
@@ -54,6 +58,17 @@ class DetailActivity : BaseHeytapActivity() {
     private var isFavorite: Boolean = false
     private var progressIndicatorEnabled: Boolean = true
     private var baseSafePadding: Int = 0
+    private var fromWatchLater: Boolean = false
+    private var reachedBottom: Boolean = false
+    private var isWatchLater: Boolean = false
+    private var lastSavedProgress: Float = -1f
+    private var lastProgressSavedAt: Long = 0L
+    private var lastRenderedItemId: Long = -1L
+    private var lastRenderedSignature: Int = 0
+    private var pendingRestoreItemId: Long = -1L
+    private var pendingRestoreProgress: Float = 0f
+    private var hasRestoredPosition: Boolean = false
+    private var restoreLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +86,7 @@ class DetailActivity : BaseHeytapActivity() {
         progressRing = findViewById(R.id.detail_progress_ring)
         progressRing.visibility = View.GONE
         baseSafePadding = resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
+        fromWatchLater = intent.getBooleanExtra(EXTRA_FROM_WATCH_LATER, false)
 
         openButton.setOnClickListener {
             val link = it.tag as? String
@@ -91,6 +107,11 @@ class DetailActivity : BaseHeytapActivity() {
 
         detailScroll.setOnScrollChangeListener { _, _, _, _, _ ->
             updateProgressIndicator()
+            checkReachedBottom()
+        }
+
+        onBackPressedDispatcher.addCallback(this) {
+            handleBackPress()
         }
 
         lifecycleScope.launch {
@@ -101,23 +122,40 @@ class DetailActivity : BaseHeytapActivity() {
                             titleView.text = "加载中..."
                             contentContainer.removeAllViews()
                             openButton.visibility = View.GONE
+                            lastRenderedItemId = -1L
+                            lastRenderedSignature = 0
                             return@collect
                         }
+                        val signature = renderSignature(item)
+                        val shouldRender = item.id != lastRenderedItemId || signature != lastRenderedSignature
+                        if (!shouldRender) {
+                            return@collect
+                        }
+                        lastRenderedItemId = item.id
+                        lastRenderedSignature = signature
                         DebugLogBuffer.log(
                             "orig",
                             "detail itemId=${item.id} contentLen=${item.content?.length ?: 0} descLen=${item.description?.length ?: 0}"
                         )
                         currentTitle = item.title
                         currentLink = item.link
+                        reachedBottom = false
+                        lastSavedProgress = -1f
+                        lastProgressSavedAt = 0L
                         applyTitleText(item.title)
-                        renderContent(item, blockSpacing, maxImageWidth)
+                        renderContentWithRestore(
+                            item,
+                            blockSpacing,
+                            maxImageWidth,
+                            progressOverride = item.readingProgress
+                        )
                         updateLinkButton(item.link)
-                        detailScroll.post { updateProgressIndicator() }
                     }
                 }
                 launch {
                     viewModel.savedState.collect { state ->
                         isFavorite = state.isFavorite
+                        isWatchLater = state.isWatchLater
                         updateActionIconTints()
                     }
                 }
@@ -125,7 +163,6 @@ class DetailActivity : BaseHeytapActivity() {
                     viewModel.offlineMedia.collect { list ->
                         offlineMedia = list.associateBy { it.originUrl }
                         renderContentIfReady(blockSpacing, maxImageWidth)
-                        detailScroll.post { updateProgressIndicator() }
                     }
                 }
                 launch {
@@ -133,14 +170,12 @@ class DetailActivity : BaseHeytapActivity() {
                         currentThemeDark = isDark
                         applyReadingTheme()
                         renderContentIfReady(blockSpacing, maxImageWidth)
-                        detailScroll.post { updateProgressIndicator() }
                     }
                 }
                 launch {
                     viewModel.readingFontSizeSp.collect { sizeSp ->
                         currentFontSizeSp = sizeSp
                         renderContentIfReady(blockSpacing, maxImageWidth)
-                        detailScroll.post { updateProgressIndicator() }
                     }
                 }
                 launch {
@@ -149,7 +184,7 @@ class DetailActivity : BaseHeytapActivity() {
                         progressRing.visibility = if (enabled) View.VISIBLE else View.GONE
                         applyProgressPadding(enabled)
                         if (enabled) {
-                            detailScroll.post { updateProgressIndicator() }
+                            postRestoreAndUpdate()
                         }
                     }
                 }
@@ -159,7 +194,36 @@ class DetailActivity : BaseHeytapActivity() {
 
     private fun renderContentIfReady(blockSpacing: Int, maxImageWidth: Int) {
         val item = viewModel.item.value ?: return
+        renderContentWithRestore(item, blockSpacing, maxImageWidth, progressOverride = null)
+    }
+
+    private fun renderSignature(item: RssItem): Int {
+        return listOf(
+            item.title,
+            item.description,
+            item.content,
+            item.link,
+            item.imageUrl,
+            item.audioUrl,
+            item.videoUrl,
+            item.pubDate
+        ).hashCode()
+    }
+
+    private fun renderContentWithRestore(
+        item: RssItem,
+        blockSpacing: Int,
+        maxImageWidth: Int,
+        progressOverride: Float?
+    ) {
+        val progress = when {
+            progressOverride != null -> progressOverride
+            !hasRestoredPosition && pendingRestoreItemId == item.id -> pendingRestoreProgress
+            else -> calculateReadingProgress()
+        }
+        prepareRestore(item.id, progress)
         renderContent(item, blockSpacing, maxImageWidth)
+        postRestoreAndUpdate()
     }
 
     private fun applyReadingTheme() {
@@ -188,6 +252,55 @@ class DetailActivity : BaseHeytapActivity() {
 
     private fun applyTitleText(title: String) {
         titleView.text = formatTitleForWidthLimits(title)
+    }
+
+    private fun checkReachedBottom() {
+        if (reachedBottom) return
+        val content = detailScroll.getChildAt(0) ?: return
+        val threshold = (resources.displayMetrics.density * 8f).toInt()
+        val diff = content.bottom - (detailScroll.height + detailScroll.scrollY)
+        if (diff <= threshold) {
+            reachedBottom = true
+        }
+    }
+
+    private fun handleBackPress() {
+        maybeRecordReadingProgress(calculateReadingProgress(), force = true)
+        if (fromWatchLater && reachedBottom && isWatchLater) {
+            val itemId = viewModel.item.value?.id ?: 0L
+            if (itemId > 0L) {
+                val data = Intent().putExtra(EXTRA_REMOVE_WATCH_LATER_ID, itemId)
+                setResult(RESULT_OK, data)
+            }
+        }
+        finish()
+    }
+
+    override fun onPause() {
+        maybeRecordReadingProgress(calculateReadingProgress(), force = true)
+        super.onPause()
+    }
+
+    private fun calculateReadingProgress(): Float {
+        val child = detailScroll.getChildAt(0) ?: return 0f
+        val scrollRange = (child.height - detailScroll.height).coerceAtLeast(0)
+        return if (scrollRange == 0) {
+            1f
+        } else {
+            (detailScroll.scrollY.toFloat() / scrollRange.toFloat()).coerceIn(0f, 1f)
+        }
+    }
+
+    private fun maybeRecordReadingProgress(progress: Float, force: Boolean) {
+        val clamped = progress.coerceIn(0f, 1f)
+        val now = SystemClock.elapsedRealtime()
+        if (!force && lastSavedProgress >= 0f) {
+            val diff = abs(clamped - lastSavedProgress)
+            if (diff < 0.02f && now - lastProgressSavedAt < 1500L) return
+        }
+        lastSavedProgress = clamped
+        lastProgressSavedAt = now
+        viewModel.updateReadingProgress(clamped)
     }
 
     private fun formatTitleForWidthLimits(title: String): String {
@@ -280,18 +393,85 @@ class DetailActivity : BaseHeytapActivity() {
     }
 
     private fun updateProgressIndicator() {
-        if (!progressIndicatorEnabled) return
         val child = detailScroll.getChildAt(0) ?: run {
-            progressRing.setProgress(0f)
+            if (progressIndicatorEnabled) {
+                progressRing.setProgress(0f)
+            }
             return
         }
         val scrollRange = (child.height - detailScroll.height).coerceAtLeast(0)
-        val progress = if (scrollRange == 0) {
+        val uiProgress = if (scrollRange == 0) {
             0f
         } else {
             detailScroll.scrollY.toFloat() / scrollRange.toFloat()
         }
-        progressRing.setProgress(progress)
+        if (progressIndicatorEnabled) {
+            progressRing.setProgress(uiProgress)
+        }
+        val readingProgress = if (scrollRange == 0) {
+            1f
+        } else {
+            detailScroll.scrollY.toFloat() / scrollRange.toFloat()
+        }
+        if (hasRestoredPosition) {
+            maybeRecordReadingProgress(readingProgress, force = false)
+        }
+    }
+
+    private fun prepareRestore(itemId: Long, progress: Float) {
+        pendingRestoreItemId = itemId
+        pendingRestoreProgress = progress.coerceIn(0f, 1f)
+        hasRestoredPosition = false
+    }
+
+    private fun postRestoreAndUpdate() {
+        detailScroll.post {
+            val restored = restoreScrollPositionIfNeeded()
+            updateProgressIndicator()
+            if (restored) {
+                clearRestoreLayoutListener()
+            } else {
+                ensureRestoreLayoutListener()
+            }
+        }
+        ensureRestoreLayoutListener()
+    }
+
+    private fun restoreScrollPositionIfNeeded(): Boolean {
+        if (hasRestoredPosition) return true
+        val item = viewModel.item.value ?: return false
+        if (item.id != pendingRestoreItemId) return false
+        val child = detailScroll.getChildAt(0) ?: return false
+        val scrollRange = (child.height - detailScroll.height).coerceAtLeast(0)
+        if (scrollRange == 0 && pendingRestoreProgress > 0f) return false
+        val target = (scrollRange * pendingRestoreProgress).toInt().coerceAtLeast(0)
+        detailScroll.scrollTo(0, target)
+        hasRestoredPosition = true
+        return true
+    }
+
+    private fun ensureRestoreLayoutListener() {
+        if (restoreLayoutListener != null) return
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            val restored = restoreScrollPositionIfNeeded()
+            if (restored) {
+                updateProgressIndicator()
+                clearRestoreLayoutListener()
+            }
+        }
+        restoreLayoutListener = listener
+        detailScroll.viewTreeObserver.addOnGlobalLayoutListener(listener)
+    }
+
+    private fun clearRestoreLayoutListener() {
+        val listener = restoreLayoutListener ?: return
+        detailScroll.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+        restoreLayoutListener = null
+    }
+
+    override fun onDestroy() {
+        clearRestoreLayoutListener()
+        super.onDestroy()
     }
 
     private fun applyProgressPadding(enabled: Boolean) {
@@ -422,5 +602,7 @@ class DetailActivity : BaseHeytapActivity() {
 
     companion object {
         const val EXTRA_ITEM_ID = "itemId"
+        const val EXTRA_FROM_WATCH_LATER = "fromWatchLater"
+        const val EXTRA_REMOVE_WATCH_LATER_ID = "removeWatchLaterId"
     }
 }

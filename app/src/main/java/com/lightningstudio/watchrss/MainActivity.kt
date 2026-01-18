@@ -31,6 +31,13 @@ class MainActivity : BaseHeytapActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::homeAdapter.isInitialized) {
+            homeAdapter.closeOpenSwipe()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()

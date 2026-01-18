@@ -23,6 +23,7 @@ interface RssRepository {
     suspend fun toggleWatchLater(itemId: Long): Result<SavedState>
     suspend fun toggleLike(itemId: Long): Result<Boolean>
     suspend fun markChannelRead(channelId: Long)
+    suspend fun updateItemReadingProgress(itemId: Long, progress: Float)
     suspend fun moveChannelToTop(channelId: Long)
     suspend fun setChannelPinned(channelId: Long, pinned: Boolean)
     suspend fun setChannelOriginalContent(channelId: Long, enabled: Boolean)

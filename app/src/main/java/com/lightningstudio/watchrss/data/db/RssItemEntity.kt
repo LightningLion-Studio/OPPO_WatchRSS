@@ -35,6 +35,7 @@ data class RssItemEntity(
     val videoUrl: String?,
     val isRead: Boolean,
     val isLiked: Boolean,
+    val readingProgress: Float,
     val dedupKey: String,
     val fetchedAt: Long,
     val contentSizeBytes: Long

@@ -33,6 +33,15 @@ class SavedItemAdapter(
         notifyDataSetChanged()
     }
 
+    fun getEntry(position: Int): SavedEntry? = entries.getOrNull(position)
+
+    fun findSavedItem(itemId: Long): SavedItem? {
+        return entries.asSequence()
+            .filterIsInstance<SavedEntry.Item>()
+            .firstOrNull { it.item.item.id == itemId }
+            ?.item
+    }
+
     override fun getItemViewType(position: Int): Int = when (entries[position]) {
         is SavedEntry.Header -> TYPE_HEADER
         is SavedEntry.Empty -> TYPE_EMPTY

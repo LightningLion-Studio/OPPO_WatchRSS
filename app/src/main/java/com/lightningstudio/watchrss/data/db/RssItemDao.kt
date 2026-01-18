@@ -29,6 +29,9 @@ interface RssItemDao {
     @Query("UPDATE rss_items SET isLiked = :liked WHERE id = :id")
     suspend fun updateLiked(id: Long, liked: Boolean)
 
+    @Query("UPDATE rss_items SET readingProgress = :progress WHERE id = :id")
+    suspend fun updateReadingProgress(id: Long, progress: Float)
+
     @Query(
         """
         UPDATE rss_items SET

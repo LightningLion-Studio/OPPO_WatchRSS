@@ -56,4 +56,11 @@ class DetailViewModel(
             repository.toggleLike(itemId)
         }
     }
+
+    fun updateReadingProgress(progress: Float) {
+        if (itemId <= 0L) return
+        viewModelScope.launch {
+            repository.updateItemReadingProgress(itemId, progress)
+        }
+    }
 }

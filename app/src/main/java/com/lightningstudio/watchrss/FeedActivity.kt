@@ -35,6 +35,13 @@ class FeedActivity : BaseHeytapActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::feedAdapter.isInitialized) {
+            feedAdapter.closeOpenSwipe()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
