@@ -1,11 +1,15 @@
 package com.lightningstudio.watchrss
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -16,6 +20,9 @@ import java.io.File
 class WebViewActivity : BaseHeytapActivity() {
     private lateinit var webView: WebView
     private lateinit var loadingRing: ProgressRingView
+    private var progressAnimator: ValueAnimator? = null
+    private var currentProgress = 0f
+    private val progressInterpolator = DecelerateInterpolator()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,12 +61,12 @@ class WebViewActivity : BaseHeytapActivity() {
         }
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                loadingRing.visibility = View.VISIBLE
-                loadingRing.setProgress(0f)
+                showLoadingRing()
+                resetProgress()
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
-                loadingRing.visibility = View.GONE
+                animateProgressTo(1f, hideWhenDone = true)
             }
 
             override fun onReceivedError(
@@ -67,17 +74,18 @@ class WebViewActivity : BaseHeytapActivity() {
                 request: android.webkit.WebResourceRequest?,
                 error: android.webkit.WebResourceError?
             ) {
-                loadingRing.visibility = View.GONE
+                hideLoadingRing()
             }
         }
         webView.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 val clamped = (newProgress / 100f).coerceIn(0f, 1f)
-                loadingRing.setProgress(clamped)
                 if (newProgress >= 100) {
-                    loadingRing.visibility = View.GONE
+                    showLoadingRing()
+                    animateProgressTo(1f, hideWhenDone = true)
                 } else {
-                    loadingRing.visibility = View.VISIBLE
+                    showLoadingRing()
+                    animateProgressTo(clamped, hideWhenDone = false)
                 }
             }
         }
@@ -86,7 +94,58 @@ class WebViewActivity : BaseHeytapActivity() {
     override fun onDestroy() {
         webView.stopLoading()
         webView.destroy()
+        progressAnimator?.cancel()
         super.onDestroy()
+    }
+
+    private fun showLoadingRing() {
+        if (loadingRing.visibility != View.VISIBLE) {
+            loadingRing.visibility = View.VISIBLE
+        }
+    }
+
+    private fun hideLoadingRing() {
+        loadingRing.visibility = View.GONE
+    }
+
+    private fun resetProgress() {
+        progressAnimator?.cancel()
+        currentProgress = 0f
+        loadingRing.setProgress(0f)
+    }
+
+    private fun animateProgressTo(target: Float, hideWhenDone: Boolean) {
+        val clamped = target.coerceIn(0f, 1f)
+        if (clamped <= currentProgress) {
+            currentProgress = clamped
+            loadingRing.setProgress(clamped)
+            if (hideWhenDone && clamped >= 1f) {
+                hideLoadingRing()
+            }
+            return
+        }
+        progressAnimator?.cancel()
+        val duration = ((clamped - currentProgress) * 700f).coerceIn(150f, 500f).toLong()
+        val animator = ValueAnimator.ofFloat(currentProgress, clamped).apply {
+            interpolator = progressInterpolator
+            this.duration = duration
+            addUpdateListener { animation ->
+                val value = animation.animatedValue as Float
+                currentProgress = value
+                loadingRing.setProgress(value)
+            }
+            if (hideWhenDone) {
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        if (currentProgress >= 1f) {
+                            hideLoadingRing()
+                        }
+                    }
+                })
+            }
+        }
+        animator.start()
+        progressAnimator = animator
     }
 
     companion object {
