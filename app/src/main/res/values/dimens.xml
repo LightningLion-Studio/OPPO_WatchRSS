@@ -13,4 +13,7 @@
     <dimen name="profile_entry_text_size">36px</dimen>
     <dimen name="settings_detail_text_size">28px</dimen>
     <dimen name="settings_title_text_size">36px</dimen>
+    <dimen name="feed_card_title_text_size">32px</dimen>
+    <dimen name="feed_card_summary_text_size">24px</dimen>
+    <dimen name="feed_card_action_text_size">24px</dimen>
 </resources>

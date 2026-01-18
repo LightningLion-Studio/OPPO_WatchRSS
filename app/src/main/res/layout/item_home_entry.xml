@@ -28,7 +28,7 @@
             android:paddingRight="10dp"
             android:text="移到顶"
             android:textColor="@android:color/white"
-            android:textSize="@dimen/hey_s_desription" />
+            android:textSize="@dimen/feed_card_action_text_size" />
 
         <com.heytap.wearable.support.widget.HeyTextView
             android:id="@+id/action_mark_read"
@@ -40,7 +40,7 @@
             android:paddingRight="10dp"
             android:text="标记已读"
             android:textColor="@android:color/white"
-            android:textSize="@dimen/hey_s_desription" />
+            android:textSize="@dimen/feed_card_action_text_size" />
     </LinearLayout>
 
     <FrameLayout

@@ -28,7 +28,7 @@
             android:paddingRight="10dp"
             android:text="收藏"
             android:textColor="@android:color/white"
-            android:textSize="@dimen/hey_s_desription" />
+            android:textSize="@dimen/feed_card_action_text_size" />
 
         <com.heytap.wearable.support.widget.HeyTextView
             android:id="@+id/action_watch_later"
@@ -40,7 +40,7 @@
             android:paddingRight="10dp"
             android:text="稍后再看"
             android:textColor="@android:color/white"
-            android:textSize="@dimen/hey_s_desription" />
+            android:textSize="@dimen/feed_card_action_text_size" />
     </LinearLayout>
 
     <FrameLayout
@@ -85,7 +85,7 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:textColor="@android:color/white"
-                android:textSize="@dimen/hey_s_title" />
+                android:textSize="@dimen/feed_card_title_text_size" />
 
             <com.heytap.wearable.support.widget.HeyTextView
                 android:id="@+id/text_item_summary"
@@ -95,7 +95,7 @@
                 android:ellipsize="end"
                 android:maxLines="2"
                 android:textColor="#CCFFFFFF"
-                android:textSize="@dimen/hey_s_desription" />
+                android:textSize="@dimen/feed_card_summary_text_size" />
         </LinearLayout>
 
         <ImageView
