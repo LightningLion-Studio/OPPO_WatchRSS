@@ -170,7 +170,7 @@
                         android:layout_weight="1"
                         android:includeFontPadding="false"
                         android:maxLines="1"
-                        android:text="进度指示器"
+                        android:text="阅读进度条"
                         android:textColor="@android:color/white"
                         android:textSize="@dimen/profile_entry_text_size" />
 

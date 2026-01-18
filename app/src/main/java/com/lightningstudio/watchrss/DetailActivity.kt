@@ -69,6 +69,7 @@ class DetailActivity : BaseHeytapActivity() {
         shareButton = findViewById(R.id.button_share)
         favoriteButton = findViewById(R.id.button_favorite)
         progressRing = findViewById(R.id.detail_progress_ring)
+        progressRing.visibility = View.GONE
         baseSafePadding = resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
 
         openButton.setOnClickListener {

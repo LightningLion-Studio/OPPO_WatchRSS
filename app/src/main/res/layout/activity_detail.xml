@@ -92,5 +92,6 @@
         android:layout_height="match_parent"
         android:clickable="false"
         android:focusable="false"
+        android:visibility="gone"
         android:importantForAccessibility="no" />
 </FrameLayout>
