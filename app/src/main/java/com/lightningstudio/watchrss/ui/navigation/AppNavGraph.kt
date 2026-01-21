@@ -119,10 +119,15 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             SettingsScreen(
                 cacheLimitMb = viewModel.cacheLimitMb,
                 cacheUsageMb = viewModel.cacheUsageMb,
+                readingThemeDark = viewModel.readingThemeDark,
+                detailProgressIndicatorEnabled = viewModel.detailProgressIndicatorEnabled,
                 shareUseSystem = viewModel.shareUseSystem,
-                onBack = { navController.popBackStack() },
+                readingFontSizeSp = viewModel.readingFontSizeSp,
                 onSelectCacheLimit = viewModel::updateCacheLimitMb,
-                onToggleShareMode = viewModel::toggleShareUseSystem
+                onToggleReadingTheme = viewModel::toggleReadingTheme,
+                onToggleProgressIndicator = viewModel::toggleDetailProgressIndicator,
+                onToggleShareMode = viewModel::toggleShareUseSystem,
+                onSelectFontSize = viewModel::updateReadingFontSizeSp
             )
         }
     }

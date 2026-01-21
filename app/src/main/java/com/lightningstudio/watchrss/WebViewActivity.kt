@@ -14,6 +14,9 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.addCallback
+import androidx.activity.compose.setContent
+import com.lightningstudio.watchrss.ui.screen.WebViewScreen
+import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.widget.ProgressRingView
 import java.io.File
 
@@ -23,15 +26,12 @@ class WebViewActivity : BaseHeytapActivity() {
     private var progressAnimator: ValueAnimator? = null
     private var currentProgress = 0f
     private val progressInterpolator = DecelerateInterpolator()
+    private var webViewInitialized = false
+    private var ringInitialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
-        setContentView(R.layout.activity_web_view)
-
-        webView = findViewById(R.id.web_view)
-        loadingRing = findViewById(R.id.web_loading_ring)
-        loadingRing.setShowBase(false)
 
         val url = intent.getStringExtra(EXTRA_URL)
         if (url.isNullOrBlank()) {
@@ -39,15 +39,36 @@ class WebViewActivity : BaseHeytapActivity() {
             return
         }
 
-        setupWebView()
+        setContent {
+            WatchRSSTheme {
+                WebViewScreen(
+                    onWebViewReady = { view ->
+                        if (!webViewInitialized) {
+                            webViewInitialized = true
+                            webView = view
+                            setupWebView()
+                            webView.loadUrl(url)
+                        }
+                    },
+                    onProgressRingReady = { ring ->
+                        if (!ringInitialized) {
+                            ringInitialized = true
+                            loadingRing = ring
+                            loadingRing.setShowBase(false)
+                            loadingRing.visibility = View.GONE
+                        }
+                    }
+                )
+            }
+        }
+
         onBackPressedDispatcher.addCallback(this) {
-            if (webView.canGoBack()) {
+            if (webViewInitialized && webView.canGoBack()) {
                 webView.goBack()
             } else {
                 finish()
             }
         }
-        webView.loadUrl(url)
     }
 
     private fun setupWebView() {
@@ -92,29 +113,36 @@ class WebViewActivity : BaseHeytapActivity() {
     }
 
     override fun onDestroy() {
-        webView.stopLoading()
-        webView.destroy()
+        if (webViewInitialized) {
+            webView.stopLoading()
+            webView.destroy()
+        }
         progressAnimator?.cancel()
         super.onDestroy()
     }
 
     private fun showLoadingRing() {
-        if (loadingRing.visibility != View.VISIBLE) {
+        if (ringInitialized && loadingRing.visibility != View.VISIBLE) {
             loadingRing.visibility = View.VISIBLE
         }
     }
 
     private fun hideLoadingRing() {
-        loadingRing.visibility = View.GONE
+        if (ringInitialized) {
+            loadingRing.visibility = View.GONE
+        }
     }
 
     private fun resetProgress() {
         progressAnimator?.cancel()
         currentProgress = 0f
-        loadingRing.setProgress(0f)
+        if (ringInitialized) {
+            loadingRing.setProgress(0f)
+        }
     }
 
     private fun animateProgressTo(target: Float, hideWhenDone: Boolean) {
+        if (!ringInitialized) return
         val clamped = target.coerceIn(0f, 1f)
         if (clamped <= currentProgress) {
             currentProgress = clamped

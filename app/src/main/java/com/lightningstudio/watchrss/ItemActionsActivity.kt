@@ -1,15 +1,15 @@
 package com.lightningstudio.watchrss
 
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.heytap.wearable.support.widget.HeyButton
-import com.heytap.wearable.support.widget.HeyTextView
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.lightningstudio.watchrss.ui.screen.ActionDialogScreen
+import com.lightningstudio.watchrss.ui.screen.ActionItem
+import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.ItemActionsViewModel
-import kotlinx.coroutines.launch
 
 class ItemActionsActivity : BaseHeytapActivity() {
     private val viewModel: ItemActionsViewModel by viewModels {
@@ -19,35 +19,40 @@ class ItemActionsActivity : BaseHeytapActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
-        setContentView(R.layout.dialog_feed_actions)
 
         if (!viewModel.isValid()) {
             finish()
             return
         }
 
-        val favoriteButton = findViewById<HeyButton>(R.id.button_favorite)
-        val laterButton = findViewById<HeyButton>(R.id.button_watch_later)
-        val cancelButton = findViewById<HeyButton>(R.id.button_cancel)
+        setContent {
+            WatchRSSTheme {
+                val savedState by viewModel.savedState.collectAsState()
+                val favoriteLabel = if (savedState.isFavorite) "取消收藏" else "收藏"
+                val laterLabel = if (savedState.isWatchLater) "取消稍后再看" else "稍后再看"
 
-        favoriteButton.setOnClickListener {
-            viewModel.toggleFavorite()
-            finish()
-        }
-        laterButton.setOnClickListener {
-            viewModel.toggleWatchLater()
-            finish()
-        }
-        cancelButton.setOnClickListener { finish() }
+                val items = listOf(
+                    ActionItem(
+                        label = favoriteLabel,
+                        onClick = {
+                            viewModel.toggleFavorite()
+                            finish()
+                        }
+                    ),
+                    ActionItem(
+                        label = laterLabel,
+                        onClick = {
+                            viewModel.toggleWatchLater()
+                            finish()
+                        }
+                    ),
+                    ActionItem(
+                        label = "取消",
+                        onClick = { finish() }
+                    )
+                )
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.savedState.collect { state ->
-                        favoriteButton.text = if (state.isFavorite) "取消收藏" else "收藏"
-                        laterButton.text = if (state.isWatchLater) "取消稍后再看" else "稍后再看"
-                    }
-                }
+                ActionDialogScreen(items = items)
             }
         }
     }

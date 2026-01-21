@@ -1,18 +1,16 @@
 package com.lightningstudio.watchrss
 
 import android.os.Bundle
-import android.view.View
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.heytap.wearable.support.widget.HeyDialog
-import com.heytap.wearable.support.widget.HeySwitch
-import com.heytap.wearable.support.widget.HeyTextView
 import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
+import com.lightningstudio.watchrss.ui.screen.rss.ChannelSettingsScreen
+import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.ChannelDetailViewModel
-import kotlinx.coroutines.launch
 
 class ChannelSettingsActivity : BaseHeytapActivity() {
     private val viewModel: ChannelDetailViewModel by viewModels {
@@ -22,46 +20,30 @@ class ChannelSettingsActivity : BaseHeytapActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
-        setContentView(R.layout.activity_channel_settings)
 
-        val titleView = findViewById<HeyTextView>(R.id.text_settings_title)
-        titleView.text = "频道设置"
+        setContent {
+            WatchRSSTheme {
+                val channel by viewModel.channel.collectAsState()
+                val isBuiltin = channel?.let { BuiltinChannelType.fromUrl(it.url) != null } ?: false
+                val showOriginalContent = channel != null && !isBuiltin
+                val originalContentEnabled = channel?.useOriginalContent ?: false
+                val deleteEnabled = channel != null
 
-        val originalContentContainer = findViewById<View>(R.id.layout_channel_original_content)
-        val originalContentHint = findViewById<HeyTextView>(R.id.text_channel_original_content_hint)
-        val originalContentSwitch = findViewById<HeySwitch>(R.id.switch_channel_original_content)
-        val deleteButton = findViewById<View>(R.id.button_channel_delete)
-        var currentUseOriginalContent = false
-
-        originalContentSwitch.setOnClickListener {
-            viewModel.setOriginalContentEnabled(!currentUseOriginalContent)
-        }
-        deleteButton.setOnClickListener { confirmDelete() }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.channel.collect { channel ->
-                    if (channel == null) {
-                        originalContentContainer.visibility = View.GONE
-                        originalContentHint.visibility = View.GONE
-                        deleteButton.isEnabled = false
-                        deleteButton.alpha = 0.5f
-                        return@collect
+                ChannelSettingsScreen(
+                    showOriginalContent = showOriginalContent,
+                    originalContentEnabled = originalContentEnabled,
+                    onToggleOriginalContent = {
+                        if (showOriginalContent) {
+                            viewModel.setOriginalContentEnabled(!originalContentEnabled)
+                        }
+                    },
+                    deleteEnabled = deleteEnabled,
+                    onDelete = {
+                        if (deleteEnabled) {
+                            confirmDelete()
+                        }
                     }
-                    deleteButton.isEnabled = true
-                    deleteButton.alpha = 1f
-                    val isBuiltin = BuiltinChannelType.fromUrl(channel.url) != null
-                    if (isBuiltin) {
-                        originalContentContainer.visibility = View.GONE
-                        originalContentHint.visibility = View.GONE
-                    } else {
-                        originalContentContainer.visibility = View.VISIBLE
-                        originalContentHint.visibility = View.VISIBLE
-                        currentUseOriginalContent = channel.useOriginalContent
-                        originalContentSwitch.isChecked = channel.useOriginalContent
-                        originalContentSwitch.isEnabled = true
-                    }
-                }
+                )
             }
         }
     }
