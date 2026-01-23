@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:showDividers="middle"
-                android:divider="@drawable/space_8px">
+                android:divider="@drawable/space_4dp">
 
                 <com.heytap.wearable.support.widget.HeyShapeButton
                     android:id="@+id/button_favorite"

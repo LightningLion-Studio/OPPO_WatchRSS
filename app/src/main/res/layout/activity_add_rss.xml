@@ -142,7 +142,7 @@
                     style="@style/HeySmallShapeButtonStyle"
                     android:layout_width="@dimen/watch_action_button_width"
                     android:layout_height="@dimen/watch_action_button_height"
-                    android:layout_marginTop="8px"
+                    android:layout_marginTop="4dp"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center"
                     android:text="修改地址"
