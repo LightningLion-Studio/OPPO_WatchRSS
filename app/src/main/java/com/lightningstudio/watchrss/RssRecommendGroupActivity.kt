@@ -2,19 +2,16 @@ package com.lightningstudio.watchrss
 
 import android.content.Intent
 import android.os.Bundle
-import com.heytap.wearable.support.recycler.widget.LinearLayoutManager
-import com.heytap.wearable.support.recycler.widget.RecyclerView
+import androidx.activity.compose.setContent
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.data.rss.RssRecommendations
-import com.lightningstudio.watchrss.ui.adapter.RssRecommendChannelAdapter
+import com.lightningstudio.watchrss.ui.screen.rss.RssRecommendGroupScreen
+import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 
 class RssRecommendGroupActivity : BaseHeytapActivity() {
-    private lateinit var adapter: RssRecommendChannelAdapter
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
-        setContentView(R.layout.activity_rss_recommend_group)
 
         val groupId = intent.getStringExtra(EXTRA_GROUP_ID).orEmpty()
         val group = RssRecommendations.findGroup(groupId)
@@ -24,16 +21,19 @@ class RssRecommendGroupActivity : BaseHeytapActivity() {
             return
         }
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recommend_group_list)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = RssRecommendChannelAdapter { url ->
-            if (!allowNavigation()) return@RssRecommendChannelAdapter
-            val intent = Intent(this, AddRssActivity::class.java)
-            intent.putExtra(AddRssActivity.EXTRA_URL, url)
-            startActivity(intent)
+        setContent {
+            WatchRSSTheme {
+                RssRecommendGroupScreen(
+                    group = group,
+                    onAddChannel = { channel ->
+                        if (!allowNavigation()) return@RssRecommendGroupScreen
+                        val intent = Intent(this, AddRssActivity::class.java)
+                        intent.putExtra(AddRssActivity.EXTRA_URL, channel.url)
+                        startActivity(intent)
+                    }
+                )
+            }
         }
-        recyclerView.adapter = adapter
-        adapter.submit(group)
     }
 
     companion object {
