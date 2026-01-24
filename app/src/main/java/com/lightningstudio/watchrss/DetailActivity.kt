@@ -40,6 +40,7 @@ import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.abs
+import kotlin.math.min
 
 class DetailActivity : BaseHeytapActivity() {
     private val viewModel: DetailViewModel by viewModels {
@@ -343,10 +344,15 @@ class DetailActivity : BaseHeytapActivity() {
         if (normalized.isEmpty()) {
             return title
         }
-        val firstLimitPx =
-            resources.getDimensionPixelSize(R.dimen.detail_title_first_line_max_width).toFloat()
-        val secondLimitPx =
-            resources.getDimensionPixelSize(R.dimen.detail_title_second_line_max_width).toFloat()
+        val availableWidthPx = resolveTitleWidthPx()
+        val firstLimitPx = min(
+            resources.getDimensionPixelSize(R.dimen.detail_title_first_line_max_width).toFloat(),
+            availableWidthPx
+        )
+        val secondLimitPx = min(
+            resources.getDimensionPixelSize(R.dimen.detail_title_second_line_max_width).toFloat(),
+            availableWidthPx
+        )
         val paint = titleView.paint
         val lines = mutableListOf<String>()
         var start = 0
@@ -366,7 +372,67 @@ class DetailActivity : BaseHeytapActivity() {
             }
             lineIndex++
         }
+        balanceSingleCharLines(lines, paint, firstLimitPx, secondLimitPx)
         return lines.joinToString("\n")
+    }
+
+    private fun balanceSingleCharLines(
+        lines: MutableList<String>,
+        paint: TextPaint,
+        firstLimitPx: Float,
+        otherLimitPx: Float
+    ) {
+        var index = 1
+        while (index < lines.size) {
+            val current = lines[index]
+            if (current.length == 1) {
+                val prevIndex = index - 1
+                val prev = lines[prevIndex]
+                val prevLimit = if (prevIndex == 0) firstLimitPx else otherLimitPx
+                val mergedPrev = prev + current
+                if (paint.measureText(mergedPrev) <= prevLimit) {
+                    lines[prevIndex] = mergedPrev
+                    lines.removeAt(index)
+                    continue
+                }
+                if (prev.length > 1) {
+                    val shiftedPrev = prev.dropLast(1)
+                    val shiftedCurrent = prev.takeLast(1) + current
+                    val currentLimit = if (index == 0) firstLimitPx else otherLimitPx
+                    if (paint.measureText(shiftedCurrent) <= currentLimit) {
+                        lines[prevIndex] = shiftedPrev
+                        lines[index] = shiftedCurrent
+                        if (prevIndex > 0) {
+                            index--
+                            continue
+                        }
+                    }
+                }
+                if (index + 1 < lines.size) {
+                    val next = lines[index + 1]
+                    if (next.isNotEmpty()) {
+                        val mergedCurrent = current + next.first()
+                        val currentLimit = if (index == 0) firstLimitPx else otherLimitPx
+                        if (paint.measureText(mergedCurrent) <= currentLimit) {
+                            lines[index] = mergedCurrent
+                            val remaining = next.substring(1)
+                            if (remaining.isEmpty()) {
+                                lines.removeAt(index + 1)
+                                continue
+                            } else {
+                                lines[index + 1] = remaining
+                            }
+                        }
+                    }
+                }
+            }
+            index++
+        }
+    }
+
+    private fun resolveTitleWidthPx(): Float {
+        val width = (titleView.width - titleView.paddingLeft - titleView.paddingRight).toFloat()
+        return if (width > 0f) width else resources.displayMetrics.widthPixels.toFloat()
     }
 
     private fun breakTextIndex(
