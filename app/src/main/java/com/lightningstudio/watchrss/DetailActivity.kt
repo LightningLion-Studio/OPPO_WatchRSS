@@ -12,8 +12,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ImageButton
 import android.widget.ScrollView
+import androidx.activity.compose.setContent
 import androidx.activity.addCallback
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -32,6 +36,7 @@ import com.lightningstudio.watchrss.ui.util.RssContentParser
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import com.lightningstudio.watchrss.ui.util.TextStyle
 import com.lightningstudio.watchrss.ui.widget.ProgressRingView
+import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.abs
@@ -75,17 +80,30 @@ class DetailActivity : BaseHeytapActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
-        setContentView(R.layout.activity_detail)
+        setContent {
+            WatchRSSTheme {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { _ ->
+                        val root = layoutInflater.inflate(R.layout.activity_detail, null, false)
+                        bindViews(root)
+                        root
+                    }
+                )
+            }
+        }
+    }
 
-        titleView = findViewById(R.id.text_title)
-        contentContainer = findViewById(R.id.content_container)
-        detailScroll = findViewById(R.id.detail_scroll)
-        safeTopSpacer = findViewById(R.id.detail_safe_top)
-        safeBottomSpacer = findViewById(R.id.detail_safe_bottom)
-        openButton = findViewById(R.id.button_open)
-        shareButton = findViewById(R.id.button_share)
-        favoriteButton = findViewById(R.id.button_favorite)
-        progressRing = findViewById(R.id.detail_progress_ring)
+    private fun bindViews(root: View) {
+        titleView = root.findViewById(R.id.text_title)
+        contentContainer = root.findViewById(R.id.content_container)
+        detailScroll = root.findViewById(R.id.detail_scroll)
+        safeTopSpacer = root.findViewById(R.id.detail_safe_top)
+        safeBottomSpacer = root.findViewById(R.id.detail_safe_bottom)
+        openButton = root.findViewById(R.id.button_open)
+        shareButton = root.findViewById(R.id.button_share)
+        favoriteButton = root.findViewById(R.id.button_favorite)
+        progressRing = root.findViewById(R.id.detail_progress_ring)
         progressRing.visibility = View.GONE
         baseSafePadding = resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
         fromWatchLater = intent.getBooleanExtra(EXTRA_FROM_WATCH_LATER, false)
@@ -148,15 +166,15 @@ class DetailActivity : BaseHeytapActivity() {
                         reachedBottom = false
                         lastSavedProgress = -1f
                         lastProgressSavedAt = 0L
-        applyTitleText(item.title)
-        renderContentWithRestore(
-            item,
-            blockSpacing,
-            maxImageWidth,
-            progressOverride = item.readingProgress
-        )
-        updateLinkButton(item.link)
-    }
+                        applyTitleText(item.title)
+                        renderContentWithRestore(
+                            item,
+                            blockSpacing,
+                            maxImageWidth,
+                            progressOverride = item.readingProgress
+                        )
+                        updateLinkButton(item.link)
+                    }
                 }
                 launch {
                     viewModel.savedState.collect { state ->
@@ -330,22 +348,25 @@ class DetailActivity : BaseHeytapActivity() {
         val secondLimitPx =
             resources.getDimensionPixelSize(R.dimen.detail_title_second_line_max_width).toFloat()
         val paint = titleView.paint
-        val firstEnd = breakTextIndex(normalized, 0, firstLimitPx, paint)
-        if (firstEnd >= normalized.length) {
-            return normalized
-        }
-        val secondEnd = breakTextIndex(normalized, firstEnd, secondLimitPx, paint)
-        return buildString {
-            append(normalized, 0, firstEnd)
-            append('\n')
-            if (secondEnd >= normalized.length) {
-                append(normalized, firstEnd, normalized.length)
-            } else {
-                append(normalized, firstEnd, secondEnd)
-                append('\n')
-                append(normalized, secondEnd, normalized.length)
+        val lines = mutableListOf<String>()
+        var start = 0
+        var lineIndex = 0
+        while (start < normalized.length) {
+            val limitPx = when (lineIndex) {
+                0 -> firstLimitPx
+                else -> secondLimitPx
             }
+            val end = breakTextIndex(normalized, start, limitPx, paint)
+            if (end <= start) {
+                lines.add(normalized.substring(start, start + 1))
+                start += 1
+            } else {
+                lines.add(normalized.substring(start, end))
+                start = end
+            }
+            lineIndex++
         }
+        return lines.joinToString("\n")
     }
 
     private fun breakTextIndex(

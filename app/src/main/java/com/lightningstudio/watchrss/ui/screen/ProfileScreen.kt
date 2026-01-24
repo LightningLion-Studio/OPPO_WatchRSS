@@ -160,7 +160,7 @@ private fun ProfileEntry(
     iconSize: androidx.compose.ui.unit.Dp,
     iconSpacing: androidx.compose.ui.unit.Dp
 ) {
-    Column(
+    androidx.compose.foundation.layout.Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(pillHeight)
@@ -172,26 +172,22 @@ private fun ProfileEntry(
                 end = pillHorizontalPadding,
                 top = pillVerticalPadding,
                 bottom = pillVerticalPadding
-            )
+            ),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        androidx.compose.foundation.layout.Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                painter = painterResource(iconRes),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(iconSize)
-            )
-            Spacer(modifier = Modifier.width(iconSpacing))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        Icon(
+            painter = painterResource(iconRes),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(iconSize)
+        )
+        Spacer(modifier = Modifier.width(iconSpacing))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

@@ -2,17 +2,23 @@ package com.lightningstudio.watchrss
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.viewinterop.AndroidView
 import com.heytap.wearable.support.recycler.widget.LinearLayoutManager
 import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
 import com.lightningstudio.watchrss.data.rss.RssChannel
 import com.lightningstudio.watchrss.ui.adapter.HomeEntryAdapter
+import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -43,9 +49,23 @@ class MainActivity : BaseHeytapActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setupSystemBars()
-        setContentView(R.layout.activity_main)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.channel_list)
+        setContent {
+            WatchRSSTheme {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { _ ->
+                        val root = layoutInflater.inflate(R.layout.activity_main, null, false)
+                        bindViews(root)
+                        root
+                    }
+                )
+            }
+        }
+    }
+
+    private fun bindViews(root: View) {
+        val recyclerView = root.findViewById<RecyclerView>(R.id.channel_list)
         homeAdapter = HomeEntryAdapter(
             onProfileClick = {
                 if (!allowNavigation()) return@HomeEntryAdapter

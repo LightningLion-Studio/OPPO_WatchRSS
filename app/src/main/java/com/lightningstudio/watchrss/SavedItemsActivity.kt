@@ -5,11 +5,15 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 import com.heytap.wearable.support.recycler.widget.LinearLayoutManager
 import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.recycler.widget.helper.ItemTouchHelper
@@ -18,6 +22,7 @@ import com.lightningstudio.watchrss.data.rss.SaveType
 import com.lightningstudio.watchrss.data.rss.SavedItem
 import com.lightningstudio.watchrss.ui.adapter.SavedEntry
 import com.lightningstudio.watchrss.ui.adapter.SavedItemAdapter
+import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.SavedItemsViewModel
 import kotlinx.coroutines.Job
@@ -47,10 +52,23 @@ class SavedItemsActivity : BaseHeytapActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
-        setContentView(R.layout.activity_saved_items)
+        setContent {
+            WatchRSSTheme {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { _ ->
+                        val root = layoutInflater.inflate(R.layout.activity_saved_items, null, false)
+                        bindViews(root)
+                        root
+                    }
+                )
+            }
+        }
+    }
 
-        val recyclerView = findViewById<RecyclerView>(R.id.saved_list)
-        undoButton = findViewById(R.id.button_undo)
+    private fun bindViews(root: View) {
+        val recyclerView = root.findViewById<RecyclerView>(R.id.saved_list)
+        undoButton = root.findViewById(R.id.button_undo)
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = SavedItemAdapter(
             onItemClick = { savedItem ->

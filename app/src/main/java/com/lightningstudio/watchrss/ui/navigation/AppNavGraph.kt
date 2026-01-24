@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import android.net.Uri
 import com.lightningstudio.watchrss.BiliEntryActivity
 import com.lightningstudio.watchrss.DouyinEntryActivity
 import com.lightningstudio.watchrss.WatchRssApplication
@@ -78,13 +79,39 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
                 uiState = viewModel.uiState,
                 onUrlChange = viewModel::updateUrl,
                 onSubmit = viewModel::submit,
+                onConfirm = viewModel::confirmAdd,
                 onBack = { navController.popBackStack() },
-                onChannelAdded = { channelId ->
-                    navController.navigate(Routes.feed(channelId)) {
-                        popUpTo(Routes.HOME)
+                onBackToInput = viewModel::backToInput,
+                onOpenExisting = { channel ->
+                    when (BuiltinChannelType.fromUrl(channel.url)) {
+                        BuiltinChannelType.BILI -> {
+                            context.startActivity(android.content.Intent(context, BiliEntryActivity::class.java))
+                        }
+                        BuiltinChannelType.DOUYIN -> {
+                            context.startActivity(android.content.Intent(context, DouyinEntryActivity::class.java))
+                        }
+                        null -> navController.navigate(Routes.feed(channel.id))
                     }
                 },
-                onConsumed = viewModel::consumeCreatedChannel
+                onChannelAdded = { url, channelId ->
+                    val builtin = BuiltinChannelType.fromUrl(url)
+                        ?: BuiltinChannelType.fromHost(runCatching { Uri.parse(url).host }.getOrNull())
+                    when (builtin) {
+                        BuiltinChannelType.BILI -> {
+                            context.startActivity(android.content.Intent(context, BiliEntryActivity::class.java))
+                        }
+                        BuiltinChannelType.DOUYIN -> {
+                            context.startActivity(android.content.Intent(context, DouyinEntryActivity::class.java))
+                        }
+                        null -> {
+                            navController.navigate(Routes.feed(channelId)) {
+                                popUpTo(Routes.HOME)
+                            }
+                        }
+                    }
+                },
+                onConsumed = viewModel::consumeCreatedChannel,
+                onClearError = viewModel::clearError
             )
         }
         composable(

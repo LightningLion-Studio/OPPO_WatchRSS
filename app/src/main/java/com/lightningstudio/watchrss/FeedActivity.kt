@@ -4,15 +4,21 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewConfiguration
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 import com.heytap.wearable.support.recycler.widget.LinearLayoutManager
 import com.heytap.wearable.support.recycler.widget.RecyclerView
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.ui.adapter.FeedEntryAdapter
+import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.FeedViewModel
 import kotlinx.coroutines.launch
@@ -45,9 +51,22 @@ class FeedActivity : BaseHeytapActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
-        setContentView(R.layout.activity_feed)
+        setContent {
+            WatchRSSTheme {
+                AndroidView(
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { _ ->
+                        val root = layoutInflater.inflate(R.layout.activity_feed, null, false)
+                        bindViews(root)
+                        root
+                    }
+                )
+            }
+        }
+    }
 
-        val recyclerView = findViewById<RecyclerView>(R.id.feed_list)
+    private fun bindViews(root: View) {
+        val recyclerView = root.findViewById<RecyclerView>(R.id.feed_list)
         recyclerView.layoutManager = LinearLayoutManager(this)
         feedAdapter = FeedEntryAdapter(
             scope = lifecycleScope,
