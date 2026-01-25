@@ -85,6 +85,34 @@ class RssOfflineStoreTest {
         assertFalse(File(path).exists())
     }
 
+    @Test
+    fun downloadMediaForItem_retriesWhenLocalPathMissing() = runBlocking {
+        val dao = FakeOfflineMediaDao()
+        val url = "https://example.com/a.jpg"
+        val downloader = FakeDownloadClient(
+            outcomes = mapOf(url to listOf(false, true))
+        )
+        val root = tempFolder.newFolder("rss-offline-4")
+        val store = RssOfflineStore(root, dao, downloader)
+        val item = buildItem(
+            id = 10L,
+            content = "<img src=\"$url\" />"
+        )
+
+        store.downloadMediaForItem(item)
+
+        val first = dao.getByItemId(item.id)
+        assertEquals(1, first.size)
+        assertEquals(null, first.first().localPath)
+
+        store.downloadMediaForItem(item)
+
+        val second = dao.getByItemId(item.id)
+        assertEquals(1, second.size)
+        assertNotNull(second.first().localPath)
+        assertEquals(2, downloader.requests.size)
+    }
+
     private fun buildItem(id: Long, content: String?): RssItemEntity = RssItemEntity(
         id = id,
         channelId = 1L,
@@ -105,11 +133,18 @@ class RssOfflineStoreTest {
         contentSizeBytes = 0L
     )
 
-    private class FakeDownloadClient : RssDownloadClient {
+    private class FakeDownloadClient(
+        private val outcomes: Map<String, List<Boolean>> = emptyMap()
+    ) : RssDownloadClient {
         val requests = mutableListOf<String>()
+        private val counters = mutableMapOf<String, Int>()
 
         override fun downloadToFile(url: String, file: File): String? {
             requests.add(url)
+            val index = counters.getOrDefault(url, 0)
+            counters[url] = index + 1
+            val allowWrite = outcomes[url]?.getOrNull(index) ?: true
+            if (!allowWrite) return null
             file.parentFile?.mkdirs()
             file.writeText("data:$url")
             return file.absolutePath
@@ -142,6 +177,14 @@ class RssOfflineStoreTest {
                 }
             }
             flow.value = this.entries.toList()
+        }
+
+        override suspend fun updateLocalPath(itemId: Long, originUrl: String, localPath: String?) {
+            val index = entries.indexOfFirst { it.itemId == itemId && it.originUrl == originUrl }
+            if (index >= 0) {
+                entries[index] = entries[index].copy(localPath = localPath)
+                flow.value = entries.toList()
+            }
         }
 
         override suspend fun deleteByItemId(itemId: Long) {

@@ -16,7 +16,7 @@ object RssRecommendations {
     val groups: List<RssRecommendGroup> = listOf(
         RssRecommendGroup(
             id = "bilibili",
-            name = "B站",
+            name = "哔哩哔哩",
             description = "进入后登录获取内容。",
             channels = listOf(
                 RssRecommendChannel("推荐入口", "https://www.bilibili.com")
@@ -41,11 +41,12 @@ object RssRecommendations {
         RssRecommendGroup(
             id = "36kr",
             name = "36氪",
-            description = "36氪的分类非常细致，你可以根据兴趣选择。",
+            description = "让一部分人先看到未来",
             channels = listOf(
-                RssRecommendChannel("最新文章", "https://www.36kr.com/feed"),
-                RssRecommendChannel("深度报道", "https://www.36kr.com/depth"),
-                RssRecommendChannel("快讯", "https://www.36kr.com/newsflashes")
+                RssRecommendChannel("综合资讯", "https://36kr.com/feed"),
+                RssRecommendChannel("文章资讯", "https://36kr.com/feed-article"),
+                RssRecommendChannel("最新快讯", "https://36kr.com/feed-newsflash"),
+                RssRecommendChannel("动态内容", "https://36kr.com/feed-moment")
             )
         ),
         RssRecommendGroup(
@@ -59,7 +60,7 @@ object RssRecommendations {
         RssRecommendGroup(
             id = "chinanews",
             name = "中国新闻网",
-            description = null,
+            description = "权威新闻汇总，覆盖国内外要闻与专题栏目。",
             channels = listOf(
                 RssRecommendChannel("即时新闻", "https://www.chinanews.com.cn/rss/scroll-news.xml"),
                 RssRecommendChannel("要闻导读", "https://www.chinanews.com.cn/rss/importnews.xml"),

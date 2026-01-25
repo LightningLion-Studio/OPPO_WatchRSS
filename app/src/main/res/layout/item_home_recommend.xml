@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<com.heytap.wearable.support.widget.HeyMultipleDefaultItem xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/home_recommend_item"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/hey_distance_6dp"
-    android:background="@drawable/bg_settings_card" />

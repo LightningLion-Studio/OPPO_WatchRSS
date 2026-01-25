@@ -26,17 +26,17 @@
 - [x] DetailActivity
 
 ## Remaining non-Compose / View-based usage to remove or isolate
-- [ ] Replace `AndroidView` wrapper + XML in `MainActivity` with pure Compose UI + `LazyColumn`.
-- [ ] Replace `AndroidView` wrapper + XML in `FeedActivity` with pure Compose UI + `LazyColumn`.
-- [ ] Replace `AndroidView` wrapper + XML in `SavedItemsActivity` with pure Compose UI + `LazyColumn`.
-- [ ] Replace `AndroidView` wrapper + XML in `DetailActivity` with pure Compose UI container (keep only minimal Activity).
-- [ ] Remove RecyclerView/Adapter dependencies for main flows:
-  - [ ] `HomeEntryAdapter` -> Compose list item + swipe actions.
-  - [ ] `FeedEntryAdapter` -> Compose list item + swipe actions.
-  - [ ] `SavedItemAdapter` -> Compose list item + swipe actions.
-  - [ ] `RssRecommendAdapter` / `RssRecommendChannelAdapter` -> Compose list.
-  - [ ] `RssChannelAdapter` / `RssItemAdapter` / `SettingsEntryAdapter` / `CacheLimitAdapter` -> Compose list.
-- [ ] Remove or re-implement RecyclerView swipe helper utilities (`SwipeRevealCallback`, `SafeHeytapRecyclerView`) in Compose.
+- [x] Replace `AndroidView` wrapper + XML in `MainActivity` with pure Compose UI + `LazyColumn`.
+- [x] Replace `AndroidView` wrapper + XML in `FeedActivity` with pure Compose UI + `LazyColumn`.
+- [x] Replace `AndroidView` wrapper + XML in `SavedItemsActivity` with pure Compose UI + `LazyColumn`.
+- [x] Replace `AndroidView` wrapper + XML in `DetailActivity` with pure Compose UI container (keep only minimal Activity).
+- [x] Remove RecyclerView/Adapter dependencies for main flows:
+  - [x] `HomeEntryAdapter` -> Compose list item + swipe actions.
+  - [x] `FeedEntryAdapter` -> Compose list item + swipe actions.
+  - [x] `SavedItemAdapter` -> Compose list item + swipe actions.
+  - [x] `RssRecommendAdapter` / `RssRecommendChannelAdapter` -> Compose list.
+  - [x] `RssChannelAdapter` / `RssItemAdapter` / `SettingsEntryAdapter` / `CacheLimitAdapter` -> Compose list.
+- [x] Remove or re-implement RecyclerView swipe helper utilities (`SwipeRevealCallback`, `SafeHeytapRecyclerView`) in Compose.
 
 # 降屎山 TODO
 
@@ -48,17 +48,17 @@
   - [x] 标注 RSS 阅读模式/HTML 渲染实现范围与差异。
 
 ## 2. 组合式 UI 真迁移
-- [ ] 拆掉 Activity 里的 `AndroidView` 包装，迁移为纯 Compose Screen
-- [ ] 替换 RecyclerView + Adapter 为 `LazyColumn`/`LazyRow`，删掉 `findViewById` 依赖
+- [x] 拆掉 Activity 里的 `AndroidView` 包装，迁移为纯 Compose Screen
+- [x] 替换 RecyclerView + Adapter 为 `LazyColumn`/`LazyRow`，删掉 `findViewById` 依赖
 - [ ] 统一导航入口（Compose Nav 或单 Activity + 多 Screen）
-  - [ ] `MainActivity` -> Compose 列表 + 顶部/底部操作区。
-  - [ ] `FeedActivity` -> Compose 列表 + 刷新/加载更多。
-  - [ ] `SavedItemsActivity` -> Compose 列表 + 删除/撤销交互。
+  - [x] `MainActivity` -> Compose 列表 + 顶部/底部操作区。
+  - [x] `FeedActivity` -> Compose 列表 + 刷新/加载更多。
+  - [x] `SavedItemsActivity` -> Compose 列表 + 删除/撤销交互。
   - [ ] `DetailActivity` -> Compose 详情页（将内容渲染逻辑迁移 ViewModel）。
 
 ## 3. 大类拆分与职责收敛
 - [ ] 细化 `DefaultRssRepository`：拆出解析、缓存、离线、网络、去重模块
-- [ ] 将 `DetailActivity` 逻辑迁移到 ViewModel + Compose，保留最小 Activity 容器
+- [x] 将 `DetailActivity` 逻辑迁移到 ViewModel + Compose，保留最小 Activity 容器
 - [ ] 为复杂工具类加清晰边界（如内容解析、图片加载、滑动交互）
   - [ ] `DefaultRssRepository` 拆分建议：
     - [x] 网络拉取（HTTP/超时/UA）独立为 `RssFetchService`。
@@ -69,11 +69,11 @@
 
 ## 4. 风险点与稳定性
 - [x] 清理 `!!` 与隐式空指针路径，补空值兜底与错误提示
-- [ ] 对第三方/非官方 API 加明确降级策略与开关
+- [x] 对第三方/非官方 API 加明确降级策略与开关
 - [ ] 增加关键流程的错误日志与埋点（登录、刷新、离线下载）
-  - [ ] 移除 `DetailScreen` 中的 `!!`，以空态/占位内容替代。
-  - [ ] 离线媒体下载失败时记录错误并允许重试。
-  - [ ] 原文抓取失败需降级为 RSS 内容（并提示）。
+  - [x] 移除 `DetailScreen` 中的 `!!`，以空态/占位内容替代。
+  - [x] 离线媒体下载失败时记录错误并允许重试。
+  - [x] 原文抓取失败需降级为 RSS 内容（并提示）。
 
 ## 5. 测试与验证
 - [ ] 至少补齐 RSS 解析/去重/离线下载单测

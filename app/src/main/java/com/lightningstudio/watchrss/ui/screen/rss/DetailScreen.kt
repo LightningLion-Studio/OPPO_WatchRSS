@@ -100,11 +100,13 @@ fun DetailScreen(
     val progressIndicatorEnabled by viewModel.detailProgressIndicatorEnabled.collectAsState(initial = true)
     val shareUseSystem by viewModel.shareUseSystem.collectAsState(initial = true)
 
+    val hasOfflineFailures = remember(offlineMedia) { offlineMedia.any { it.localPath == null } }
     val offlineMap = remember(offlineMedia) { offlineMedia.associateBy { it.originUrl } }
 
     DetailContent(
         item = item,
         offlineMedia = offlineMap,
+        hasOfflineFailures = hasOfflineFailures,
         isFavorite = savedState.isFavorite,
         isWatchLater = savedState.isWatchLater,
         readingThemeDark = readingThemeDark,
@@ -112,6 +114,7 @@ fun DetailScreen(
         progressIndicatorEnabled = progressIndicatorEnabled,
         shareUseSystem = shareUseSystem,
         onToggleFavorite = viewModel::toggleFavorite,
+        onRetryOfflineMedia = viewModel::retryOfflineMedia,
         onSaveReadingProgress = viewModel::updateReadingProgress,
         onBack = onBack
     )
@@ -121,6 +124,7 @@ fun DetailScreen(
 private fun DetailContent(
     item: RssItem?,
     offlineMedia: Map<String, OfflineMedia>,
+    hasOfflineFailures: Boolean,
     isFavorite: Boolean,
     isWatchLater: Boolean,
     readingThemeDark: Boolean,
@@ -128,6 +132,7 @@ private fun DetailContent(
     progressIndicatorEnabled: Boolean,
     shareUseSystem: Boolean,
     onToggleFavorite: () -> Unit,
+    onRetryOfflineMedia: () -> Unit,
     onSaveReadingProgress: (Float) -> Unit,
     onBack: (Long, Boolean, Boolean) -> Unit
 ) {
@@ -295,6 +300,19 @@ private fun DetailContent(
                         currentFontSizeSp = readingFontSizeSp
                     ),
                     onClick = { openLinkInApp(context, link) }
+                )
+            }
+            if (hasOfflineFailures) {
+                Spacer(modifier = Modifier.height(blockSpacing))
+                DetailActionButton(
+                    text = "离线媒体下载失败，点此重试",
+                    fontSize = adjustedTextSizeSp(
+                        context = context,
+                        density = density,
+                        baseDimenRes = R.dimen.detail_body_text_size,
+                        currentFontSizeSp = readingFontSizeSp
+                    ),
+                    onClick = onRetryOfflineMedia
                 )
             }
 
@@ -520,16 +538,25 @@ private fun DetailImageBlock(
     val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, url, maxWidthPx) {
         value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
     }
-    val ratio = bitmap?.let { it.width.toFloat() / it.height.toFloat() }?.takeIf { it > 0f }
-    if (bitmap != null && ratio != null) {
+    val safeBitmap = bitmap
+    val ratio = safeBitmap?.let { it.width.toFloat() / it.height.toFloat() }?.takeIf { it > 0f }
+    if (safeBitmap != null && ratio != null) {
         Image(
-            bitmap = bitmap!!.asImageBitmap(),
+            bitmap = safeBitmap.asImageBitmap(),
             contentDescription = alt,
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = topPadding)
                 .aspectRatio(ratio)
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = topPadding)
+                .height(dimensionResource(R.dimen.hey_card_large_height))
+                .background(colorResource(R.color.watch_card_background))
         )
     }
 }
@@ -558,9 +585,10 @@ private fun DetailVideoBlock(
             .clickableWithoutRipple(onClick)
             .padding(padding)
     ) {
-        if (coverBitmap != null) {
+        val safeCover = coverBitmap
+        if (safeCover != null) {
             Image(
-                bitmap = coverBitmap!!.asImageBitmap(),
+                bitmap = safeCover.asImageBitmap(),
                 contentDescription = "视频封面",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

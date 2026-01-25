@@ -29,6 +29,15 @@ interface OfflineMediaDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(entries: List<OfflineMediaEntity>)
 
+    @Query(
+        """
+        UPDATE offline_media
+        SET localPath = :localPath
+        WHERE itemId = :itemId AND originUrl = :originUrl
+        """
+    )
+    suspend fun updateLocalPath(itemId: Long, originUrl: String, localPath: String?)
+
     @Query("DELETE FROM offline_media WHERE itemId = :itemId")
     suspend fun deleteByItemId(itemId: Long)
 }

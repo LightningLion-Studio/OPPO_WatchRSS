@@ -1,7 +1,7 @@
 package com.lightningstudio.watchrss.data.rss
 
 enum class BuiltinChannelType(val url: String, val title: String, val description: String) {
-    BILI("builtin:bili", "B站", "进入后登录获取推荐内容"),
+    BILI("builtin:bili", "哔哩哔哩", "进入后登录获取推荐内容"),
     DOUYIN("builtin:douyin", "抖音", "进入后登录获取推荐内容");
 
     companion object {

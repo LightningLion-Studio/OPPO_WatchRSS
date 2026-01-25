@@ -5,6 +5,11 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 class BiliAuth(private val client: BiliClient) {
+    suspend fun applyCookies(cookies: Map<String, String>) {
+        if (cookies.isEmpty()) return
+        updateAccountStore(null, null, null, cookies)
+    }
+
     suspend fun requestTvQrCode(): TvQrCode? {
         val url = "${client.config.passportBaseUrl}/x/passport-tv-login/qrcode/auth_code"
         val ts = (System.currentTimeMillis() / 1000).toString()

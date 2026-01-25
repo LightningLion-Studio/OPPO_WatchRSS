@@ -3,6 +3,7 @@ package com.lightningstudio.watchrss.data.rss
 import com.lightningstudio.watchrss.data.db.OfflineMediaDao
 import com.lightningstudio.watchrss.data.db.OfflineMediaEntity
 import com.lightningstudio.watchrss.data.db.RssItemEntity
+import com.lightningstudio.watchrss.debug.DebugLogBuffer
 import java.io.File
 
 class RssOfflineStore(
@@ -35,9 +36,32 @@ class RssOfflineStore(
         val entities = mutableListOf<OfflineMediaEntity>()
         refs.forEachIndexed { index, ref ->
             val exists = offlineMediaDao.findByOrigin(item.id, ref.url)
-            if (exists != null) return@forEachIndexed
+            if (exists != null) {
+                if (!exists.localPath.isNullOrBlank()) return@forEachIndexed
+                val file = File(itemDir, buildFileName(ref.type, index, ref.url))
+                val localPath = downloadClient.downloadToFile(ref.url, file)
+                if (localPath == null) {
+                    DebugLogBuffer.log(
+                        "offline",
+                        "retry failed item=${item.id} url=${ref.url}"
+                    )
+                } else {
+                    offlineMediaDao.updateLocalPath(item.id, ref.url, localPath)
+                    DebugLogBuffer.log(
+                        "offline",
+                        "retry ok item=${item.id} url=${ref.url}"
+                    )
+                }
+                return@forEachIndexed
+            }
             val file = File(itemDir, buildFileName(ref.type, index, ref.url))
             val localPath = downloadClient.downloadToFile(ref.url, file)
+            if (localPath == null) {
+                DebugLogBuffer.log(
+                    "offline",
+                    "download failed item=${item.id} url=${ref.url}"
+                )
+            }
             entities.add(
                 OfflineMediaEntity(
                     itemId = item.id,

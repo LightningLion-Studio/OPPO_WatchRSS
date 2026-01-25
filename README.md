@@ -28,3 +28,4 @@
 ## 🔧 技术选型（RSS）
 - RSS 解析：RSS-Parser（`com.prof18.rssparser:rssparser`），Kotlin Multiplatform，支持 RSS/Atom/RDF。
 - 版本以 `gradle/libs.versions.toml` 为准（当前 6.0.10）。
+- UI：Jetpack Compose（主流程已迁移，去除 RecyclerView/Adapter 依赖）。

@@ -12,7 +12,8 @@ class BiliPlay(private val client: BiliClient) {
         bvid: String? = null,
         qn: Int = 64,
         fnval: Int = 4048,
-        fourk: Int = 0
+        fourk: Int = 0,
+        platform: String? = null
     ): BiliResult<BiliPlayUrl> {
         if (aid == null && bvid.isNullOrBlank()) {
             return BiliResult(-1, "missing_id")
@@ -25,6 +26,7 @@ class BiliPlay(private val client: BiliClient) {
         )
         if (aid != null) params["aid"] = aid.toString()
         if (!bvid.isNullOrBlank()) params["bvid"] = bvid
+        if (!platform.isNullOrBlank()) params["platform"] = platform
 
         val signed = client.signedWbiParams(params)
         if (!signed.containsKey("w_rid")) {
@@ -38,6 +40,24 @@ class BiliPlay(private val client: BiliClient) {
         }
         val data = status.data?.asObjectOrNull() ?: return BiliResult(-1, "empty_data")
         return BiliResult(status.code, status.message, parsePlayUrl(data))
+    }
+
+    suspend fun fetchMp4Url(
+        cid: Long,
+        aid: Long? = null,
+        bvid: String? = null,
+        qn: Int = 32,
+        platform: String = "html5"
+    ): BiliResult<BiliPlayUrl> {
+        return fetchPlayUrl(
+            cid = cid,
+            aid = aid,
+            bvid = bvid,
+            qn = qn,
+            fnval = 1,
+            fourk = 0,
+            platform = platform
+        )
     }
 
     private fun parsePlayUrl(data: JsonObject): BiliPlayUrl {

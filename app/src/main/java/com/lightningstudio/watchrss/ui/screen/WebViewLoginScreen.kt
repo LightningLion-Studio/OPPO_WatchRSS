@@ -47,6 +47,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun WebViewLoginScreen(
+    loginUrl: String = "https://www.douyin.com/user/self",
+    cookieDomain: String = "https://www.douyin.com",
     onLoginComplete: (String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
@@ -160,7 +162,7 @@ fun WebViewLoginScreen(
                                     }
                                 }
 
-                                loadUrl("https://www.douyin.com/user/self")
+                                loadUrl(loginUrl)
                             }
                         },
                         modifier = Modifier.fillMaxSize()
@@ -231,9 +233,9 @@ fun WebViewLoginScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // Get cookies for .douyin.com domain
+                        // Get cookies for login domain
                         val cookieManager = CookieManager.getInstance()
-                        val cookies = cookieManager.getCookie("douyin.com")
+                        val cookies = cookieManager.getCookie(cookieDomain)
 
                         // Destroy WebView by showing success message
                         showSuccess = true
@@ -272,6 +274,8 @@ private fun WebViewLoginScreenPreview() {
     WatchRSSTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
             WebViewLoginScreen(
+                loginUrl = "https://www.douyin.com/user/self",
+                cookieDomain = "https://www.douyin.com",
                 onLoginComplete = {},
                 onBack = {}
             )

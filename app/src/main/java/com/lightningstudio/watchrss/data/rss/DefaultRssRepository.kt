@@ -12,6 +12,7 @@ import com.lightningstudio.watchrss.data.db.SavedEntryEntity
 import com.lightningstudio.watchrss.data.db.SavedRssItem
 import com.lightningstudio.watchrss.debug.DebugLogBuffer
 import com.lightningstudio.watchrss.data.settings.SettingsRepository
+import com.prof18.rssparser.model.RssItem as ParsedItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -289,12 +290,22 @@ class DefaultRssRepository(
                 } else {
                     null
                 }
+                val fallbackContent = if (useOriginalContent && originalContent == null) {
+                    val fallback = buildOriginalFallbackContent(item)
+                    DebugLogBuffer.log(
+                        "orig",
+                        "fallback link=${item.link} size=${fallback.length}"
+                    )
+                    fallback
+                } else {
+                    null
+                }
                 val entity = parseService.toEntityFromParsedItem(
                     item = item,
                     channelId = channelId,
                     isRead = false,
                     fetchedAt = fetchedAt,
-                    contentOverride = originalContent
+                    contentOverride = originalContent ?: fallbackContent
                 )
                 if (useOriginalContent && originalContent != null && entity.content == null) {
                     DebugLogBuffer.log(
@@ -379,6 +390,19 @@ class DefaultRssRepository(
 
     override suspend fun toggleWatchLater(itemId: Long): Result<SavedState> =
         toggleSaved(itemId, SaveType.WATCH_LATER)
+
+    override suspend fun retryOfflineMedia(itemId: Long) {
+        withContext(Dispatchers.IO) {
+            val item = itemDao.getItem(itemId) ?: return@withContext
+            runCatching { offlineStore.downloadMediaForItem(item) }
+                .onFailure { error ->
+                    DebugLogBuffer.log(
+                        "offline",
+                        "retry error item=$itemId msg=${error.message}"
+                    )
+                }
+        }
+    }
 
     override suspend fun toggleLike(itemId: Long): Result<Boolean> = withContext(Dispatchers.IO) {
         val item = itemDao.getItem(itemId)
@@ -511,6 +535,17 @@ class DefaultRssRepository(
             val updated = savedEntryDao.getByItemId(itemId)
             Result.success(buildSavedState(updated))
         }
+
+    private fun buildOriginalFallbackContent(item: ParsedItem): String {
+        val notice = "原文抓取失败，已显示 RSS 内容。"
+        val body = item.content?.trim()?.ifEmpty { null }
+            ?: item.description?.trim()?.ifEmpty { null }
+        return if (body == null) {
+            "<p>$notice</p>"
+        } else {
+            "<p>$notice</p>\n$body"
+        }
+    }
 
     private fun buildSavedState(entries: List<SavedEntryEntity>): SavedState {
         val types = entries.map { it.saveType }.toSet()

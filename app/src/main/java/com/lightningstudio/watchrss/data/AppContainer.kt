@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
+import com.lightningstudio.watchrss.data.bili.BiliRepository
 import com.lightningstudio.watchrss.data.db.WatchRssDatabase
 import com.lightningstudio.watchrss.data.rss.DefaultRssRepository
 import com.lightningstudio.watchrss.data.rss.RssReadableService
@@ -19,6 +20,7 @@ import kotlinx.coroutines.SupervisorJob
 interface AppContainer {
     val rssRepository: RssRepository
     val settingsRepository: SettingsRepository
+    val biliRepository: BiliRepository
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
@@ -44,6 +46,10 @@ class DefaultAppContainer(context: Context) : AppContainer {
             produceFile = { appContext.preferencesDataStoreFile("settings.preferences_pb") }
         )
         SettingsRepository(dataStore)
+    }
+
+    override val biliRepository: BiliRepository by lazy {
+        BiliRepository(appContext)
     }
 
     override val rssRepository: RssRepository by lazy {

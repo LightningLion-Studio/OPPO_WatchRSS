@@ -58,6 +58,13 @@ class DetailViewModel(
         }
     }
 
+    fun retryOfflineMedia() {
+        if (itemId <= 0L) return
+        viewModelScope.launch {
+            repository.retryOfflineMedia(itemId)
+        }
+    }
+
     fun updateReadingProgress(progress: Float) {
         if (itemId <= 0L) return
         viewModelScope.launch {
