@@ -391,6 +391,44 @@ class DefaultRssRepository(
     override suspend fun toggleWatchLater(itemId: Long): Result<SavedState> =
         toggleSaved(itemId, SaveType.WATCH_LATER)
 
+    override suspend fun syncExternalSavedItem(
+        item: ExternalSavedItem,
+        saveType: SaveType,
+        saved: Boolean
+    ): Result<SavedState> = withContext(Dispatchers.IO) {
+        val channel = resolveExternalChannel(item.channelUrl)
+            ?: return@withContext Result.failure(IllegalArgumentException("频道不存在"))
+        val entity = parseService.toEntityFromPreviewItem(
+            item = item.item,
+            channelId = channel.id,
+            isRead = false,
+            fetchedAt = item.fetchedAt
+        )
+        val insertId = itemDao.insertItems(listOf(entity)).firstOrNull() ?: -1L
+        val itemId = if (insertId > 0) {
+            insertId
+        } else {
+            itemDao.updateContentByDedupKey(
+                channelId = channel.id,
+                dedupKey = entity.dedupKey,
+                description = entity.description,
+                content = entity.content,
+                imageUrl = entity.imageUrl,
+                audioUrl = entity.audioUrl,
+                videoUrl = entity.videoUrl,
+                contentSizeBytes = entity.contentSizeBytes
+            )
+            itemDao.getItemByDedupKey(channel.id, entity.dedupKey)?.id
+        } ?: return@withContext Result.failure(IllegalStateException("保存失败"))
+
+        val existing = savedEntryDao.getByItemId(itemId)
+        val hasType = existing.any { it.saveType == saveType.name }
+        if (hasType == saved) {
+            return@withContext Result.success(buildSavedState(existing))
+        }
+        toggleSaved(itemId, saveType)
+    }
+
     override suspend fun retryOfflineMedia(itemId: Long) {
         withContext(Dispatchers.IO) {
             val item = itemDao.getItem(itemId) ?: return@withContext
@@ -509,6 +547,29 @@ class DefaultRssRepository(
     private fun builtinTypeFromInputUrl(url: String): BuiltinChannelType? {
         val host = runCatching { Uri.parse(url).host }.getOrNull()
         return BuiltinChannelType.fromHost(host)
+    }
+
+    private suspend fun resolveExternalChannel(url: String): RssChannelEntity? {
+        val existing = channelDao.getChannelByUrl(url)
+        if (existing != null) return existing
+        val builtin = BuiltinChannelType.fromUrl(url) ?: return null
+        val now = System.currentTimeMillis()
+        val entity = RssChannelEntity(
+            url = builtin.url,
+            title = builtin.title,
+            description = builtin.description,
+            imageUrl = null,
+            lastFetchedAt = null,
+            createdAt = now,
+            sortOrder = now,
+            isPinned = false
+        )
+        val insertedId = channelDao.insertChannel(entity)
+        return if (insertedId > 0) {
+            entity.copy(id = insertedId)
+        } else {
+            channelDao.getChannelByUrl(url)
+        }
     }
 
     private suspend fun toggleSaved(itemId: Long, saveType: SaveType): Result<SavedState> =

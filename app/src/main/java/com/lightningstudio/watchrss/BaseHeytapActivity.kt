@@ -84,7 +84,11 @@ open class BaseHeytapActivity : ComponentActivity() {
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         val root = window.decorView
         val action = ev.actionMasked
-        val swipeHandled = handleSwipeBack(root, ev)
+        val swipeHandled = if (isSwipeBackEnabled()) {
+            handleSwipeBack(root, ev)
+        } else {
+            false
+        }
         if (swipeHandled) {
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 root.removeCallbacks(resetRunnable)
@@ -224,6 +228,8 @@ open class BaseHeytapActivity : ComponentActivity() {
     }
 
     protected open fun onSwipeBackAttempt(dx: Float, dy: Float): Boolean = false
+
+    protected open fun isSwipeBackEnabled(): Boolean = true
 
     protected fun allowNavigation(minIntervalMs: Long = NAVIGATION_THROTTLE_MS): Boolean {
         val now = SystemClock.elapsedRealtime()

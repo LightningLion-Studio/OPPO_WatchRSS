@@ -17,6 +17,9 @@ interface RssItemDao {
     @Query("SELECT * FROM rss_items WHERE id = :id LIMIT 1")
     suspend fun getItem(id: Long): RssItemEntity?
 
+    @Query("SELECT * FROM rss_items WHERE channelId = :channelId AND dedupKey = :dedupKey LIMIT 1")
+    suspend fun getItemByDedupKey(channelId: Long, dedupKey: String): RssItemEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertItems(items: List<RssItemEntity>): List<Long>
 

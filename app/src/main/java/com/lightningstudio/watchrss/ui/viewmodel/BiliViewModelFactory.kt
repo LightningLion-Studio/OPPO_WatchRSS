@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.lightningstudio.watchrss.data.bili.BiliRepository
+import com.lightningstudio.watchrss.data.rss.RssRepository
 
 class BiliViewModelFactory(
-    private val repository: BiliRepository
+    private val repository: BiliRepository,
+    private val rssRepository: RssRepository? = null
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
@@ -20,7 +22,8 @@ class BiliViewModelFactory(
                 BiliLoginViewModel(repository)
             }
             modelClass.isAssignableFrom(BiliDetailViewModel::class.java) -> {
-                BiliDetailViewModel(savedStateHandle, repository)
+                val rss = rssRepository ?: throw IllegalStateException("Missing RssRepository")
+                BiliDetailViewModel(savedStateHandle, repository, rss)
             }
             modelClass.isAssignableFrom(BiliPlayerViewModel::class.java) -> {
                 BiliPlayerViewModel(savedStateHandle, repository)

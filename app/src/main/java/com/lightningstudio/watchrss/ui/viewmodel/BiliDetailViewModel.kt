@@ -4,6 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lightningstudio.watchrss.data.bili.BiliRepository
+import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
+import com.lightningstudio.watchrss.data.rss.ExternalSavedItem
+import com.lightningstudio.watchrss.data.rss.RssPreviewItem
+import com.lightningstudio.watchrss.data.rss.RssRepository
+import com.lightningstudio.watchrss.data.rss.SaveType
 import com.lightningstudio.watchrss.sdk.bili.BiliPage
 import com.lightningstudio.watchrss.sdk.bili.BiliVideoDetail
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +28,8 @@ data class BiliDetailUiState(
 
 class BiliDetailViewModel(
     savedStateHandle: SavedStateHandle,
-    private val repository: BiliRepository
+    private val repository: BiliRepository,
+    private val rssRepository: RssRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(BiliDetailUiState())
     val uiState: StateFlow<BiliDetailUiState> = _uiState
@@ -93,14 +99,16 @@ class BiliDetailViewModel(
     fun favorite() {
         val safeAid = aid ?: return
         viewModelScope.launch {
-            val result = repository.favorite(safeAid, add = !_uiState.value.isFavorited)
+            val nextFavorited = !_uiState.value.isFavorited
+            val result = repository.favorite(safeAid, add = nextFavorited)
             if (result.isSuccess) {
                 _uiState.update {
                     it.copy(
-                        isFavorited = !it.isFavorited,
-                        message = if (it.isFavorited) "已取消收藏" else "已收藏"
+                        isFavorited = nextFavorited,
+                        message = if (nextFavorited) "已收藏" else "已取消收藏"
                     )
                 }
+                syncLocalSaved(SaveType.FAVORITE, nextFavorited)
             } else {
                 _uiState.update { it.copy(message = result.message ?: "收藏失败") }
             }
@@ -112,6 +120,7 @@ class BiliDetailViewModel(
             val result = repository.addToView(aid = aid, bvid = bvid)
             if (result.isSuccess) {
                 _uiState.update { it.copy(isWatchLater = true, message = "已加入稍后再看") }
+                syncLocalSaved(SaveType.WATCH_LATER, true)
             } else {
                 _uiState.update { it.copy(message = result.message ?: "加入失败") }
             }
@@ -143,5 +152,46 @@ class BiliDetailViewModel(
         if (cid == null) return 0
         val index = safePages.indexOfFirst { it.cid == cid }
         return if (index >= 0) index else 0
+    }
+
+    private suspend fun syncLocalSaved(saveType: SaveType, saved: Boolean) {
+        val external = buildExternalSavedItem() ?: return
+        rssRepository.syncExternalSavedItem(external, saveType, saved)
+    }
+
+    private fun buildExternalSavedItem(): ExternalSavedItem? {
+        val detail = _uiState.value.detail
+        val item = detail?.item
+        val safeBvid = item?.bvid ?: bvid
+        val safeAid = item?.aid ?: aid
+        val title = item?.title?.trim().takeUnless { it.isNullOrBlank() }
+            ?: safeBvid?.let { "BV号 $it" }
+            ?: safeAid?.let { "av$it" }
+            ?: "哔哩哔哩视频"
+        val link = repository.shareLink(safeBvid, safeAid)
+        val guid = when {
+            !safeBvid.isNullOrBlank() -> "bili:$safeBvid"
+            safeAid != null -> "bili:av$safeAid"
+            !link.isNullOrBlank() -> "bili:$link"
+            else -> null
+        }
+        val owner = item?.owner?.name?.trim().takeUnless { it.isNullOrBlank() }
+        val description = detail?.desc?.trim()?.ifBlank { null }
+            ?: owner?.let { "UP主：$it" }
+        val preview = RssPreviewItem(
+            title = title,
+            description = description,
+            content = description,
+            link = link,
+            guid = guid,
+            pubDate = null,
+            imageUrl = item?.cover,
+            audioUrl = null,
+            videoUrl = null
+        )
+        return ExternalSavedItem(
+            channelUrl = BuiltinChannelType.BILI.url,
+            item = preview
+        )
     }
 }

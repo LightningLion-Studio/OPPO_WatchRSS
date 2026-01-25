@@ -49,7 +49,10 @@ class DefaultAppContainer(context: Context) : AppContainer {
     }
 
     override val biliRepository: BiliRepository by lazy {
-        BiliRepository(appContext)
+        val dataStore = PreferenceDataStoreFactory.create(
+            produceFile = { appContext.preferencesDataStoreFile("bili_cache.preferences_pb") }
+        )
+        BiliRepository(appContext, dataStore)
     }
 
     override val rssRepository: RssRepository by lazy {

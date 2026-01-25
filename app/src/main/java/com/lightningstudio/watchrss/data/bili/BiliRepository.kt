@@ -1,6 +1,11 @@
 package com.lightningstudio.watchrss.data.bili
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.lightningstudio.watchrss.sdk.bili.BiliAccount
 import com.lightningstudio.watchrss.sdk.bili.BiliClient
 import com.lightningstudio.watchrss.sdk.bili.BiliCookies
@@ -9,6 +14,7 @@ import com.lightningstudio.watchrss.sdk.bili.BiliFavoritePage
 import com.lightningstudio.watchrss.sdk.bili.BiliFeedPage
 import com.lightningstudio.watchrss.sdk.bili.BiliHistoryCursor
 import com.lightningstudio.watchrss.sdk.bili.BiliHistoryPage
+import com.lightningstudio.watchrss.sdk.bili.BiliItem
 import com.lightningstudio.watchrss.sdk.bili.BiliPlayUrl
 import com.lightningstudio.watchrss.sdk.bili.BiliResult
 import com.lightningstudio.watchrss.sdk.bili.BiliSdkConfig
@@ -18,8 +24,20 @@ import com.lightningstudio.watchrss.sdk.bili.EncryptedBiliAccountStore
 import com.lightningstudio.watchrss.sdk.bili.QrPollResult
 import com.lightningstudio.watchrss.sdk.bili.TvQrCode
 import com.lightningstudio.watchrss.sdk.bili.WebQrCode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 
-class BiliRepository(context: Context) {
+private val FEED_CACHE_JSON = stringPreferencesKey("bili_feed_cache_json")
+private val FEED_CACHE_AT = longPreferencesKey("bili_feed_cache_at")
+private const val FEED_CACHE_LIMIT = 50
+
+class BiliRepository(
+    context: Context,
+    private val dataStore: DataStore<Preferences>
+) {
     private val accountStore = EncryptedBiliAccountStore(context)
     private val client = BiliClient(BiliSdkConfig(), accountStore)
 
@@ -52,6 +70,21 @@ class BiliRepository(context: Context) {
     suspend fun pollTvQrCode(authCode: String): QrPollResult = client.auth.pollTvQrCode(authCode)
 
     suspend fun fetchFeed(): BiliResult<BiliFeedPage> = client.feed.fetchDefaultFeed()
+
+    suspend fun readFeedCache(): List<BiliItem> = withContext(Dispatchers.IO) {
+        val raw = dataStore.data.first()[FEED_CACHE_JSON].orEmpty()
+        if (raw.isBlank()) return@withContext emptyList()
+        parseFeedCache(raw)
+    }
+
+    suspend fun writeFeedCache(items: List<BiliItem>) {
+        val trimmed = items.take(FEED_CACHE_LIMIT)
+        val raw = buildFeedCacheJson(trimmed)
+        dataStore.edit { preferences ->
+            preferences[FEED_CACHE_JSON] = raw
+            preferences[FEED_CACHE_AT] = System.currentTimeMillis()
+        }
+    }
 
     suspend fun fetchVideoDetail(aid: Long? = null, bvid: String? = null): BiliResult<BiliVideoDetail> {
         return client.video.fetchView(aid = aid, bvid = bvid, useWbi = true)
@@ -140,5 +173,76 @@ class BiliRepository(context: Context) {
         if (!folders.isSuccess) return null
         val first = folders.data?.firstOrNull() ?: return null
         return first.id ?: first.fid
+    }
+
+    private fun buildFeedCacheJson(items: List<BiliItem>): String {
+        val array = JSONArray()
+        items.forEach { item ->
+            array.put(toCacheJson(item))
+        }
+        return array.toString()
+    }
+
+    private fun toCacheJson(item: BiliItem): JSONObject {
+        val obj = JSONObject()
+        item.aid?.let { obj.put("aid", it) }
+        item.bvid?.let { obj.put("bvid", it) }
+        item.cid?.let { obj.put("cid", it) }
+        item.title?.let { obj.put("title", it) }
+        item.cover?.let { obj.put("cover", it) }
+        item.duration?.let { obj.put("duration", it) }
+        item.pubdate?.let { obj.put("pubdate", it) }
+        item.owner?.name?.let { obj.put("owner", it) }
+        item.stat?.view?.let { obj.put("view", it) }
+        item.stat?.like?.let { obj.put("like", it) }
+        item.stat?.danmaku?.let { obj.put("danmaku", it) }
+        return obj
+    }
+
+    private fun parseFeedCache(raw: String): List<BiliItem> {
+        return runCatching {
+            val array = JSONArray(raw)
+            val items = mutableListOf<BiliItem>()
+            for (index in 0 until array.length()) {
+                val obj = array.optJSONObject(index) ?: continue
+                items.add(fromCacheJson(obj))
+            }
+            items
+        }.getOrDefault(emptyList())
+    }
+
+    private fun fromCacheJson(obj: JSONObject): BiliItem {
+        val aid = obj.optLong("aid", -1L).takeIf { it > 0 }
+        val bvid = obj.optString("bvid", "").takeIf { it.isNotBlank() }
+        val cid = obj.optLong("cid", -1L).takeIf { it > 0 }
+        val title = obj.optString("title", "").takeIf { it.isNotBlank() }
+        val cover = obj.optString("cover", "").takeIf { it.isNotBlank() }
+        val duration = obj.optInt("duration", -1).takeIf { it > 0 }
+        val pubdate = obj.optLong("pubdate", -1L).takeIf { it > 0 }
+        val ownerName = obj.optString("owner", "").takeIf { it.isNotBlank() }
+        val view = obj.optLong("view", -1L).takeIf { it >= 0 }
+        val like = obj.optLong("like", -1L).takeIf { it >= 0 }
+        val danmaku = obj.optLong("danmaku", -1L).takeIf { it >= 0 }
+        val owner = ownerName?.let { com.lightningstudio.watchrss.sdk.bili.BiliOwner(name = it) }
+        val stat = if (view != null || like != null || danmaku != null) {
+            com.lightningstudio.watchrss.sdk.bili.BiliStat(
+                view = view,
+                like = like,
+                danmaku = danmaku
+            )
+        } else {
+            null
+        }
+        return BiliItem(
+            aid = aid,
+            bvid = bvid,
+            cid = cid,
+            title = title,
+            cover = cover,
+            duration = duration,
+            pubdate = pubdate,
+            owner = owner,
+            stat = stat
+        )
     }
 }
