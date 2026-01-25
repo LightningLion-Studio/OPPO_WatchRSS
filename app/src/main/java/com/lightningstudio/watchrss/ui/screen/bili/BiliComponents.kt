@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun BiliPillButton(
@@ -159,6 +161,87 @@ fun BiliVideoCard(
 }
 
 @Composable
+fun BiliFeedCard(
+    title: String,
+    summary: String,
+    coverUrl: String?,
+    onClick: () -> Unit
+) {
+    val background = colorResource(R.color.watch_card_background)
+    val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
+    val imageHeight = dimensionResource(R.dimen.feed_card_image_height)
+    val padding = dimensionResource(R.dimen.hey_distance_8dp)
+    val titleSize = textSize(R.dimen.feed_card_title_text_size)
+    val summarySize = textSize(R.dimen.feed_card_summary_text_size)
+    val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
+    val overlay = remember {
+        Brush.verticalGradient(
+            colors = listOf(Color.Transparent, Color(0xB0000000))
+        )
+    }
+    val context = LocalContext.current
+    val maxWidthPx = remember(context) { context.resources.displayMetrics.widthPixels }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(background)
+            .clickable(onClick = onClick)
+    ) {
+        val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, coverUrl, maxWidthPx) {
+            value = if (coverUrl.isNullOrBlank()) null else {
+                RssImageLoader.loadBitmap(context, coverUrl, maxWidthPx)
+            }
+        }
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap!!.asImageBitmap(),
+                contentDescription = title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(imageHeight)
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(imageHeight)
+                    .background(Color(0xFF1C1C1C))
+            )
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(imageHeight)
+                .background(overlay)
+        )
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(padding)
+        ) {
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = titleSize,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = summary,
+                color = Color(0xCCFFFFFF),
+                fontSize = summarySize,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = summaryTop)
+            )
+        }
+    }
+}
+
+@Composable
 fun BiliStatsRow(
     viewCount: Long?,
     likeCount: Long?,
@@ -167,9 +250,9 @@ fun BiliStatsRow(
     val captionSize = textSize(R.dimen.hey_caption)
     val color = MaterialTheme.colorScheme.onSurfaceVariant
     val parts = listOfNotNull(
-        viewCount?.let { "播放 ${formatCount(it)}" },
-        likeCount?.let { "赞 ${formatCount(it)}" },
-        danmakuCount?.let { "弹幕 ${formatCount(it)}" }
+        viewCount?.let { "播放 ${formatBiliCount(it)}" },
+        likeCount?.let { "赞 ${formatBiliCount(it)}" },
+        danmakuCount?.let { "弹幕 ${formatBiliCount(it)}" }
     )
     if (parts.isEmpty()) return
     Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.hey_distance_4dp))) {
@@ -193,7 +276,7 @@ private fun formatDuration(seconds: Int?): String? {
     return String.format("%02d:%02d", minutes, remain)
 }
 
-private fun formatCount(value: Long): String {
+fun formatBiliCount(value: Long): String {
     return when {
         value >= 100_000_000L -> String.format("%.1f亿", value / 100_000_000.0)
         value >= 10_000L -> String.format("%.1f万", value / 10_000.0)

@@ -31,6 +31,7 @@ object BiliRoutes {
     const val FEED = "bili_feed"
     const val LOGIN = "bili_login"
     const val WEB_LOGIN = "bili_web_login"
+    const val CHANNEL_INFO = "bili_channel_info"
     const val DETAIL = "bili_detail?aid={aid}&bvid={bvid}&cid={cid}"
     const val PLAYER = "bili_player?aid={aid}&bvid={bvid}&cid={cid}"
     const val LIST = "bili_list/{type}"
@@ -76,12 +77,27 @@ fun BiliEntryNavGraph(repository: BiliRepository) {
                 uiState = uiState,
                 onLoginClick = { navController.navigate(BiliRoutes.LOGIN) },
                 onRefresh = viewModel::refresh,
-                onOpenWatchLater = { navController.navigate(BiliRoutes.list(BiliListType.WATCH_LATER)) },
-                onOpenHistory = { navController.navigate(BiliRoutes.list(BiliListType.HISTORY)) },
-                onOpenFavorites = { navController.navigate(BiliRoutes.list(BiliListType.FAVORITE)) },
+                onOpenChannelInfo = { navController.navigate(BiliRoutes.CHANNEL_INFO) },
                 onItemClick = { item ->
                     navController.navigate(BiliRoutes.detail(item.aid, item.bvid, item.cid))
                 }
+            )
+        }
+        composable(BiliRoutes.CHANNEL_INFO) {
+            val feedBackStackEntry = remember(navController) { navController.getBackStackEntry(BiliRoutes.FEED) }
+            val feedViewModel: BiliFeedViewModel = viewModel(feedBackStackEntry, factory = factory)
+            val uiState by feedViewModel.uiState.collectAsState()
+
+            LaunchedEffect(Unit) {
+                feedViewModel.refreshLoginState()
+            }
+
+            BiliChannelInfoScreen(
+                isLoggedIn = uiState.isLoggedIn,
+                onLoginClick = { navController.navigate(BiliRoutes.LOGIN) },
+                onOpenWatchLater = { navController.navigate(BiliRoutes.list(BiliListType.WATCH_LATER)) },
+                onOpenHistory = { navController.navigate(BiliRoutes.list(BiliListType.HISTORY)) },
+                onOpenFavorites = { navController.navigate(BiliRoutes.list(BiliListType.FAVORITE)) }
             )
         }
         composable(BiliRoutes.LOGIN) {
