@@ -16,6 +16,7 @@ data class BiliFeedUiState(
     val isRefreshing: Boolean = false,
     val items: List<BiliItem> = emptyList(),
     val feedSource: BiliFeedSource? = null,
+    val lastRefreshAt: Long? = null,
     val message: String? = null
 )
 
@@ -75,11 +76,13 @@ class BiliFeedViewModel(
     }
 
     private fun updateFeed(page: BiliFeedPage?) {
+        val refreshedAt = System.currentTimeMillis()
         _uiState.update {
             it.copy(
                 isRefreshing = false,
                 items = page?.items ?: emptyList(),
                 feedSource = page?.source,
+                lastRefreshAt = refreshedAt,
                 message = if (page?.items.isNullOrEmpty()) "暂无推荐内容" else null
             )
         }

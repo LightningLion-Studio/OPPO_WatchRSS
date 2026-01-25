@@ -1,6 +1,7 @@
 package com.lightningstudio.watchrss.ui.screen.bili
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,7 +46,7 @@ fun BiliFeedScreen(
     uiState: BiliFeedUiState,
     onLoginClick: () -> Unit,
     onRefresh: () -> Unit,
-    onOpenChannelInfo: () -> Unit,
+    onHeaderClick: () -> Unit,
     onItemClick: (com.lightningstudio.watchrss.sdk.bili.BiliItem) -> Unit
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
@@ -77,7 +78,7 @@ fun BiliFeedScreen(
                 BiliFeedHeader(
                     isLoggedIn = uiState.isLoggedIn,
                     onLoginClick = onLoginClick,
-                    onOpenChannelInfo = onOpenChannelInfo
+                    onHeaderClick = onHeaderClick
                 )
             }
             if (!uiState.isLoggedIn) {
@@ -123,7 +124,7 @@ fun BiliFeedScreen(
 private fun BiliFeedHeader(
     isLoggedIn: Boolean,
     onLoginClick: () -> Unit,
-    onOpenChannelInfo: () -> Unit
+    onHeaderClick: () -> Unit
 ) {
     val titleSize = textSize(R.dimen.hey_m_title)
     val captionSize = textSize(R.dimen.hey_caption)
@@ -134,25 +135,27 @@ private fun BiliFeedHeader(
         verticalArrangement = Arrangement.spacedBy(spacing),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "哔哩哔哩",
-            color = Color.White,
-            fontSize = titleSize,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Text(
-            text = if (isLoggedIn) "已登录" else "未登录",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontSize = captionSize,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickableWithoutRipple(onClick = onHeaderClick),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(spacing)
         ) {
-            BiliPillButton(text = "频道信息", onClick = onOpenChannelInfo)
+            Text(
+                text = "哔哩哔哩",
+                color = Color.White,
+                fontSize = titleSize,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                text = if (isLoggedIn) "已登录" else "未登录",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = captionSize,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
         if (!isLoggedIn) {
             Spacer(modifier = Modifier.height(spacing))
@@ -171,6 +174,15 @@ private fun textSize(id: Int): androidx.compose.ui.unit.TextUnit {
     return androidx.compose.ui.platform.LocalDensity.current.run {
         dimensionResource(id).toSp()
     }
+}
+
+@Composable
+private fun Modifier.clickableWithoutRipple(onClick: () -> Unit): Modifier {
+    return clickable(
+        interactionSource = androidx.compose.runtime.remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )
 }
 
 private fun buildFeedSummary(item: BiliItem): String {

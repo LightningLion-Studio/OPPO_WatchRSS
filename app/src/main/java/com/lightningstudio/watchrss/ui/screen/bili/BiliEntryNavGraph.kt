@@ -1,29 +1,27 @@
 package com.lightningstudio.watchrss.ui.screen.bili
 
-import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.heytap.wearable.support.widget.HeyToast
-import com.lightningstudio.watchrss.WebViewActivity
+import com.lightningstudio.watchrss.BiliDetailActivity
 import com.lightningstudio.watchrss.data.bili.BiliRepository
 import com.lightningstudio.watchrss.ui.screen.WebViewLoginScreen
-import com.lightningstudio.watchrss.ui.viewmodel.BiliDetailViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliFeedViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliListType
 import com.lightningstudio.watchrss.ui.viewmodel.BiliListViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliLoginViewModel
-import com.lightningstudio.watchrss.ui.viewmodel.BiliPlayerViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliViewModelFactory
 import kotlinx.coroutines.launch
 
@@ -32,17 +30,7 @@ object BiliRoutes {
     const val LOGIN = "bili_login"
     const val WEB_LOGIN = "bili_web_login"
     const val CHANNEL_INFO = "bili_channel_info"
-    const val DETAIL = "bili_detail?aid={aid}&bvid={bvid}&cid={cid}"
-    const val PLAYER = "bili_player?aid={aid}&bvid={bvid}&cid={cid}"
     const val LIST = "bili_list/{type}"
-
-    fun detail(aid: Long?, bvid: String?, cid: Long?): String {
-        return "bili_detail?aid=${aid ?: ""}&bvid=${bvid ?: ""}&cid=${cid ?: ""}"
-    }
-
-    fun player(aid: Long?, bvid: String?, cid: Long?): String {
-        return "bili_player?aid=${aid ?: ""}&bvid=${bvid ?: ""}&cid=${cid ?: ""}"
-    }
 
     fun list(type: BiliListType): String = "bili_list/${type.id}"
 }
@@ -50,9 +38,19 @@ object BiliRoutes {
 @Composable
 fun BiliEntryNavGraph(repository: BiliRepository) {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
     val factory = remember(repository) { BiliViewModelFactory(repository) }
     val context = androidx.compose.ui.platform.LocalContext.current
+    val rootView = LocalView.current
     val scope = rememberCoroutineScope()
+    val resetRootView: () -> Unit = {
+        rootView.rootView.animate().cancel()
+        rootView.rootView.translationX = 0f
+        rootView.rootView.translationY = 0f
+    }
+    LaunchedEffect(navBackStackEntry?.destination?.route) {
+        resetRootView()
+    }
 
     NavHost(
         navController = navController,
@@ -77,9 +75,11 @@ fun BiliEntryNavGraph(repository: BiliRepository) {
                 uiState = uiState,
                 onLoginClick = { navController.navigate(BiliRoutes.LOGIN) },
                 onRefresh = viewModel::refresh,
-                onOpenChannelInfo = { navController.navigate(BiliRoutes.CHANNEL_INFO) },
+                onHeaderClick = { navController.navigate(BiliRoutes.CHANNEL_INFO) },
                 onItemClick = { item ->
-                    navController.navigate(BiliRoutes.detail(item.aid, item.bvid, item.cid))
+                    context.startActivity(
+                        BiliDetailActivity.createIntent(context, item.aid, item.bvid, item.cid)
+                    )
                 }
             )
         }
@@ -94,6 +94,7 @@ fun BiliEntryNavGraph(repository: BiliRepository) {
 
             BiliChannelInfoScreen(
                 isLoggedIn = uiState.isLoggedIn,
+                lastRefreshAt = uiState.lastRefreshAt,
                 onLoginClick = { navController.navigate(BiliRoutes.LOGIN) },
                 onOpenWatchLater = { navController.navigate(BiliRoutes.list(BiliListType.WATCH_LATER)) },
                 onOpenHistory = { navController.navigate(BiliRoutes.list(BiliListType.HISTORY)) },
@@ -154,70 +155,6 @@ fun BiliEntryNavGraph(repository: BiliRepository) {
             )
         }
         composable(
-            route = BiliRoutes.DETAIL,
-            arguments = listOf(
-                navArgument("aid") { type = NavType.StringType; defaultValue = "" },
-                navArgument("bvid") { type = NavType.StringType; defaultValue = "" },
-                navArgument("cid") { type = NavType.StringType; defaultValue = "" }
-            )
-        ) { backStackEntry ->
-            val viewModel: BiliDetailViewModel = viewModel(backStackEntry, factory = factory)
-            val uiState by viewModel.uiState.collectAsState()
-
-            LaunchedEffect(uiState.message) {
-                val message = uiState.message
-                if (!message.isNullOrBlank()) {
-                    HeyToast.showToast(context, message, android.widget.Toast.LENGTH_SHORT)
-                    viewModel.clearMessage()
-                }
-            }
-
-            BiliDetailScreen(
-                uiState = uiState,
-                onPlayClick = {
-                    val cid = viewModel.selectedCid()
-                    navController.navigate(BiliRoutes.player(uiState.detail?.item?.aid, uiState.detail?.item?.bvid, cid))
-                },
-                onSelectPage = viewModel::selectPage,
-                onLike = viewModel::like,
-                onCoin = viewModel::coin,
-                onFavorite = viewModel::favorite,
-                onWatchLater = viewModel::addToWatchLater,
-                onShare = {
-                    val link = repository.shareLink(
-                        uiState.detail?.item?.bvid,
-                        uiState.detail?.item?.aid
-                    )
-                    shareLink(context, uiState.detail?.item?.title, link)
-                }
-            )
-        }
-        composable(
-            route = BiliRoutes.PLAYER,
-            arguments = listOf(
-                navArgument("aid") { type = NavType.StringType; defaultValue = "" },
-                navArgument("bvid") { type = NavType.StringType; defaultValue = "" },
-                navArgument("cid") { type = NavType.StringType; defaultValue = "" }
-            )
-        ) { backStackEntry ->
-            val viewModel: BiliPlayerViewModel = viewModel(backStackEntry, factory = factory)
-            val uiState by viewModel.uiState.collectAsState()
-            val link = repository.shareLink(
-                backStackEntry.arguments?.getString("bvid"),
-                backStackEntry.arguments?.getString("aid")?.toLongOrNull()
-            )
-
-            BiliPlayerScreen(
-                uiState = uiState,
-                onRetry = viewModel::loadPlayUrl,
-                onOpenWeb = {
-                    val safeLink = link ?: return@BiliPlayerScreen
-                    context.startActivity(WebViewActivity.createIntent(context, safeLink))
-                },
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable(
             route = BiliRoutes.LIST,
             arguments = listOf(navArgument("type") { type = NavType.StringType })
         ) { backStackEntry ->
@@ -237,25 +174,11 @@ fun BiliEntryNavGraph(repository: BiliRepository) {
                 onRefresh = viewModel::refresh,
                 onLoadMore = viewModel::loadMore,
                 onItemClick = { item ->
-                    navController.navigate(BiliRoutes.detail(item.aid, item.bvid, item.cid))
+                    context.startActivity(
+                        BiliDetailActivity.createIntent(context, item.aid, item.bvid, item.cid)
+                    )
                 }
             )
         }
     }
-}
-
-private fun shareLink(context: Context, title: String?, link: String?) {
-    val safeTitle = title?.trim().orEmpty()
-    val safeLink = link?.trim().orEmpty()
-    if (safeTitle.isEmpty() && safeLink.isEmpty()) return
-    val text = when {
-        safeTitle.isNotEmpty() && safeLink.isNotEmpty() -> "$safeTitle\n$safeLink"
-        safeTitle.isNotEmpty() -> safeTitle
-        else -> safeLink
-    }
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, text)
-    }
-    context.startActivity(Intent.createChooser(intent, "分享"))
 }
