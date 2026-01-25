@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<android.view.View xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/space"
-    android:layout_width="@dimen/hey_common_margin_left"
-    android:layout_height="1dp" />

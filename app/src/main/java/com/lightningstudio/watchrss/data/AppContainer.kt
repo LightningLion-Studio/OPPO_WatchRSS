@@ -6,6 +6,10 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.lightningstudio.watchrss.data.db.WatchRssDatabase
 import com.lightningstudio.watchrss.data.rss.DefaultRssRepository
+import com.lightningstudio.watchrss.data.rss.RssReadableService
+import com.lightningstudio.watchrss.data.rss.RssFetchService
+import com.lightningstudio.watchrss.data.rss.RssOfflineStore
+import com.lightningstudio.watchrss.data.rss.RssParseService
 import com.lightningstudio.watchrss.data.rss.RssRepository
 import com.lightningstudio.watchrss.data.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -43,14 +47,25 @@ class DefaultAppContainer(context: Context) : AppContainer {
     }
 
     override val rssRepository: RssRepository by lazy {
+        val fetchService = RssFetchService()
+        val readableService = RssReadableService()
+        val parseService = RssParseService()
+        val offlineStore = RssOfflineStore(
+            appContext,
+            database.offlineMediaDao(),
+            fetchService
+        )
         DefaultRssRepository(
-            appContext = appContext,
             channelDao = database.rssChannelDao(),
             itemDao = database.rssItemDao(),
             savedEntryDao = database.savedEntryDao(),
             offlineMediaDao = database.offlineMediaDao(),
             settingsRepository = settingsRepository,
-            appScope = appScope
+            appScope = appScope,
+            fetchService = fetchService,
+            readableService = readableService,
+            parseService = parseService,
+            offlineStore = offlineStore
         )
     }
 }

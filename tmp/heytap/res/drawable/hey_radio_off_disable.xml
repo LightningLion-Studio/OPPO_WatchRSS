@@ -1,5 +1,0 @@
-<vector android:height="@dimen/hey_listitem_widget_size" android:viewportHeight="60"
-    android:viewportWidth="60" android:width="@dimen/hey_listitem_widget_size" xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillAlpha="0.4" android:fillColor="#B3B3B3"
-        android:fillType="evenOdd" android:pathData="M50,30C50,18.954 41.046,10 30,10C18.954,10 10,18.954 10,30C10,41.046 18.954,50 30,50C41.046,50 50,41.046 50,30ZM13.75,30C13.75,21.025 21.025,13.75 30,13.75C38.975,13.75 46.25,21.025 46.25,30C46.25,38.975 38.975,46.25 30,46.25C21.025,46.25 13.75,38.975 13.75,30Z"/>
-</vector>
