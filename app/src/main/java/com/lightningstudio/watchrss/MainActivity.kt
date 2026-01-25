@@ -2,47 +2,42 @@ package com.lightningstudio.watchrss
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.viewinterop.AndroidView
-import com.heytap.wearable.support.recycler.widget.LinearLayoutManager
-import com.heytap.wearable.support.recycler.widget.RecyclerView
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
 import com.lightningstudio.watchrss.data.rss.RssChannel
-import com.lightningstudio.watchrss.ui.adapter.HomeEntryAdapter
+import com.lightningstudio.watchrss.ui.screen.home.HomeComposeScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.HomeViewModel
-import kotlinx.coroutines.launch
 
 class MainActivity : BaseHeytapActivity() {
     private val viewModel: HomeViewModel by viewModels {
         AppViewModelFactory((application as WatchRssApplication).container)
     }
 
-    private lateinit var homeAdapter: HomeEntryAdapter
+    private var openSwipeKey by mutableStateOf<Long?>(null)
+    private var draggingSwipeKey by mutableStateOf<Long?>(null)
 
     override fun onSwipeBackAttempt(dx: Float, dy: Float): Boolean {
-        return if (::homeAdapter.isInitialized) {
-            homeAdapter.closeOpenSwipe()
-        } else {
-            false
+        val hasOpen = openSwipeKey != null
+        if (hasOpen) {
+            openSwipeKey = null
         }
+        return hasOpen
     }
 
     override fun onResume() {
         super.onResume()
-        if (::homeAdapter.isInitialized) {
-            homeAdapter.closeOpenSwipe()
-        }
+        closeOpenSwipe()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,71 +47,65 @@ class MainActivity : BaseHeytapActivity() {
 
         setContent {
             WatchRSSTheme {
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { _ ->
-                        val root = layoutInflater.inflate(R.layout.activity_main, null, false)
-                        bindViews(root)
-                        root
+                val context = LocalContext.current
+                val channels by viewModel.channels.collectAsState()
+                val message by viewModel.message.collectAsState()
+
+                LaunchedEffect(message) {
+                    if (message != null) {
+                        HeyToast.showToast(context, message, android.widget.Toast.LENGTH_SHORT)
+                        viewModel.clearMessage()
+                    }
+                }
+
+                HomeComposeScreen(
+                    channels = channels,
+                    openSwipeId = openSwipeKey,
+                    onOpenSwipe = { openSwipeKey = it },
+                    onCloseSwipe = { openSwipeKey = null },
+                    draggingSwipeId = draggingSwipeKey,
+                    onDragStart = { draggingSwipeKey = it },
+                    onDragEnd = { draggingSwipeKey = null },
+                    onProfileClick = {
+                        if (!allowNavigation()) return@HomeComposeScreen
+                        startActivity(Intent(this, ProfileActivity::class.java))
+                    },
+                    onRecommendClick = {
+                        if (closeOpenSwipe()) return@HomeComposeScreen
+                        if (!allowNavigation()) return@HomeComposeScreen
+                        startActivity(Intent(this, RssRecommendActivity::class.java))
+                    },
+                    onChannelClick = { channel ->
+                        if (closeOpenSwipe()) return@HomeComposeScreen
+                        if (!allowNavigation()) return@HomeComposeScreen
+                        openChannel(channel)
+                    },
+                    onChannelLongClick = { channel ->
+                        showChannelActions(channel, quick = false)
+                    },
+                    onAddRssClick = {
+                        if (!allowNavigation()) return@HomeComposeScreen
+                        startActivity(Intent(this, AddRssActivity::class.java))
+                    },
+                    onMoveTopClick = { channel ->
+                        closeOpenSwipe()
+                        viewModel.moveToTop(channel)
+                    },
+                    onMarkReadClick = { channel ->
+                        closeOpenSwipe()
+                        viewModel.markChannelRead(channel)
                     }
                 )
             }
         }
     }
 
-    private fun bindViews(root: View) {
-        val recyclerView = root.findViewById<RecyclerView>(R.id.channel_list)
-        homeAdapter = HomeEntryAdapter(
-            onProfileClick = {
-                if (!allowNavigation()) return@HomeEntryAdapter
-                startActivity(Intent(this, ProfileActivity::class.java))
-            },
-            onRecommendClick = {
-                if (homeAdapter.closeOpenSwipe()) return@HomeEntryAdapter
-                if (!allowNavigation()) return@HomeEntryAdapter
-                startActivity(Intent(this, RssRecommendActivity::class.java))
-            },
-            onChannelClick = { channel ->
-                if (homeAdapter.closeOpenSwipe()) return@HomeEntryAdapter
-                if (!allowNavigation()) return@HomeEntryAdapter
-                openChannel(channel)
-            },
-            onChannelLongClick = { channel ->
-                showChannelActions(channel, quick = false)
-            },
-            onAddRssClick = {
-                if (!allowNavigation()) return@HomeEntryAdapter
-                startActivity(Intent(this, AddRssActivity::class.java))
-            },
-            onMoveTopClick = { channel ->
-                homeAdapter.closeOpenSwipe()
-                viewModel.moveToTop(channel)
-            },
-            onMarkReadClick = { channel ->
-                homeAdapter.closeOpenSwipe()
-                viewModel.markChannelRead(channel)
-            }
-        )
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = homeAdapter
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.channels.collect { channels ->
-                        homeAdapter.submitList(channels)
-                    }
-                }
-                launch {
-                    viewModel.message.collect { message ->
-                        if (message != null) {
-                            HeyToast.showToast(this@MainActivity, message, android.widget.Toast.LENGTH_SHORT)
-                            viewModel.clearMessage()
-                        }
-                    }
-                }
-            }
+    private fun closeOpenSwipe(): Boolean {
+        val hasOpen = openSwipeKey != null
+        if (hasOpen) {
+            openSwipeKey = null
         }
+        return hasOpen
     }
 
     private fun showChannelActions(channel: RssChannel, quick: Boolean) {

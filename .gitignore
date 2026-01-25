@@ -21,3 +21,4 @@ sdk/bili/build/kotlin/compileReleaseKotlin/local-state/build-history.bin
 keystore.properties
 *.jks
 **/build/**
+.gradle_user/*
