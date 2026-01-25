@@ -73,12 +73,20 @@ class BiliDetailActivity : BaseHeytapActivity() {
         private const val EXTRA_AID = "aid"
         private const val EXTRA_BVID = "bvid"
         private const val EXTRA_CID = "cid"
+        private const val EXTRA_RSS_ITEM_ID = "rssItemId"
 
-        fun createIntent(context: Context, aid: Long?, bvid: String?, cid: Long?): Intent {
+        fun createIntent(
+            context: Context,
+            aid: Long?,
+            bvid: String?,
+            cid: Long?,
+            rssItemId: Long? = null
+        ): Intent {
             return Intent(context, BiliDetailActivity::class.java).apply {
                 putExtra(EXTRA_AID, aid?.toString().orEmpty())
                 putExtra(EXTRA_BVID, bvid.orEmpty())
                 putExtra(EXTRA_CID, cid?.toString().orEmpty())
+                putExtra(EXTRA_RSS_ITEM_ID, rssItemId?.toString().orEmpty())
             }
         }
     }

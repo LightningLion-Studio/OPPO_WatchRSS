@@ -3,7 +3,9 @@ package com.lightningstudio.watchrss.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lightningstudio.watchrss.data.bili.BiliErrorCodes
 import com.lightningstudio.watchrss.data.bili.BiliRepository
+import com.lightningstudio.watchrss.data.bili.formatBiliError
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -26,32 +28,56 @@ class BiliPlayerViewModel(
     private val aid: Long? = savedStateHandle.get<String>("aid")?.toLongOrNull()
     private val bvid: String? = savedStateHandle.get<String>("bvid")?.takeIf { it.isNotBlank() }
     private val cid: Long? = savedStateHandle.get<String>("cid")?.toLongOrNull()
+    private var resolvedCid: Long? = cid
 
     init {
         loadPlayUrl()
     }
 
     fun loadPlayUrl() {
-        val safeCid = cid
-        if (safeCid == null) {
-            _uiState.update { it.copy(isLoading = false, message = "缺少播放参数") }
-            return
-        }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, message = null) }
+            val safeCid = resolvedCid ?: resolveCid()
+            if (safeCid == null) {
+                val fallback = repository.cachedPreviewUriAny(aid, bvid)
+                if (!fallback.isNullOrBlank()) {
+                    _uiState.update { it.copy(isLoading = false, playUrl = fallback, headers = emptyMap()) }
+                } else {
+                    _uiState.update {
+                        it.copy(isLoading = false, message = formatBiliError(BiliErrorCodes.PLAY_PARAM_MISSING))
+                    }
+                }
+                return@launch
+            }
+            val cached = repository.cachedPreviewUri(aid, bvid, safeCid)
+            if (!cached.isNullOrBlank()) {
+                _uiState.update { it.copy(isLoading = false, playUrl = cached, headers = emptyMap()) }
+                return@launch
+            }
             val result = repository.fetchPlayUrlMp4(cid = safeCid, aid = aid, bvid = bvid)
             if (result.isSuccess) {
                 val url = result.data?.durl?.firstOrNull()?.url
                 val headers = repository.buildPlayHeaders()
                 if (url.isNullOrBlank()) {
-                    _uiState.update { it.copy(isLoading = false, message = "播放地址为空") }
+                    _uiState.update {
+                        it.copy(isLoading = false, message = formatBiliError(BiliErrorCodes.PLAY_URL_EMPTY))
+                    }
                 } else {
                     _uiState.update { it.copy(isLoading = false, playUrl = url, headers = headers) }
                 }
             } else {
-                _uiState.update { it.copy(isLoading = false, message = result.message ?: "获取播放地址失败") }
+                _uiState.update { it.copy(isLoading = false, message = formatBiliError(result.code)) }
             }
         }
+    }
+
+    private suspend fun resolveCid(): Long? {
+        val result = repository.fetchVideoDetail(aid = aid, bvid = bvid)
+        val detail = result.data ?: return null
+        val pageCid = detail.pages.firstOrNull()?.cid
+        val fallbackCid = pageCid ?: detail.item.cid
+        resolvedCid = fallbackCid
+        return fallbackCid
     }
 
     fun clearMessage() {

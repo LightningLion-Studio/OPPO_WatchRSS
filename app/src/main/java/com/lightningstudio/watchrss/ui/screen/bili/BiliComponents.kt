@@ -1,8 +1,11 @@
 package com.lightningstudio.watchrss.ui.screen.bili
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -165,7 +168,9 @@ fun BiliFeedCard(
     title: String,
     summary: String,
     coverUrl: String?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
 ) {
     val background = colorResource(R.color.watch_card_background)
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
@@ -183,11 +188,11 @@ fun BiliFeedCard(
     val maxWidthPx = remember(context) { context.resources.displayMetrics.widthPixels }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(shape)
             .background(background)
-            .clickable(onClick = onClick)
+            .clickableWithoutRipple(onClick, onLongClick)
     ) {
         val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, coverUrl, maxWidthPx) {
             value = if (coverUrl.isNullOrBlank()) null else {
@@ -238,6 +243,29 @@ fun BiliFeedCard(
                 modifier = Modifier.padding(top = summaryTop)
             )
         }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun Modifier.clickableWithoutRipple(
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null
+): Modifier {
+    val interactionSource = remember { MutableInteractionSource() }
+    return if (onLongClick == null) {
+        clickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick
+        )
+    } else {
+        combinedClickable(
+            interactionSource = interactionSource,
+            indication = null,
+            onClick = onClick,
+            onLongClick = onLongClick
+        )
     }
 }
 

@@ -1,6 +1,7 @@
 package com.lightningstudio.watchrss
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -59,13 +60,25 @@ class SavedItemsActivity : BaseHeytapActivity() {
                     onUndoClick = { handleUndo() },
                     onItemClick = { savedItem ->
                         if (!allowNavigation()) return@SavedItemsScreen
-                        val intent = Intent(this, DetailActivity::class.java)
-                        intent.putExtra(DetailActivity.EXTRA_ITEM_ID, savedItem.item.id)
-                        intent.putExtra(
-                            DetailActivity.EXTRA_FROM_WATCH_LATER,
-                            viewModel.saveType == SaveType.WATCH_LATER
-                        )
-                        detailLauncher.launch(intent)
+                        val target = parseBiliTarget(savedItem.item.link)
+                        if (target != null) {
+                            val intent = BiliDetailActivity.createIntent(
+                                this,
+                                target.aid,
+                                target.bvid,
+                                target.cid,
+                                rssItemId = savedItem.item.id
+                            )
+                            startActivity(intent)
+                        } else {
+                            val intent = Intent(this, DetailActivity::class.java)
+                            intent.putExtra(DetailActivity.EXTRA_ITEM_ID, savedItem.item.id)
+                            intent.putExtra(
+                                DetailActivity.EXTRA_FROM_WATCH_LATER,
+                                viewModel.saveType == SaveType.WATCH_LATER
+                            )
+                            detailLauncher.launch(intent)
+                        }
                     },
                     onItemRemove = { savedItem ->
                         viewModel.toggleSaved(savedItem.item.id)
@@ -108,5 +121,33 @@ class SavedItemsActivity : BaseHeytapActivity() {
     companion object {
         const val EXTRA_SAVE_TYPE = "saveType"
         private const val UNDO_TIMEOUT_MS = 3_000L
+    }
+
+    private data class BiliTarget(
+        val aid: Long?,
+        val bvid: String?,
+        val cid: Long?
+    )
+
+    private fun parseBiliTarget(link: String?): BiliTarget? {
+        if (link.isNullOrBlank()) return null
+        val uri = runCatching { Uri.parse(link) }.getOrNull() ?: return null
+        val host = uri.host?.lowercase() ?: return null
+        if (!host.contains("bilibili.com")) return null
+        val segments = uri.pathSegments
+        val videoIndex = segments.indexOf("video")
+        if (videoIndex < 0 || videoIndex >= segments.lastIndex) return null
+        val rawId = segments[videoIndex + 1]
+        val cid = uri.getQueryParameter("cid")?.toLongOrNull()
+        return when {
+            rawId.startsWith("BV", ignoreCase = true) -> {
+                BiliTarget(aid = null, bvid = rawId, cid = cid)
+            }
+            rawId.startsWith("av", ignoreCase = true) -> {
+                val aid = rawId.drop(2).toLongOrNull()
+                BiliTarget(aid = aid, bvid = null, cid = cid)
+            }
+            else -> null
+        }
     }
 }

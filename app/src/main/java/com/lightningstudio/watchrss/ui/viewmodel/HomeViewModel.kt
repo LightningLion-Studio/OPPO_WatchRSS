@@ -38,6 +38,25 @@ class HomeViewModel(private val repository: RssRepository) : ViewModel() {
         }
     }
 
+    fun refreshAll() {
+        viewModelScope.launch {
+            if (_isRefreshing.value) return@launch
+            _isRefreshing.value = true
+            val snapshot = channels.value
+            var errorMessage: String? = null
+            for (channel in snapshot) {
+                val result = repository.refreshChannel(channel.id)
+                if (result.isFailure && errorMessage == null) {
+                    errorMessage = result.exceptionOrNull()?.message ?: "刷新失败"
+                }
+            }
+            if (errorMessage != null) {
+                _message.value = errorMessage
+            }
+            _isRefreshing.value = false
+        }
+    }
+
     fun moveToTop(channel: RssChannel) {
         viewModelScope.launch {
             repository.moveChannelToTop(channel.id)

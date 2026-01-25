@@ -16,7 +16,7 @@ class BiliViewModelFactory(
         val savedStateHandle = extras.createSavedStateHandle()
         return when {
             modelClass.isAssignableFrom(BiliFeedViewModel::class.java) -> {
-                BiliFeedViewModel(repository)
+                BiliFeedViewModel(repository, rssRepository)
             }
             modelClass.isAssignableFrom(BiliLoginViewModel::class.java) -> {
                 BiliLoginViewModel(repository)

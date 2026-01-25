@@ -1,13 +1,11 @@
 package com.lightningstudio.watchrss.ui.screen.rss
 
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -39,7 +36,6 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.produceState
@@ -47,15 +43,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -64,10 +55,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import android.graphics.Paint
 import android.text.TextPaint
@@ -76,6 +64,9 @@ import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.data.rss.RssChannel
 import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.data.rss.RssMediaExtractor
+import com.lightningstudio.watchrss.ui.components.PullRefreshBox
+import com.lightningstudio.watchrss.ui.components.SwipeActionButton
+import com.lightningstudio.watchrss.ui.components.SwipeActionRow
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import com.lightningstudio.watchrss.ui.util.formatRssSummary
 import kotlinx.coroutines.launch
@@ -108,20 +99,22 @@ fun FeedScreen(
     val itemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
     val listState = rememberLazyListState()
 
-    Box(
+    PullRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(Color.Black),
+        indicatorPadding = safePadding,
+        isAtTop = {
+            listState.firstVisibleItemIndex == 0 &&
+                listState.firstVisibleItemScrollOffset == 0
+        }
     ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(safePadding)
-                .feedPullToRefresh(
-                    listState = listState,
-                    enabled = !isRefreshing,
-                    onRefresh = onRefresh
-                ),
+                .padding(safePadding),
             state = listState,
             contentPadding = PaddingValues(bottom = itemSpacing),
             verticalArrangement = Arrangement.spacedBy(itemSpacing)
@@ -137,15 +130,12 @@ fun FeedScreen(
                     }
                     FeedEntry.Empty -> {
                         FeedEmpty(
-                            onRefresh = onRefresh,
                             onBack = onBack
                         )
                     }
                     is FeedEntry.Actions -> {
                         FeedActions(
                             canLoadMore = entry.canLoadMore,
-                            isRefreshing = entry.isRefreshing,
-                            onRefresh = onRefresh,
                             onLoadMore = onLoadMore
                         )
                     }
@@ -174,7 +164,7 @@ private sealed class FeedEntry(val key: String) {
     data class Header(val title: String, val isRefreshing: Boolean) : FeedEntry("header")
     data class Item(val item: RssItem) : FeedEntry("item_${item.id}")
     data object Empty : FeedEntry("empty")
-    data class Actions(val canLoadMore: Boolean, val isRefreshing: Boolean) : FeedEntry("actions")
+    data class Actions(val canLoadMore: Boolean) : FeedEntry("actions")
 }
 
 private fun buildFeedEntries(
@@ -189,7 +179,7 @@ private fun buildFeedEntries(
         entries.add(FeedEntry.Empty)
     } else {
         entries.addAll(items.map { FeedEntry.Item(it) })
-        entries.add(FeedEntry.Actions(hasMore, isRefreshing))
+        entries.add(FeedEntry.Actions(hasMore))
     }
     return entries
 }
@@ -257,12 +247,10 @@ private fun FeedHeader(
 
 @Composable
 private fun FeedEmpty(
-    onRefresh: () -> Unit,
     onBack: () -> Unit
 ) {
     val padding = dimensionResource(R.dimen.hey_content_horizontal_distance)
-    val buttonSpacingLarge = dimensionResource(R.dimen.hey_distance_6dp)
-    val buttonSpacingSmall = dimensionResource(R.dimen.hey_distance_4dp)
+    val buttonSpacing = dimensionResource(R.dimen.hey_distance_6dp)
     val hintSize = textSize(R.dimen.hey_caption)
 
     Column(
@@ -278,9 +266,7 @@ private fun FeedEmpty(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(buttonSpacingLarge))
-        FeedPillButton(text = "刷新", onClick = onRefresh)
-        Spacer(modifier = Modifier.height(buttonSpacingSmall))
+        Spacer(modifier = Modifier.height(buttonSpacing))
         FeedPillButton(text = "返回", onClick = onBack)
     }
 }
@@ -288,12 +274,9 @@ private fun FeedEmpty(
 @Composable
 private fun FeedActions(
     canLoadMore: Boolean,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
     onLoadMore: () -> Unit
 ) {
     val padding = dimensionResource(R.dimen.hey_distance_4dp)
-    val spacing = dimensionResource(R.dimen.hey_distance_6dp)
 
     Row(
         modifier = Modifier
@@ -306,12 +289,6 @@ private fun FeedActions(
             text = if (canLoadMore) "加载更多" else "没有更多",
             enabled = canLoadMore,
             onClick = onLoadMore
-        )
-        Spacer(modifier = Modifier.width(spacing))
-        FeedPillButton(
-            text = if (isRefreshing) "刷新中" else "刷新",
-            enabled = !isRefreshing,
-            onClick = onRefresh
         )
     }
 }
@@ -374,7 +351,7 @@ private fun FeedItemEntry(
         resolveThumbUrl(item)
     }
 
-    FeedSwipeRow(
+    SwipeActionRow(
         itemId = item.id,
         openSwipeId = openSwipeId,
         onOpenSwipe = onOpenSwipe,
@@ -401,7 +378,7 @@ private fun FeedItemEntry(
                 horizontalArrangement = Arrangement.spacedBy(actionPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FeedSwipeActionButton(
+                SwipeActionButton(
                     text = "收藏",
                     width = actionWidth,
                     onClick = {
@@ -409,7 +386,7 @@ private fun FeedItemEntry(
                         onFavoriteClick()
                     }
                 )
-                FeedSwipeActionButton(
+                SwipeActionButton(
                     text = "稍后再看",
                     width = actionWidth,
                     onClick = {
@@ -460,112 +437,6 @@ private fun FeedItemEntry(
             }
         }
     }
-}
-
-@Composable
-private fun FeedSwipeActionButton(
-    text: String,
-    width: Dp,
-    onClick: () -> Unit
-) {
-    val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
-    val textSize = textSize(R.dimen.feed_card_action_text_size)
-    val textPadding = dimensionResource(R.dimen.hey_distance_8dp)
-
-    Box(
-        modifier = Modifier
-            .width(width)
-            .fillMaxHeight()
-            .clip(RoundedCornerShape(radius))
-            .background(Color(0xFF2A2A2A))
-            .clickableWithoutRipple(onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = textSize,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = textPadding)
-        )
-    }
-}
-
-@Composable
-private fun FeedSwipeRow(
-    itemId: Long,
-    openSwipeId: Long?,
-    onOpenSwipe: (Long) -> Unit,
-    onCloseSwipe: () -> Unit,
-    draggingSwipeId: Long?,
-    onDragStart: (Long) -> Unit,
-    onDragEnd: () -> Unit,
-    actionsWidthPx: Float,
-    revealGapPx: Float,
-    content: @Composable (Modifier) -> Unit
-) {
-    val scope = rememberCoroutineScope()
-    val offsetX = remember { Animatable(0f) }
-    val revealWidth = (actionsWidthPx + revealGapPx).coerceAtLeast(0f)
-    val dragThreshold = revealWidth * 0.5f
-    val openSwipeIdState = rememberUpdatedState(openSwipeId)
-
-    LaunchedEffect(openSwipeId, actionsWidthPx, revealGapPx, draggingSwipeId) {
-        if (draggingSwipeId != itemId && openSwipeId != itemId && offsetX.value != 0f) {
-            offsetX.animateTo(0f, animationSpec = tween(durationMillis = 180))
-        }
-        if (revealWidth > 0f && offsetX.value < -revealWidth) {
-            offsetX.snapTo(-revealWidth)
-        }
-    }
-
-    val dragModifier = Modifier.pointerInput(itemId, actionsWidthPx, revealGapPx) {
-        if (revealWidth <= 0f) return@pointerInput
-        detectHorizontalDragGestures(
-            onDragStart = {
-                onDragStart(itemId)
-                if (openSwipeIdState.value != null && openSwipeIdState.value != itemId) {
-                    onCloseSwipe()
-                }
-            },
-            onDragEnd = {
-                val shouldOpen = offsetX.value <= -dragThreshold
-                val target = if (shouldOpen) -revealWidth else 0f
-                scope.launch {
-                    offsetX.animateTo(target, animationSpec = tween(durationMillis = 180))
-                }
-                if (shouldOpen) {
-                    onOpenSwipe(itemId)
-                } else if (openSwipeIdState.value == itemId) {
-                    onCloseSwipe()
-                }
-                onDragEnd()
-            },
-            onDragCancel = {
-                scope.launch {
-                    offsetX.animateTo(0f, animationSpec = tween(durationMillis = 180))
-                }
-                if (openSwipeIdState.value == itemId) {
-                    onCloseSwipe()
-                }
-                onDragEnd()
-            }
-        ) { change, dragAmount ->
-            change.consume()
-            val newOffset = (offsetX.value + dragAmount).coerceIn(-revealWidth, 0f)
-            scope.launch {
-                offsetX.snapTo(newOffset)
-            }
-        }
-    }
-
-    val offsetModifier = Modifier
-        .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-        .then(dragModifier)
-
-    content(offsetModifier)
 }
 
 @Composable
@@ -737,56 +608,6 @@ private fun RssThumbnail(
             modifier = modifier.background(Color(0xFF1C1C1C))
         )
     }
-}
-
-@Composable
-private fun Modifier.feedPullToRefresh(
-    listState: LazyListState,
-    enabled: Boolean,
-    onRefresh: () -> Unit
-): Modifier {
-    if (!enabled) return this
-    val thresholdPx = with(LocalDensity.current) { 48.dp.toPx() }
-    val enabledState = rememberUpdatedState(enabled)
-    val refreshState = rememberUpdatedState(onRefresh)
-    var pullDistance by remember { mutableStateOf(0f) }
-    val connection = remember(listState, thresholdPx) {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (!enabledState.value) return Offset.Zero
-                val isAtTop = listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
-                if (available.y > 0 && isAtTop) {
-                    pullDistance += available.y
-                    if (pullDistance >= thresholdPx) {
-                        pullDistance = 0f
-                        refreshState.value()
-                    }
-                } else if (available.y < 0) {
-                    pullDistance = 0f
-                }
-                return Offset.Zero
-            }
-
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource
-            ): Offset {
-                if (available.y < 0) {
-                    pullDistance = 0f
-                }
-                return Offset.Zero
-            }
-
-            override suspend fun onPreFling(available: Velocity): Velocity {
-                pullDistance = 0f
-                return Velocity.Zero
-            }
-        }
-    }
-
-    return this.nestedScroll(connection)
 }
 
 @Stable

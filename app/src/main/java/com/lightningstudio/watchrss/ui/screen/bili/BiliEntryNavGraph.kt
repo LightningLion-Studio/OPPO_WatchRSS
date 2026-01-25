@@ -14,21 +14,24 @@ import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.BiliChannelInfoActivity
 import com.lightningstudio.watchrss.BiliDetailActivity
 import com.lightningstudio.watchrss.BiliLoginActivity
+import com.lightningstudio.watchrss.BiliListActivity
 import com.lightningstudio.watchrss.data.bili.BiliRepository
 import com.lightningstudio.watchrss.ui.viewmodel.BiliFeedViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliViewModelFactory
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.lightningstudio.watchrss.ui.viewmodel.BiliListType
+import com.lightningstudio.watchrss.data.rss.RssRepository
 
 object BiliRoutes {
     const val FEED = "bili_feed"
 }
 
 @Composable
-fun BiliEntryNavGraph(repository: BiliRepository) {
+fun BiliEntryNavGraph(repository: BiliRepository, rssRepository: RssRepository) {
     val navController = rememberNavController()
-    val factory = remember(repository) { BiliViewModelFactory(repository) }
+    val factory = remember(repository, rssRepository) { BiliViewModelFactory(repository, rssRepository) }
     val context = androidx.compose.ui.platform.LocalContext.current
 
     NavHost(
@@ -65,6 +68,18 @@ fun BiliEntryNavGraph(repository: BiliRepository) {
                 onLoginClick = { context.startActivity(BiliLoginActivity.createIntent(context)) },
                 onRefresh = viewModel::refresh,
                 onHeaderClick = { context.startActivity(BiliChannelInfoActivity.createIntent(context)) },
+                onLoadMore = viewModel::loadMore,
+                onOpenWatchLater = {
+                    context.startActivity(BiliListActivity.createIntent(context, BiliListType.WATCH_LATER))
+                },
+                onOpenHistory = {
+                    context.startActivity(BiliListActivity.createIntent(context, BiliListType.HISTORY))
+                },
+                onOpenFavorites = {
+                    context.startActivity(BiliListActivity.createIntent(context, BiliListType.FAVORITE))
+                },
+                onFavoriteClick = viewModel::favorite,
+                onWatchLaterClick = viewModel::watchLater,
                 onItemClick = { item ->
                     context.startActivity(
                         BiliDetailActivity.createIntent(context, item.aid, item.bvid, item.cid)

@@ -2,7 +2,9 @@ package com.lightningstudio.watchrss.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lightningstudio.watchrss.data.bili.BiliErrorCodes
 import com.lightningstudio.watchrss.data.bili.BiliRepository
+import com.lightningstudio.watchrss.data.bili.formatBiliError
 import com.lightningstudio.watchrss.sdk.bili.QrPollStatus
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -34,7 +36,9 @@ class BiliLoginViewModel(
             _uiState.update { it.copy(isLoading = true, message = null, isSuccess = false) }
             val qr = repository.requestWebQrCode()
             if (qr == null) {
-                _uiState.update { it.copy(isLoading = false, message = "二维码获取失败") }
+                _uiState.update {
+                    it.copy(isLoading = false, message = formatBiliError(BiliErrorCodes.QR_REQUEST_FAILED))
+                }
                 return@launch
             }
             _uiState.update {
@@ -56,7 +60,7 @@ class BiliLoginViewModel(
             if (result.isSuccess) {
                 _uiState.update { it.copy(isSuccess = true, message = "登录成功") }
             } else {
-                _uiState.update { it.copy(message = result.exceptionOrNull()?.message ?: "登录失败") }
+                _uiState.update { it.copy(message = formatBiliError(BiliErrorCodes.COOKIE_INVALID)) }
             }
         }
     }
@@ -78,12 +82,14 @@ class BiliLoginViewModel(
                         return@launch
                     }
                     QrPollStatus.EXPIRED -> {
-                        _uiState.update { it.copy(status = result.status, message = "二维码已过期") }
+                        _uiState.update {
+                            it.copy(status = result.status, message = formatBiliError(result.rawCode))
+                        }
                         return@launch
                     }
                     QrPollStatus.ERROR -> {
                         _uiState.update {
-                            it.copy(status = result.status, message = result.message ?: "登录失败")
+                            it.copy(status = result.status, message = formatBiliError(result.rawCode))
                         }
                         return@launch
                     }

@@ -13,7 +13,8 @@ class BiliEntryActivity : BaseHeytapActivity() {
         setContent {
             WatchRSSTheme {
                 val repository = (application as WatchRssApplication).container.biliRepository
-                BiliEntryNavGraph(repository = repository)
+                val rssRepository = (application as WatchRssApplication).container.rssRepository
+                BiliEntryNavGraph(repository = repository, rssRepository = rssRepository)
             }
         }
     }

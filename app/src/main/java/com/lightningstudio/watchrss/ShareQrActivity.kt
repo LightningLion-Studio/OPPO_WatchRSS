@@ -25,7 +25,6 @@ class ShareQrActivity : BaseHeytapActivity() {
             WatchRSSTheme {
                 ShareQrScreen(
                     link = link,
-                    onClose = { finish() },
                     onQrError = {
                         HeyToast.showToast(this, "二维码生成失败", android.widget.Toast.LENGTH_SHORT)
                         finish()

@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lightningstudio.watchrss.data.bili.BiliRepository
+import com.lightningstudio.watchrss.data.bili.BiliErrorCodes
+import com.lightningstudio.watchrss.data.bili.formatBiliError
 import com.lightningstudio.watchrss.sdk.bili.BiliFavoritePage
 import com.lightningstudio.watchrss.sdk.bili.BiliHistoryCursor
 import com.lightningstudio.watchrss.sdk.bili.BiliHistoryPage
@@ -37,10 +39,16 @@ data class BiliListItem(
 
 data class BiliListUiState(
     val type: BiliListType,
-    val isLoading: Boolean = true,
+    val isRefreshing: Boolean = true,
+    val isLoadingMore: Boolean = false,
     val items: List<BiliListItem> = emptyList(),
     val message: String? = null,
     val canLoadMore: Boolean = false
+)
+
+private data class FavoritePageResult(
+    val page: BiliFavoritePage?,
+    val code: Int
 )
 
 class BiliListViewModel(
@@ -61,20 +69,35 @@ class BiliListViewModel(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, message = null, items = emptyList()) }
+            _uiState.update { it.copy(isRefreshing = true, isLoadingMore = false, message = null) }
+            historyCursor = null
+            favoritePage = 1
             when (type) {
                 BiliListType.WATCH_LATER -> {
                     val result = repository.fetchToView()
                     if (result.isSuccess) {
                         val items = result.data?.items?.map { it.toListItem() }.orEmpty()
-                        _uiState.update { it.copy(isLoading = false, items = items, canLoadMore = false) }
+                        _uiState.update {
+                            it.copy(
+                                isRefreshing = false,
+                                items = items,
+                                canLoadMore = false
+                            )
+                        }
                     } else {
-                        _uiState.update { it.copy(isLoading = false, message = result.message ?: "加载失败") }
+                        _uiState.update {
+                            it.copy(isRefreshing = false, message = formatBiliError(result.code))
+                        }
                     }
                 }
                 BiliListType.HISTORY -> {
                     val result = repository.fetchHistory()
-                    handleHistoryResult(result.data, result.message)
+                    val errorCode = if (result.isSuccess && result.data == null) {
+                        BiliErrorCodes.REQUEST_FAILED
+                    } else {
+                        result.code
+                    }
+                    handleHistoryResult(result.data, errorCode)
                 }
                 BiliListType.FAVORITE -> {
                     val page = fetchFavoritePage(reset = true)
@@ -87,12 +110,10 @@ class BiliListViewModel(
     fun loadMore() {
         viewModelScope.launch {
             when (type) {
-                BiliListType.HISTORY -> {
-                    val cursor = historyCursor ?: return@launch
-                    val result = repository.fetchHistory(cursor)
-                    handleHistoryResult(result.data, result.message, append = true)
-                }
+                BiliListType.HISTORY -> return@launch
                 BiliListType.FAVORITE -> {
+                    if (_uiState.value.isLoadingMore || !_uiState.value.canLoadMore) return@launch
+                    _uiState.update { it.copy(isLoadingMore = true, message = null) }
                     val page = fetchFavoritePage(reset = false)
                     handleFavoritePage(page, append = true)
                 }
@@ -105,29 +126,44 @@ class BiliListViewModel(
         _uiState.update { it.copy(message = null) }
     }
 
-    private suspend fun fetchFavoritePage(reset: Boolean): BiliFavoritePage? {
+    private suspend fun fetchFavoritePage(reset: Boolean): FavoritePageResult {
         if (reset) {
             favoritePage = 1
             favoriteMediaId = null
         }
         val mediaId = favoriteMediaId ?: run {
             val folders = repository.fetchFavoriteFolders()
-            if (!folders.isSuccess) return null
-            val first = folders.data?.firstOrNull() ?: return null
-            val id = first.id ?: first.fid ?: return null
+            if (!folders.isSuccess) return FavoritePageResult(null, folders.code)
+            val first = folders.data?.firstOrNull()
+                ?: return FavoritePageResult(null, BiliErrorCodes.MISSING_FAVORITE_FOLDER)
+            val id = first.id ?: first.fid
+                ?: return FavoritePageResult(null, BiliErrorCodes.MISSING_FAVORITE_FOLDER)
             favoriteMediaId = id
             id
         }
         val result = repository.fetchFavoriteItems(mediaId, pn = favoritePage)
-        return if (result.isSuccess) result.data else null
+        return if (result.isSuccess && result.data != null) {
+            FavoritePageResult(result.data, result.code)
+        } else if (result.isSuccess) {
+            FavoritePageResult(null, BiliErrorCodes.REQUEST_FAILED)
+        } else {
+            FavoritePageResult(null, result.code)
+        }
     }
 
     private fun handleFavoritePage(
-        page: BiliFavoritePage?,
+        result: FavoritePageResult,
         append: Boolean = false
     ) {
+        val page = result.page
         if (page == null) {
-            _uiState.update { it.copy(isLoading = false, message = "加载收藏失败") }
+            _uiState.update {
+                it.copy(
+                    isRefreshing = false,
+                    isLoadingMore = false,
+                    message = formatBiliError(result.code)
+                )
+            }
             return
         }
         val items = page.medias.map { media ->
@@ -145,7 +181,8 @@ class BiliListViewModel(
         _uiState.update {
             val merged = if (append) it.items + items else items
             it.copy(
-                isLoading = false,
+                isRefreshing = false,
+                isLoadingMore = false,
                 items = merged,
                 canLoadMore = page.hasMore
             )
@@ -154,11 +191,17 @@ class BiliListViewModel(
 
     private fun handleHistoryResult(
         page: BiliHistoryPage?,
-        error: String?,
+        errorCode: Int,
         append: Boolean = false
     ) {
         if (page == null) {
-            _uiState.update { it.copy(isLoading = false, message = error ?: "加载失败") }
+            _uiState.update {
+                it.copy(
+                    isRefreshing = false,
+                    isLoadingMore = false,
+                    message = formatBiliError(errorCode)
+                )
+            }
             return
         }
         historyCursor = page.cursor
@@ -176,9 +219,10 @@ class BiliListViewModel(
         _uiState.update {
             val merged = if (append) it.items + items else items
             it.copy(
-                isLoading = false,
+                isRefreshing = false,
+                isLoadingMore = false,
                 items = merged,
-                canLoadMore = page.cursor != null && items.isNotEmpty()
+                canLoadMore = false
             )
         }
     }

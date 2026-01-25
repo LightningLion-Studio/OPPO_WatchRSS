@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
-import com.heytap.wearable.R as HeytapR
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ui.components.WatchSurface
 import com.lightningstudio.watchrss.ui.util.QrCodeGenerator
@@ -28,11 +25,9 @@ import kotlin.math.roundToInt
 @Composable
 fun ShareQrScreen(
     link: String,
-    onClose: () -> Unit,
     onQrError: () -> Unit
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
-    val bottomMargin = dimensionResource(HeytapR.dimen.hey_content_horizontal_distance)
 
     WatchSurface {
         Box(
@@ -62,18 +57,6 @@ fun ShareQrScreen(
                         modifier = Modifier.size(maxSize)
                     )
                 }
-            }
-
-            Button(
-                onClick = onClose,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = bottomMargin)
-            ) {
-                Text(
-                    text = "关闭",
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
         }
     }
