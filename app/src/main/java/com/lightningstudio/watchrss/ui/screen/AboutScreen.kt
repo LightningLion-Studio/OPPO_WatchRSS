@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -120,6 +121,8 @@ fun AboutScreen(
                 pillVerticalPadding = pillVerticalPadding,
                 summarySpacing = summarySpacing
             )
+
+            Spacer(modifier = Modifier.height(pillHeight))
         }
     }
 }
@@ -138,7 +141,7 @@ private fun AboutEntry(
     summarySpacing: androidx.compose.ui.unit.Dp
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(pillHeight)
@@ -150,7 +153,8 @@ private fun AboutEntry(
                     top = pillVerticalPadding,
                     bottom = pillVerticalPadding
                 )
-                .clickable(onClick = onClick)
+                .clickable(onClick = onClick),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = title,

@@ -86,6 +86,29 @@ object RssImageLoader {
         }
     }
 
+    suspend fun loadBitmap(context: Context, url: String, maxWidthPx: Int): Bitmap? {
+        return withContext(Dispatchers.IO) {
+            cache.get(url)?.let { return@withContext it }
+            if (isLocalPath(url)) {
+                val bitmap = decodeLocalBitmap(url, maxWidthPx)
+                if (bitmap != null) {
+                    cache.put(url, bitmap)
+                }
+                return@withContext bitmap
+            }
+            val diskBitmap = decodeDiskBitmap(context, url, maxWidthPx)
+            if (diskBitmap != null) {
+                cache.put(url, diskBitmap)
+                return@withContext diskBitmap
+            }
+            val bitmap = fetchBitmap(context, url, maxWidthPx)
+            if (bitmap != null) {
+                cache.put(url, bitmap)
+            }
+            bitmap
+        }
+    }
+
     private fun fetchBitmap(context: Context, urlString: String, maxWidthPx: Int): Bitmap? {
         var connection: HttpURLConnection? = null
         return try {

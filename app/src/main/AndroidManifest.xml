@@ -113,11 +113,6 @@
             android:name=".DouyinEntryActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
-        <activity
-            android:name=".HeytapWidgetDemoActivity"
-            android:exported="false"
-            android:label="Heytap Widget Demo"
-            android:theme="@style/Theme.WatchRSS.Translucent" />
     </application>
 
 </manifest>

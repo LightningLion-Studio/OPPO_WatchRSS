@@ -1,7 +1,12 @@
 package com.lightningstudio.watchrss.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -10,9 +15,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import android.content.Intent
 import android.net.Uri
+import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.BiliEntryActivity
+import com.lightningstudio.watchrss.ChannelDetailActivity
 import com.lightningstudio.watchrss.DouyinEntryActivity
+import com.lightningstudio.watchrss.ItemActionsActivity
 import com.lightningstudio.watchrss.WatchRssApplication
 import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
 import com.lightningstudio.watchrss.ui.screen.rss.AddRssScreen
@@ -119,16 +128,51 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
             arguments = listOf(navArgument("channelId") { type = NavType.LongType })
         ) { backStackEntry ->
             val viewModel: FeedViewModel = viewModel(backStackEntry, factory = factory)
-            FeedScreen(
-                channel = viewModel.channel,
-                items = viewModel.items,
-                message = viewModel.message,
-                onMessageShown = viewModel::clearMessage,
-                onBack = { navController.popBackStack() },
-                onRefresh = viewModel::refresh,
-                onItemClick = { itemId ->
-                    navController.navigate(Routes.detail(itemId))
+            val channel by viewModel.channel.collectAsState()
+            val items by viewModel.items.collectAsState()
+            val isRefreshing by viewModel.isRefreshing.collectAsState()
+            val hasMore by viewModel.hasMore.collectAsState()
+            val message by viewModel.message.collectAsState()
+            var openSwipeId by remember { mutableStateOf<Long?>(null) }
+            var draggingSwipeId by remember { mutableStateOf<Long?>(null) }
+
+            LaunchedEffect(message) {
+                if (message != null) {
+                    HeyToast.showToast(context, message, android.widget.Toast.LENGTH_SHORT)
+                    viewModel.clearMessage()
                 }
+            }
+            FeedScreen(
+                channel = channel,
+                items = items,
+                isRefreshing = isRefreshing,
+                hasMore = hasMore,
+                openSwipeId = openSwipeId,
+                onOpenSwipe = { openSwipeId = it },
+                onCloseSwipe = { openSwipeId = null },
+                draggingSwipeId = draggingSwipeId,
+                onDragStart = { draggingSwipeId = it },
+                onDragEnd = { draggingSwipeId = null },
+                onHeaderClick = {
+                    val channelId = channel?.id ?: return@FeedScreen
+                    val intent = Intent(context, ChannelDetailActivity::class.java)
+                    intent.putExtra(ChannelDetailActivity.EXTRA_CHANNEL_ID, channelId)
+                    context.startActivity(intent)
+                },
+                onRefresh = viewModel::refresh,
+                onLoadMore = viewModel::loadMore,
+                onItemClick = { item ->
+                    navController.navigate(Routes.detail(item.id))
+                },
+                onItemLongClick = { item ->
+                    val intent = Intent(context, ItemActionsActivity::class.java)
+                    intent.putExtra(ItemActionsActivity.EXTRA_ITEM_ID, item.id)
+                    intent.putExtra(ItemActionsActivity.EXTRA_ITEM_TITLE, item.title)
+                    context.startActivity(intent)
+                },
+                onFavoriteClick = { item -> viewModel.toggleFavorite(item.id) },
+                onWatchLaterClick = { item -> viewModel.toggleWatchLater(item.id) },
+                onBack = { navController.popBackStack() }
             )
         }
         composable(
@@ -137,8 +181,8 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
         ) { backStackEntry ->
             val viewModel: DetailViewModel = viewModel(backStackEntry, factory = factory)
             DetailScreen(
-                item = viewModel.item,
-                onBack = { navController.popBackStack() }
+                viewModel = viewModel,
+                onBack = { _, _, _ -> navController.popBackStack() }
             )
         }
         composable(Routes.SETTINGS) {

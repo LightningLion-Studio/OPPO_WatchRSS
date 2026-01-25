@@ -437,8 +437,8 @@ private fun HomeSwipeRow(
         detectHorizontalDragGestures(
             onDragStart = {
                 onDragStart(itemId)
-                if (openSwipeIdState.value != itemId) {
-                    onOpenSwipe(itemId)
+                if (openSwipeIdState.value != null && openSwipeIdState.value != itemId) {
+                    onCloseSwipe()
                 }
             },
             onDragEnd = {
