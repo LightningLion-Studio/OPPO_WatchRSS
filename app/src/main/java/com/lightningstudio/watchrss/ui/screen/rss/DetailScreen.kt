@@ -70,7 +70,8 @@ fun DetailScreen(
                 }
             }
 
-            if (detail == null) {
+            val detailItem = detail
+            if (detailItem == null) {
                 Spacer(modifier = Modifier.height(18.dp))
                 Text(
                     text = "加载中...",
@@ -82,7 +83,7 @@ fun DetailScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = detail!!.title,
+                text = detailItem.title,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 3,
@@ -90,8 +91,8 @@ fun DetailScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            val contentText = detail!!.content?.ifBlank { null }
-                ?: detail!!.description?.ifBlank { null }
+            val contentText = detailItem.content?.ifBlank { null }
+                ?: detailItem.description?.ifBlank { null }
                 ?: "暂无正文"
 
             Column(

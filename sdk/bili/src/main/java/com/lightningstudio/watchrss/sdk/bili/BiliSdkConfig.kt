@@ -1,10 +1,10 @@
 package com.lightningstudio.watchrss.sdk.bili
 
 data class BiliSdkConfig(
-    val appKey: String = "1d8b6e7d45233436",
-    val appSec: String = "560c52ccd288fed045859ed18bffd973",
-    val tvAppKey: String = "4409e2ce8ffd12b8",
-    val tvAppSec: String = "59b43e04ad6965f34319062b478f83dd",
+    val appKey: String = BuildConfig.BILI_APP_KEY,
+    val appSec: String = BuildConfig.BILI_APP_SEC,
+    val tvAppKey: String = BuildConfig.BILI_TV_APP_KEY,
+    val tvAppSec: String = BuildConfig.BILI_TV_APP_SEC,
     val tvMobiApp: String = "android_tv_yst",
     val tvLocalId: String = "0",
     val mobiApp: String = "android",

@@ -1,4 +1,14 @@
 import com.google.protobuf.gradle.*
+import java.util.Properties
+
+val localProps = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) {
+        localFile.inputStream().use { load(it) }
+    }
+}
+
+fun localProp(key: String): String = localProps.getProperty(key)?.trim().orEmpty()
 
 plugins {
     alias(libs.plugins.android.library)
@@ -15,6 +25,14 @@ android {
     defaultConfig {
         minSdk = 30
         consumerProguardFiles("consumer-rules.pro")
+        buildConfigField("String", "BILI_APP_KEY", "\"${localProp("bili.appKey")}\"")
+        buildConfigField("String", "BILI_APP_SEC", "\"${localProp("bili.appSec")}\"")
+        buildConfigField("String", "BILI_TV_APP_KEY", "\"${localProp("bili.tvAppKey")}\"")
+        buildConfigField("String", "BILI_TV_APP_SEC", "\"${localProp("bili.tvAppSec")}\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     compileOptions {

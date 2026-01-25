@@ -15,6 +15,19 @@
 
 本文档基于 `docs/BiliBili_API/docs/` 中的野生 API 文档整理，面向 OPPO Watch RSS 项目的 `:sdk:bili` 设计与落地。由于接口非官方，策略以“可维护、可替换、可降级”为首要目标。SDK 以 App 端接口优先，Web 端作为兜底与降级通道。
 
+## 配置
+
+在 `local.properties` 中提供密钥配置（不提交到仓库）：
+
+```
+bili.appKey=YOUR_APP_KEY
+bili.appSec=YOUR_APP_SEC
+bili.tvAppKey=YOUR_TV_APP_KEY
+bili.tvAppSec=YOUR_TV_APP_SEC
+```
+
+未配置时，SDK 将使用空值，相关能力不可用。
+
 ## 1. 适用范围与风险
 
 - 数据来源为野生 API 收集文档，存在变更与风控风险；接口可能随时失效或收敛。
