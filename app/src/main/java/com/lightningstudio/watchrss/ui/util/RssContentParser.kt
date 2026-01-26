@@ -20,7 +20,7 @@ enum class TextStyle {
 }
 
 object RssContentParser {
-    private const val MAX_TEXT_BLOCK_CHARS = 240
+    private const val MAX_TEXT_BLOCK_CHARS = 600
 
     fun parse(raw: String): List<ContentBlock> {
         if (raw.isBlank()) {

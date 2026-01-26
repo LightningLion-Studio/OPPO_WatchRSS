@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.SystemClock
+import android.os.Trace
 import android.text.TextPaint
 import android.util.LruCache
 import android.util.TypedValue
@@ -68,6 +69,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.Lifecycle
@@ -79,11 +81,13 @@ import com.lightningstudio.watchrss.ImagePreviewActivity
 import com.lightningstudio.watchrss.ShareQrActivity
 import com.lightningstudio.watchrss.RssPlayerActivity
 import com.lightningstudio.watchrss.WebViewActivity
+import com.lightningstudio.watchrss.BuildConfig
 import com.lightningstudio.watchrss.data.rss.OfflineMedia
 import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
 import com.lightningstudio.watchrss.ui.util.ContentBlock
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
+import com.lightningstudio.watchrss.ui.widget.ProgressRingView
 import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.FlowPreview
@@ -517,10 +521,20 @@ internal fun DetailContent(
 
 @Composable
 private fun ProgressRingOverlay(listState: androidx.compose.foundation.lazy.LazyListState) {
-    val readingProgress by remember(listState) {
-        derivedStateOf { calculateReadingProgress(listState) }
+    val context = LocalContext.current
+    var ringView by remember { mutableStateOf<ProgressRingView?>(null) }
+
+    AndroidView(
+        factory = { ProgressRingView(context).also { ringView = it } },
+        modifier = Modifier.fillMaxSize(),
+        update = { ringView = it }
+    )
+
+    LaunchedEffect(listState, ringView) {
+        val view = ringView ?: return@LaunchedEffect
+        snapshotFlow { calculateReadingProgress(listState) }
+            .collectLatest { progress -> view.setProgress(progress) }
     }
-    ProgressRing(progress = readingProgress)
 }
 
 @Composable
@@ -606,6 +620,9 @@ private fun DetailTextBlock(
     fontSizeSp: TextUnit,
     topPadding: Dp
 ) {
+    if (BuildConfig.DEBUG) {
+        Trace.beginSection("DetailTextBlock:${style.name}")
+    }
     val lineHeight = fontSizeSp * 1.2f
     val fontFamily = if (style == ContentTextStyle.CODE) {
         FontFamily.Monospace
@@ -628,6 +645,9 @@ private fun DetailTextBlock(
             .fillMaxWidth()
             .padding(top = topPadding)
     )
+    if (BuildConfig.DEBUG) {
+        Trace.endSection()
+    }
 }
 
 @Composable
@@ -639,6 +659,9 @@ private fun DetailImageBlock(
     isScrolling: Boolean,
     onClick: () -> Unit
 ) {
+    if (BuildConfig.DEBUG) {
+        Trace.beginSection("DetailImageBlock")
+    }
     val context = LocalContext.current
     val bitmapState = remember(url, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
     LaunchedEffect(url, maxWidthPx, isScrolling) {
@@ -667,6 +690,9 @@ private fun DetailImageBlock(
                 .background(colorResource(R.color.watch_card_background))
         )
     }
+    if (BuildConfig.DEBUG) {
+        Trace.endSection()
+    }
 }
 
 @Composable
@@ -678,6 +704,9 @@ private fun DetailVideoBlock(
     isScrolling: Boolean,
     onClick: () -> Unit
 ) {
+    if (BuildConfig.DEBUG) {
+        Trace.beginSection("DetailVideoBlock")
+    }
     val context = LocalContext.current
     val coverState =
         remember(poster, videoUrl, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
@@ -726,6 +755,9 @@ private fun DetailVideoBlock(
                 .align(Alignment.Center)
                 .size(dimensionResource(R.dimen.hey_listitem_widget_size))
         )
+    }
+    if (BuildConfig.DEBUG) {
+        Trace.endSection()
     }
 }
 
@@ -953,15 +985,27 @@ private fun isLocalMedia(url: String): Boolean {
 }
 
 private fun calculateReadingProgress(listState: androidx.compose.foundation.lazy.LazyListState): Float {
+    if (BuildConfig.DEBUG) {
+        Trace.beginSection("ReadingProgress")
+    }
     val layoutInfo = listState.layoutInfo
     val totalItems = layoutInfo.totalItemsCount
-    if (totalItems == 0) return 1f
+    if (totalItems == 0) {
+        if (BuildConfig.DEBUG) {
+            Trace.endSection()
+        }
+        return 1f
+    }
     val firstIndex = listState.firstVisibleItemIndex
     val firstOffset = listState.firstVisibleItemScrollOffset
     val firstSize = layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
     val offsetProgress = if (firstSize > 0) firstOffset.toFloat() / firstSize.toFloat() else 0f
     val rawProgress = (firstIndex + offsetProgress) / totalItems.toFloat()
-    return rawProgress.coerceIn(0f, 1f)
+    val clamped = rawProgress.coerceIn(0f, 1f)
+    if (BuildConfig.DEBUG) {
+        Trace.endSection()
+    }
+    return clamped
 }
 
 private fun isReachedBottom(
