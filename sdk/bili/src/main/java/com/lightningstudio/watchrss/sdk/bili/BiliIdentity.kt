@@ -2,6 +2,7 @@ package com.lightningstudio.watchrss.sdk.bili
 
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.util.Locale
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -65,26 +66,38 @@ class BiliIdentity(
     suspend fun fetchWebTicket(csrf: String): String? {
         val timestamp = (System.currentTimeMillis() / 1000).toString()
         val hexsign = hmacSha256Hex(WEB_TICKET_HMAC_KEY, "ts$timestamp")
-        val url = "https://api.bilibili.com/bapis/bilibili.api.ticket.v1.Ticket/GenWebTicket"
-        val form = mutableMapOf(
+        val baseUrl = "https://api.bilibili.com/bapis/bilibili.api.ticket.v1.Ticket/GenWebTicket"
+        val urlParams = mutableMapOf(
             "key_id" to WEB_TICKET_KEY_ID,
             "hexsign" to hexsign,
             "context[ts]" to timestamp
         )
         if (csrf.isNotBlank()) {
-            form["csrf"] = csrf
+            urlParams["csrf"] = csrf
         }
+        val url = buildUrlWithParams(baseUrl, urlParams)
         val response = httpClient.postForm(
             url,
-            form = form,
+            form = emptyMap(),
             headers = mapOf("Referer" to "https://www.bilibili.com/")
         )
-        if (response.code != 200) return null
+        if (response.code != 200) {
+            BiliDebugLog.log("bili_ticket", "http=${response.code} csrf=${csrf.isNotBlank()}")
+            return null
+        }
         val json = biliJson.parseToJsonElement(response.body).jsonObject
-        if (json.intOrNull("code") != 0) return null
+        val code = json.intOrNull("code") ?: -1
+        if (code != 0) {
+            val message = json.stringOrNull("message").orEmpty()
+            BiliDebugLog.log("bili_ticket", "code=$code msg=$message csrf=${csrf.isNotBlank()}")
+            return null
+        }
         val data = json["data"]?.jsonObject ?: return null
         val ticket = data["ticket"]?.jsonPrimitive?.content
-        if (ticket.isNullOrBlank()) return null
+        if (ticket.isNullOrBlank()) {
+            BiliDebugLog.log("bili_ticket", "empty_ticket csrf=${csrf.isNotBlank()}")
+            return null
+        }
         accountStore?.update { current ->
             val updatedCookies = BiliCookies.merge(
                 current.cookies,
@@ -96,7 +109,17 @@ class BiliIdentity(
                 updatedAtMillis = System.currentTimeMillis()
             )
         }
+        BiliDebugLog.log("bili_ticket", "ok csrf=${csrf.isNotBlank()}")
         return ticket
+    }
+
+    private fun buildUrlWithParams(url: String, params: Map<String, String>): String {
+        val httpUrl = url.toHttpUrlOrNull() ?: return url
+        val builder = httpUrl.newBuilder()
+        params.forEach { (key, value) ->
+            builder.addQueryParameter(key, value)
+        }
+        return builder.build().toString()
     }
 
     private fun hmacSha256Hex(key: String, message: String): String {

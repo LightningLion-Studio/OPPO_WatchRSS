@@ -333,7 +333,7 @@ private fun FeedItemEntry(
         fallbackCardHeight
     }
     val pressState = rememberPressScaleState()
-    val thumbUrl = remember(item.id, item.previewImageUrl, item.imageUrl, item.link) {
+    val thumbUrl = remember(item.id, item.imageUrl, item.link) {
         resolveThumbUrl(item)
     }
 
@@ -652,8 +652,7 @@ private fun Modifier.clickableWithoutRipple(
 }
 
 private fun resolveThumbUrl(item: RssItem): String? {
-    val candidate = item.previewImageUrl?.takeIf { it.isNotBlank() }
-        ?: item.imageUrl?.takeIf { it.isNotBlank() }
+    val candidate = item.imageUrl?.takeIf { it.isNotBlank() }
     return RssUrlResolver.resolveMediaUrl(candidate, item.link)
 }
 

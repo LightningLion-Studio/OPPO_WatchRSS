@@ -129,6 +129,8 @@ private fun ActionButton(
 ) {
     val pillColor = colorResource(R.color.watch_pill_background)
     val pillRadius = dimensionResource(HeytapR.dimen.hey_button_default_radius)
+    val horizontalPadding = dimensionResource(HeytapR.dimen.hey_distance_6dp)
+    val textColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.6f)
 
     Box(
         modifier = Modifier
@@ -136,14 +138,14 @@ private fun ActionButton(
             .height(height)
             .clip(RoundedCornerShape(pillRadius))
             .background(pillColor)
-            .alpha(if (enabled) 1f else 0.5f)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = horizontalPadding),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = textColor
         )
     }
 }
