@@ -14,8 +14,12 @@ import android.view.TextureView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.exponentialDecay
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +67,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ui.viewmodel.BiliPlayerUiState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -103,9 +108,19 @@ fun BiliPlayerScreen(
     var videoRotation by remember { mutableStateOf(0) }
     var lastUrl by remember { mutableStateOf<String?>(null) }
     var panOffsetX by remember { mutableStateOf(0f) }
+    val panAnimator = remember { Animatable(0f) }
+    val panDecay = remember { exponentialDecay<Float>() }
+    val panScope = rememberCoroutineScope()
+    val panFlingJob = remember { mutableStateOf<Job?>(null) }
+
+    fun stopPanFling() {
+        panFlingJob.value?.cancel()
+        panFlingJob.value = null
+    }
 
     DisposableEffect(Unit) {
         onDispose {
+            stopPanFling()
             mediaPlayerRef?.release()
             mediaPlayerRef = null
             surfaceRef?.release()
@@ -124,7 +139,9 @@ fun BiliPlayerScreen(
         videoRotation = 0
         lastUrl = null
         controlsVisible = true
+        stopPanFling()
         panOffsetX = 0f
+        panAnimator.snapTo(0f)
         mediaPlayerRef?.reset()
     }
 
@@ -150,6 +167,8 @@ fun BiliPlayerScreen(
         if (clamped != panOffsetX) {
             panOffsetX = clamped
         }
+        stopPanFling()
+        panAnimator.snapTo(panOffsetX)
         updateTextureTransform(
             textureViewRef,
             viewSize,
@@ -162,7 +181,9 @@ fun BiliPlayerScreen(
 
     LaunchedEffect(isFullscreen) {
         if (!isFullscreen && panOffsetX != 0f) {
+            stopPanFling()
             panOffsetX = 0f
+            panAnimator.snapTo(0f)
         }
     }
 
@@ -366,11 +387,13 @@ fun BiliPlayerScreen(
                             }
                         )
                     }
-                    .pointerInput(panRangePx, viewSize, videoSize, videoRotation) {
-                        if (panRangePx <= 0f) return@pointerInput
-                        detectHorizontalDragGestures { change, dragAmount ->
-                            change.consume()
-                            val next = (panOffsetX + dragAmount).coerceIn(-panRangePx, panRangePx)
+                    .draggable(
+                        orientation = Orientation.Horizontal,
+                        enabled = panRangePx > 0f,
+                        state = rememberDraggableState { delta ->
+                            if (panRangePx <= 0f) return@rememberDraggableState
+                            stopPanFling()
+                            val next = (panOffsetX + delta).coerceIn(-panRangePx, panRangePx)
                             if (next != panOffsetX) {
                                 panOffsetX = next
                                 updateTextureTransform(
@@ -382,8 +405,30 @@ fun BiliPlayerScreen(
                                     panOffsetX
                                 )
                             }
+                        },
+                        onDragStarted = { stopPanFling() },
+                        onDragStopped = { velocity ->
+                            if (panRangePx <= 0f || velocity == 0f) return@draggable
+                            stopPanFling()
+                            panFlingJob.value = panScope.launch {
+                                panAnimator.snapTo(panOffsetX)
+                                panAnimator.animateDecay(velocity, panDecay) {
+                                    val clamped = value.coerceIn(-panRangePx, panRangePx)
+                                    if (clamped != panOffsetX) {
+                                        panOffsetX = clamped
+                                        updateTextureTransform(
+                                            textureViewRef,
+                                            viewSize,
+                                            videoSize,
+                                            isFullscreen,
+                                            videoRotation,
+                                            panOffsetX
+                                        )
+                                    }
+                                }
+                            }
                         }
-                    }
+                    )
             )
         }
 
