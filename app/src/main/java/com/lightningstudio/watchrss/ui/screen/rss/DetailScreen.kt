@@ -11,6 +11,7 @@ import android.os.Trace
 import android.text.TextPaint
 import android.util.LruCache
 import android.util.TypedValue
+import android.view.View
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -58,11 +61,16 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -92,8 +100,10 @@ import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -155,6 +165,7 @@ internal fun DetailContent(
     onBack: (Long, Boolean, Boolean) -> Unit
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
     val listState = rememberLazyListState()
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
@@ -228,9 +239,14 @@ internal fun DetailContent(
         hasRestoredPosition = true
     }
 
-    LaunchedEffect(listState) {
+    val readingProgressFlow = remember(listState) {
         snapshotFlow { calculateReadingProgress(listState) }
             .distinctUntilChanged()
+            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(5_000), replay = 1)
+    }
+
+    LaunchedEffect(readingProgressFlow) {
+        readingProgressFlow
             .sample(400)
             .collectLatest { readingProgress ->
                 if (hasRestoredPositionState.value) {
@@ -291,6 +307,19 @@ internal fun DetailContent(
     ) {
         val isScrolling by remember(listState) {
             derivedStateOf { listState.isScrollInProgress }
+        }
+        val rootView = LocalView.current
+        val originalAccessibility = remember(rootView) { rootView.importantForAccessibility }
+        val originalAccessibilityDelegate = remember(rootView) { rootView.captureAccessibilityDelegate() }
+        val disabledAccessibilityDelegate = remember { View.AccessibilityDelegate() }
+
+        DisposableEffect(rootView) {
+            rootView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            rootView.accessibilityDelegate = disabledAccessibilityDelegate
+            onDispose {
+                rootView.importantForAccessibility = originalAccessibility
+                rootView.accessibilityDelegate = originalAccessibilityDelegate
+            }
         }
         val bodyFontSize = remember(readingFontSizeSp, density, context) {
             adjustedTextSizeSp(
@@ -388,8 +417,12 @@ internal fun DetailContent(
                 }
         }
 
+        val listSemanticsModifier = Modifier.clearAndSetSemantics { }
+
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .then(listSemanticsModifier),
             state = listState,
             contentPadding = PaddingValues(horizontal = pagePadding)
         ) {
@@ -440,7 +473,8 @@ internal fun DetailContent(
                         style = ContentTextStyle.BODY,
                         textColor = textColor,
                         fontSizeSp = bodyFontSize,
-                        topPadding = 0.dp
+                        topPadding = 0.dp,
+                        isScrolling = isScrolling
                     )
                 }
             } else {
@@ -470,7 +504,8 @@ internal fun DetailContent(
                                 style = block.style,
                                 textColor = textColor,
                                 fontSizeSp = blockFontSize,
-                                topPadding = topPadding
+                                topPadding = topPadding,
+                                isScrolling = isScrolling
                             )
                         }
                         is ContentBlock.Image -> {
@@ -540,13 +575,13 @@ internal fun DetailContent(
         }
 
         if (progressIndicatorEnabled) {
-            ProgressRingOverlay(listState = listState)
+            ProgressRingOverlay(progressFlow = readingProgressFlow)
         }
     }
 }
 
 @Composable
-private fun ProgressRingOverlay(listState: androidx.compose.foundation.lazy.LazyListState) {
+private fun ProgressRingOverlay(progressFlow: kotlinx.coroutines.flow.Flow<Float>) {
     val context = LocalContext.current
     var ringView by remember { mutableStateOf<ProgressRingView?>(null) }
 
@@ -556,10 +591,9 @@ private fun ProgressRingOverlay(listState: androidx.compose.foundation.lazy.Lazy
         update = { ringView = it }
     )
 
-    LaunchedEffect(listState, ringView) {
+    LaunchedEffect(progressFlow, ringView) {
         val view = ringView ?: return@LaunchedEffect
-        snapshotFlow { calculateReadingProgress(listState) }
-            .collectLatest { progress -> view.setProgress(progress) }
+        progressFlow.collectLatest { progress -> view.setProgress(progress) }
     }
 }
 
@@ -644,7 +678,8 @@ private fun DetailTextBlock(
     style: ContentTextStyle,
     textColor: Color,
     fontSizeSp: TextUnit,
-    topPadding: Dp
+    topPadding: Dp,
+    isScrolling: Boolean
 ) {
     if (BuildConfig.DEBUG) {
         Trace.beginSection("DetailTextBlock:${style.name}")
@@ -670,6 +705,9 @@ private fun DetailTextBlock(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = topPadding)
+            .scrollSemanticsDisabled(isScrolling)
+            .debugTraceLayout("DetailTextBlock/layout")
+            .debugTraceDraw("DetailTextBlock/draw")
     )
     if (BuildConfig.DEBUG) {
         Trace.endSection()
@@ -706,6 +744,9 @@ private fun DetailImageBlock(
                 .padding(top = topPadding)
                 .aspectRatio(ratio)
                 .clickableWithoutRipple(onClick)
+                .scrollSemanticsDisabled(isScrolling)
+                .debugTraceLayout("DetailImageBlock/layout")
+                .debugTraceDraw("DetailImageBlock/draw")
         )
     } else {
         Box(
@@ -714,6 +755,9 @@ private fun DetailImageBlock(
                 .padding(top = topPadding)
                 .height(dimensionResource(R.dimen.hey_card_large_height))
                 .background(colorResource(R.color.watch_card_background))
+                .scrollSemanticsDisabled(isScrolling)
+                .debugTraceLayout("DetailImageBlock/placeholder/layout")
+                .debugTraceDraw("DetailImageBlock/placeholder/draw")
         )
     }
     if (BuildConfig.DEBUG) {
@@ -756,6 +800,9 @@ private fun DetailVideoBlock(
             .background(colorResource(R.color.watch_card_background))
             .clickableWithoutRipple(onClick)
             .padding(padding)
+            .scrollSemanticsDisabled(isScrolling)
+            .debugTraceLayout("DetailVideoBlock/layout")
+            .debugTraceDraw("DetailVideoBlock/draw")
     ) {
         val safeCover = coverState.value
         if (safeCover != null && !isScrolling) {
@@ -1032,6 +1079,47 @@ private fun calculateReadingProgress(listState: androidx.compose.foundation.lazy
         Trace.endSection()
     }
     return clamped
+}
+
+private fun Modifier.debugTraceLayout(name: String): Modifier {
+    if (!BuildConfig.DEBUG) return this
+    return this.layout { measurable, constraints ->
+        Trace.beginSection(name)
+        try {
+            val placeable = measurable.measure(constraints)
+            layout(placeable.width, placeable.height) {
+                placeable.placeRelative(0, 0)
+            }
+        } finally {
+            Trace.endSection()
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+private fun Modifier.scrollSemanticsDisabled(isScrolling: Boolean): Modifier {
+    if (!isScrolling) return this
+    return this.semantics { invisibleToUser() }
+}
+
+private fun Modifier.debugTraceDraw(name: String): Modifier {
+    if (!BuildConfig.DEBUG) return this
+    return this.drawWithContent {
+        Trace.beginSection(name)
+        try {
+            drawContent()
+        } finally {
+            Trace.endSection()
+        }
+    }
+}
+
+private fun View.captureAccessibilityDelegate(): View.AccessibilityDelegate? {
+    return runCatching {
+        val field = View::class.java.getDeclaredField("mAccessibilityDelegate")
+        field.isAccessible = true
+        field.get(this) as? View.AccessibilityDelegate
+    }.getOrNull()
 }
 
 private fun isReachedBottom(

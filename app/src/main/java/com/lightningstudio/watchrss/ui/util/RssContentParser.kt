@@ -20,7 +20,8 @@ enum class TextStyle {
 }
 
 object RssContentParser {
-    private const val MAX_TEXT_BLOCK_CHARS = 600
+    private const val MAX_TEXT_BLOCK_CHARS = 2000
+    private const val MAX_MERGED_TEXT_BLOCK_CHARS = 4000
 
     fun parse(raw: String): List<ContentBlock> {
         if (raw.isBlank()) {
@@ -34,7 +35,7 @@ object RssContentParser {
         doc.body().childNodes().forEach { node ->
             appendNode(node, blocks)
         }
-        return splitLongTextBlocks(blocks)
+        return mergeAdjacentTextBlocks(splitLongTextBlocks(blocks))
     }
 
     private fun appendNode(node: Node, blocks: MutableList<ContentBlock>) {
@@ -179,6 +180,44 @@ object RssContentParser {
             }
             start = end
         }
+        return result
+    }
+
+    private fun mergeAdjacentTextBlocks(blocks: List<ContentBlock>): List<ContentBlock> {
+        if (blocks.isEmpty()) return blocks
+        val result = mutableListOf<ContentBlock>()
+        var pending: ContentBlock.Text? = null
+
+        fun flushPending() {
+            pending?.let { result.add(it) }
+            pending = null
+        }
+
+        blocks.forEach { block ->
+            val textBlock = block as? ContentBlock.Text
+            if (textBlock == null) {
+                flushPending()
+                result.add(block)
+                return@forEach
+            }
+            val current = pending
+            if (current == null) {
+                pending = textBlock
+                return@forEach
+            }
+            if (current.style == textBlock.style &&
+                current.text.length + textBlock.text.length + 1 <= MAX_MERGED_TEXT_BLOCK_CHARS
+            ) {
+                pending = ContentBlock.Text(
+                    text = current.text + "\n" + textBlock.text,
+                    style = current.style
+                )
+            } else {
+                flushPending()
+                pending = textBlock
+            }
+        }
+        flushPending()
         return result
     }
 }
