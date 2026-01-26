@@ -8,6 +8,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.SystemClock
 import android.text.TextPaint
+import android.util.LruCache
 import android.util.TypedValue
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
@@ -37,10 +38,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
@@ -86,7 +88,6 @@ import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.sample
@@ -169,6 +170,7 @@ internal fun DetailContent(
     val textColor = if (readingThemeDark) Color.White else Color(0xFF111111)
     val activeColor = colorResource(R.color.oppo_orange)
     val normalIconColor = textColor
+    val prefetchScope = rememberCoroutineScope()
 
     val maxImageWidthPx = remember(context) {
         val safePaddingPx = context.resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
@@ -180,8 +182,6 @@ internal fun DetailContent(
     var lastItemId by remember { mutableStateOf<Long?>(null) }
     var lastSavedProgress by remember { mutableStateOf(-1f) }
     var lastProgressSavedAt by remember { mutableStateOf(0L) }
-    val ringProgressState = remember { mutableFloatStateOf(0f) }
-    var isScrolling by remember { mutableStateOf(false) }
 
     val onSaveReadingProgressState = rememberUpdatedState(onSaveReadingProgress)
     val onBackState = rememberUpdatedState(onBack)
@@ -243,20 +243,6 @@ internal fun DetailContent(
             }
     }
 
-    LaunchedEffect(listState) {
-        ringProgressState.floatValue =
-            (calculateReadingProgress(listState) * 100f).roundToInt() / 100f
-        snapshotFlow { listState.isScrollInProgress }
-            .distinctUntilChanged()
-            .collectLatest { scrolling ->
-                isScrolling = scrolling
-                if (!scrolling) {
-                    ringProgressState.floatValue =
-                        (calculateReadingProgress(listState) * 100f).roundToInt() / 100f
-                }
-            }
-    }
-
     DisposableEffect(lifecycleOwner) {
         val lifecycle = lifecycleOwner.lifecycle
         val observer = LifecycleEventObserver { _, event ->
@@ -299,6 +285,12 @@ internal fun DetailContent(
             .fillMaxSize()
             .background(backgroundColor)
     ) {
+        val readingProgress by remember(listState) {
+            derivedStateOf { calculateReadingProgress(listState) }
+        }
+        val isScrolling by remember(listState) {
+            derivedStateOf { listState.isScrollInProgress }
+        }
         val bodyFontSize = remember(readingFontSizeSp, density, context) {
             adjustedTextSizeSp(
                 context = context,
@@ -324,6 +316,50 @@ internal fun DetailContent(
             )
         }
         val link = item?.link?.trim().orEmpty()
+        val baseItemCount = remember(link, hasOfflineFailures) {
+            4 + (if (link.isNotEmpty()) 1 else 0) + (if (hasOfflineFailures) 1 else 0)
+        }
+        val prefetchedUrls = remember(contentBlocks, offlineMedia) { mutableSetOf<String>() }
+
+        LaunchedEffect(listState, contentBlocks, offlineMedia, baseItemCount, maxImageWidthPx, isScrolling) {
+            if (isScrolling || contentBlocks.isEmpty()) return@LaunchedEffect
+            val maxIndex = contentBlocks.lastIndex
+            snapshotFlow {
+                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: baseItemCount
+            }.distinctUntilChanged().collectLatest { lastIndex ->
+                var blockIndex = (lastIndex - baseItemCount + 1).coerceAtLeast(0)
+                var scanned = 0
+                var prefetched = 0
+                while (blockIndex <= maxIndex &&
+                    prefetched < PREFETCH_MEDIA_COUNT &&
+                    scanned < PREFETCH_SCAN_LIMIT
+                ) {
+                    val block = contentBlocks[blockIndex]
+                    val urls = mediaUrlsForBlock(block, offlineMedia)
+                    urls.forEach { url ->
+                        if (prefetched < PREFETCH_MEDIA_COUNT && prefetchedUrls.add(url)) {
+                            prefetched++
+                            RssImageLoader.preload(context, url, prefetchScope, maxImageWidthPx)
+                        }
+                    }
+                    if (prefetched < PREFETCH_MEDIA_COUNT &&
+                        block is ContentBlock.Video &&
+                        block.poster.isNullOrBlank()
+                    ) {
+                        val resolvedUrl = resolveMediaUrl(block.url, offlineMedia)
+                        if (isLocalMedia(resolvedUrl)) {
+                            val key = "video:$resolvedUrl@$maxImageWidthPx"
+                            if (prefetchedUrls.add(key)) {
+                                prefetched++
+                                loadCachedVideoFrame(context, resolvedUrl, maxImageWidthPx)
+                            }
+                        }
+                    }
+                    blockIndex++
+                    scanned++
+                }
+            }
+        }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -477,19 +513,8 @@ internal fun DetailContent(
         }
 
         if (progressIndicatorEnabled) {
-            ProgressRingOverlay(
-                isScrolling = isScrolling,
-                progress = ringProgressState.floatValue
-            )
+            ProgressRing(progress = readingProgress)
         }
-    }
-}
-
-@OptIn(FlowPreview::class)
-@Composable
-private fun ProgressRingOverlay(isScrolling: Boolean, progress: Float) {
-    if (!isScrolling) {
-        ProgressRing(progress = progress)
     }
 }
 
@@ -613,13 +638,11 @@ private fun DetailImageBlock(
     val bitmapState = remember(url, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
     LaunchedEffect(url, maxWidthPx, isScrolling) {
         if (isScrolling) return@LaunchedEffect
-        delay(120)
-        if (isScrolling) return@LaunchedEffect
         bitmapState.value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
     }
     val safeBitmap = bitmapState.value
     val ratio = safeBitmap?.let { it.width.toFloat() / it.height.toFloat() }?.takeIf { it > 0f }
-    if (safeBitmap != null && ratio != null) {
+    if (safeBitmap != null && ratio != null && !isScrolling) {
         Image(
             bitmap = safeBitmap.asImageBitmap(),
             contentDescription = alt,
@@ -655,11 +678,9 @@ private fun DetailVideoBlock(
         remember(poster, videoUrl, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
     LaunchedEffect(poster, videoUrl, maxWidthPx, isScrolling) {
         if (isScrolling) return@LaunchedEffect
-        delay(120)
-        if (isScrolling) return@LaunchedEffect
         coverState.value = when {
             !poster.isNullOrBlank() -> RssImageLoader.loadBitmap(context, poster, maxWidthPx)
-            isLocalMedia(videoUrl) -> loadVideoFrame(context, videoUrl, maxWidthPx)
+            isLocalMedia(videoUrl) -> loadCachedVideoFrame(context, videoUrl, maxWidthPx)
             else -> null
         }
     }
@@ -677,7 +698,7 @@ private fun DetailVideoBlock(
             .padding(padding)
     ) {
         val safeCover = coverState.value
-        if (safeCover != null) {
+        if (safeCover != null && !isScrolling) {
             Image(
                 bitmap = safeCover.asImageBitmap(),
                 contentDescription = "视频封面",
@@ -701,6 +722,20 @@ private fun DetailVideoBlock(
                 .size(dimensionResource(R.dimen.hey_listitem_widget_size))
         )
     }
+}
+
+private suspend fun loadCachedVideoFrame(
+    context: Context,
+    url: String,
+    maxWidthPx: Int
+): Bitmap? {
+    val key = "video:$url@$maxWidthPx"
+    videoFrameCache.get(key)?.let { return it }
+    val frame = loadVideoFrame(context, url, maxWidthPx)
+    if (frame != null) {
+        videoFrameCache.put(key, frame)
+    }
+    return frame
 }
 
 private suspend fun loadVideoFrame(
@@ -829,6 +864,28 @@ private fun adjustedTextSizeSp(
 private fun resolveMediaUrl(url: String, offlineMedia: Map<String, OfflineMedia>): String {
     val local = offlineMedia[url]?.localPath
     return if (!local.isNullOrBlank()) local else url
+}
+
+private const val PREFETCH_MEDIA_COUNT = 4
+private const val PREFETCH_SCAN_LIMIT = 60
+private const val VIDEO_FRAME_CACHE_BYTES = 4 * 1024 * 1024
+
+private val videoFrameCache = object : LruCache<String, Bitmap>(VIDEO_FRAME_CACHE_BYTES) {
+    override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
+}
+
+private fun mediaUrlsForBlock(
+    block: ContentBlock,
+    offlineMedia: Map<String, OfflineMedia>
+): List<String> {
+    return when (block) {
+        is ContentBlock.Image -> listOf(resolveMediaUrl(block.url, offlineMedia))
+        is ContentBlock.Video -> {
+            val poster = block.poster?.trim().orEmpty()
+            if (poster.isBlank()) emptyList() else listOf(resolveMediaUrl(poster, offlineMedia))
+        }
+        is ContentBlock.Text -> emptyList()
+    }
 }
 
 private fun isLocalMedia(url: String): Boolean {

@@ -124,9 +124,7 @@ object RssImageLoader {
                 inJustDecodeBounds = true
             }
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-            val options = BitmapFactory.Options().apply {
-                inSampleSize = calculateInSampleSize(bounds, maxWidthPx)
-            }
+            val options = decodeOptions(bounds, maxWidthPx)
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
         } catch (e: Exception) {
             null
@@ -145,9 +143,7 @@ object RssImageLoader {
             val bytes = java.io.File(path).takeIf { it.exists() }?.readBytes() ?: return null
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-            val options = BitmapFactory.Options().apply {
-                inSampleSize = calculateInSampleSize(bounds, maxWidthPx)
-            }
+            val options = decodeOptions(bounds, maxWidthPx)
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
         } catch (e: Exception) {
             null
@@ -160,9 +156,7 @@ object RssImageLoader {
         return try {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.absolutePath, bounds)
-            val options = BitmapFactory.Options().apply {
-                inSampleSize = calculateInSampleSize(bounds, maxWidthPx)
-            }
+            val options = decodeOptions(bounds, maxWidthPx)
             BitmapFactory.decodeFile(file.absolutePath, options)
         } catch (e: Exception) {
             null
@@ -192,14 +186,29 @@ object RssImageLoader {
         }
     }
 
-    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int): Int {
+    private fun decodeOptions(bounds: BitmapFactory.Options, maxWidthPx: Int): BitmapFactory.Options {
+        val reqWidth = maxWidthPx.coerceAtLeast(1)
+        val reqHeight = (maxWidthPx * 2).coerceAtLeast(1)
+        return BitmapFactory.Options().apply {
+            inSampleSize = calculateInSampleSize(bounds, reqWidth, reqHeight)
+            inPreferredConfig = Bitmap.Config.RGB_565
+        }
+    }
+
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Int {
         val width = options.outWidth
-        if (width <= 0 || reqWidth <= 0) {
+        val height = options.outHeight
+        if (width <= 0 || height <= 0 || reqWidth <= 0 || reqHeight <= 0) {
             return 1
         }
         var inSampleSize = 1
         var halfWidth = width / 2
-        while (halfWidth / inSampleSize >= reqWidth) {
+        var halfHeight = height / 2
+        while (halfWidth / inSampleSize >= reqWidth && halfHeight / inSampleSize >= reqHeight) {
             inSampleSize *= 2
         }
         return inSampleSize
