@@ -1,6 +1,7 @@
 package com.lightningstudio.watchrss.ui.screen.rss
 
 import android.graphics.Bitmap
+import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.exponentialDecay
@@ -8,6 +9,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
@@ -36,6 +38,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -47,7 +50,6 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
-import android.os.SystemClock
 
 @Composable
 fun ImagePreviewScreen(
@@ -64,8 +66,6 @@ fun ImagePreviewScreen(
     val offsetYAnimator = remember { Animatable(0f) }
     var scaleAnimJob by remember { mutableStateOf<Job?>(null) }
     var offsetAnimJob by remember { mutableStateOf<Job?>(null) }
-    val panDecay = remember { exponentialDecay<Float>(frictionMultiplier = 0.15f) }
-    val scaleDecay = remember { exponentialDecay<Float>(frictionMultiplier = 0.2f) }
     val springSpec = remember {
         spring<Float>(
             dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -78,6 +78,8 @@ fun ImagePreviewScreen(
             stiffness = Spring.StiffnessLow
         )
     }
+    val panDecay = remember { exponentialDecay<Float>(frictionMultiplier = 0.9f) }
+    val scaleDecay = remember { exponentialDecay<Float>(frictionMultiplier = 3.4f) }
 
     WatchSurface {
         BoxWithConstraints(
@@ -211,12 +213,18 @@ fun ImagePreviewScreen(
                         return@pointerInput
                     }
                     awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
                         scaleAnimJob?.cancel()
                         offsetAnimJob?.cancel()
+                        val panVelocityTracker = VelocityTracker().apply {
+                            addPosition(down.uptimeMillis, down.position)
+                        }
                         var lastScale = scale
-                        var lastTime = 0L
+                        var lastTime = down.uptimeMillis
                         var scaleVelocity = 0f
+                        var lastScaleDelta = 0f
                         var panVelocity = Offset.Zero
+                        var lastPanDelta = Offset.Zero
                         var totalPanDistance = 0f
                         while (true) {
                             val event = awaitPointerEvent(pass = PointerEventPass.Main)
@@ -232,6 +240,7 @@ fun ImagePreviewScreen(
                             if (!centroid.isFinite() || !panChange.isFinite() || !zoomChange.isFinite()) {
                                 continue
                             }
+                            panVelocityTracker.addPosition(time, centroid)
                             val currentScale = sanitizeScale(scale, minScale, maxScale)
                             val newScale = (currentScale * zoomChange).coerceIn(minScale, maxScale)
                             val scaleChange = if (currentScale == 0f) 1f else newScale / currentScale
@@ -245,14 +254,21 @@ fun ImagePreviewScreen(
 
                             scale = newScale
                             offset = clampOffset(newOffset, newScale, containerSize, baseSize)
+                            val scaleDelta = newScale - lastScale
+                            if (panChange.x != 0f || panChange.y != 0f) {
+                                totalPanDistance += panChange.getDistance()
+                                lastPanDelta = panChange
+                            }
                             if (lastTime != 0L) {
                                 val dt = (time - lastTime).coerceAtLeast(1)
-                                val scaleVelocityCandidate = ((newScale - lastScale) / dt) * 1000f
-                                scaleVelocity = scaleVelocity * 0.25f + scaleVelocityCandidate * 0.75f
+                                if (abs(scaleDelta) > 0.0001f) {
+                                    val scaleVelocityCandidate = (scaleDelta / dt) * 1000f
+                                    scaleVelocity = scaleVelocity * 0.2f + scaleVelocityCandidate * 0.8f
+                                    lastScaleDelta = scaleDelta
+                                }
                                 if (panChange.x != 0f || panChange.y != 0f) {
-                                    totalPanDistance += panChange.getDistance()
                                     val panVelocityCandidate = panChange * (1000f / dt)
-                                    panVelocity = panVelocity * 0.3f + panVelocityCandidate * 0.7f
+                                    panVelocity = panVelocity * 0.2f + panVelocityCandidate * 0.8f
                                 }
                             }
                             lastScale = newScale
@@ -266,48 +282,63 @@ fun ImagePreviewScreen(
                             if (event.changes.all { !it.pressed }) break
                         }
 
-                        if (abs(scaleVelocity) > 0.0001f) {
+                        val scaleFlingVelocity = when {
+                            abs(scaleVelocity) > 0.005f -> scaleVelocity
+                            abs(lastScaleDelta) > 0.0001f -> lastScaleDelta * 120f
+                            else -> 0f
+                        }
+                        if (abs(scaleFlingVelocity) > 0.005f) {
                             scaleAnimJob = scope.launch {
                                 scaleAnimator.snapTo(sanitizeScale(scale, minScale, maxScale))
-                                scaleAnimator.animateDecay(scaleVelocity * 4f, scaleDecay) {
-                                    val clamped = sanitizeScale(value, minScale, maxScale)
-                                    scale = clamped
-                                    offset = clampOffset(offset, scale, containerSize, baseSize)
+                                scaleAnimator.animateDecay(scaleFlingVelocity, scaleDecay) {
+                                    val clamped = value.coerceIn(minScale, maxScale)
+                                    if (clamped != scale) {
+                                        scale = clamped
+                                        offset = clampOffset(offset, scale, containerSize, baseSize)
+                                    }
                                 }
                             }
                         }
 
+                        val trackerVelocity = panVelocityTracker.calculateVelocity()
+                        val trackerOffset = Offset(trackerVelocity.x, trackerVelocity.y)
                         val panVelocityDistance = panVelocity.getDistance()
-                        val minPanVelocity = 200f
-                        val resolvedPanVelocity = if (
-                            panVelocityDistance >= 0.01f && panVelocityDistance < minPanVelocity
-                        ) {
-                            panVelocity / panVelocityDistance * minPanVelocity
-                        } else {
-                            panVelocity
+                        val panFlingVelocity = when {
+                            totalPanDistance <= 1f -> Offset.Zero
+                            trackerOffset.getDistance() > 5f -> trackerOffset
+                            panVelocityDistance > 5f -> panVelocity
+                            lastPanDelta.getDistance() > 0.5f -> lastPanDelta * 80f
+                            else -> Offset.Zero
                         }
-                        if (totalPanDistance > 2f && panVelocityDistance > 0.01f && resolvedPanVelocity.isFinite()) {
+                        val panFlingDistance = panFlingVelocity.getDistance()
+                        if (panFlingDistance > 0.1f) {
                             offsetAnimJob = scope.launch {
                                 offsetXAnimator.snapTo(offset.x)
                                 offsetYAnimator.snapTo(offset.y)
                                 launch {
-                                    offsetXAnimator.animateDecay(resolvedPanVelocity.x * 3f, panDecay) {
-                                        offset = clampOffset(
+                                    offsetXAnimator.animateDecay(panFlingVelocity.x, panDecay) {
+                                        val clamped = clampOffset(
                                             Offset(value, offsetYAnimator.value),
                                             scale,
                                             containerSize,
                                             baseSize
                                         )
+                                        if (clamped != offset) {
+                                            offset = clamped
+                                        }
                                     }
                                 }
                                 launch {
-                                    offsetYAnimator.animateDecay(resolvedPanVelocity.y * 3f, panDecay) {
-                                        offset = clampOffset(
+                                    offsetYAnimator.animateDecay(panFlingVelocity.y, panDecay) {
+                                        val clamped = clampOffset(
                                             Offset(offsetXAnimator.value, value),
                                             scale,
                                             containerSize,
                                             baseSize
                                         )
+                                        if (clamped != offset) {
+                                            offset = clamped
+                                        }
                                     }
                                 }
                             }

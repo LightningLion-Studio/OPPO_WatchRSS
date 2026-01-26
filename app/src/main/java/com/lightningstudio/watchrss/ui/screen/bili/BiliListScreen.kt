@@ -14,11 +14,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.text.style.TextAlign
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ui.components.EmptyStateCard
 import com.lightningstudio.watchrss.ui.components.PullRefreshBox
@@ -89,16 +92,24 @@ fun BiliListScreen(
             verticalArrangement = Arrangement.spacedBy(itemSpacing)
         ) {
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(spacing),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
                         text = uiState.type.title,
                         color = Color.White,
-                        fontSize = textSize(R.dimen.hey_m_title)
+                        fontSize = textSize(R.dimen.hey_m_title),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Text(
                         text = "下拉刷新",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = textSize(R.dimen.hey_caption)
+                        fontSize = textSize(R.dimen.hey_caption),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -111,11 +122,11 @@ fun BiliListScreen(
                 }
             } else {
                 items(uiState.items, key = { it.bvid ?: it.aid ?: it.title }) { item ->
-                    BiliVideoCard(
+                    val summary = remember(item) { buildListSummary(item) }
+                    BiliFeedCard(
                         title = item.title,
-                        subtitle = item.subtitle,
+                        summary = summary,
                         coverUrl = item.cover,
-                        durationSeconds = item.durationSeconds,
                         onClick = { onItemClick(item) }
                     )
                 }
@@ -138,4 +149,22 @@ private fun textSize(id: Int): androidx.compose.ui.unit.TextUnit {
     return androidx.compose.ui.platform.LocalDensity.current.run {
         dimensionResource(id).toSp()
     }
+}
+
+private fun buildListSummary(item: BiliListItem): String {
+    val owner = item.subtitle?.takeIf { it.isNotBlank() }
+    val duration = formatDuration(item.durationSeconds)
+    val parts = listOfNotNull(owner, duration)
+    return if (parts.isNotEmpty()) {
+        parts.joinToString(" · ")
+    } else {
+        "哔哩哔哩"
+    }
+}
+
+private fun formatDuration(seconds: Int?): String? {
+    if (seconds == null || seconds <= 0) return null
+    val minutes = seconds / 60
+    val remain = seconds % 60
+    return String.format("%02d:%02d", minutes, remain)
 }

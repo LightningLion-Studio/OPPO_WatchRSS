@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.heytap.wearable.support.widget.HeyDialog
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.ui.screen.bili.BiliSettingsScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
@@ -20,9 +21,11 @@ import com.lightningstudio.watchrss.ui.viewmodel.BiliSettingsViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliViewModelFactory
 
 class BiliSettingsActivity : BaseHeytapActivity() {
-    private val repository by lazy { (application as WatchRssApplication).container.biliRepository }
+    private val container by lazy { (application as WatchRssApplication).container }
+    private val repository by lazy { container.biliRepository }
+    private val rssRepository by lazy { container.rssRepository }
     private val viewModel: BiliSettingsViewModel by viewModels {
-        BiliViewModelFactory(repository)
+        BiliViewModelFactory(repository, rssRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,10 +60,32 @@ class BiliSettingsActivity : BaseHeytapActivity() {
 
                 BiliSettingsScreen(
                     isLoggedIn = uiState.isLoggedIn,
+                    showOriginalContent = uiState.showOriginalContent,
+                    originalContentEnabled = uiState.originalContentEnabled,
+                    onToggleOriginalContent = viewModel::toggleOriginalContent,
+                    deleteEnabled = uiState.deleteEnabled,
+                    onDelete = {
+                        if (uiState.deleteEnabled) {
+                            confirmDelete()
+                        }
+                    },
                     onLogout = viewModel::logout
                 )
             }
         }
+    }
+
+    private fun confirmDelete() {
+        HeyDialog.HeyBuilder(this)
+            .setTitle("删除频道")
+            .setMessage("删除后将移除本地缓存")
+            .setPositiveButton("删除") { _ ->
+                viewModel.deleteChannel()
+                finish()
+            }
+            .setNegativeButton("取消") { _ -> }
+            .create()
+            .show()
     }
 
     companion object {

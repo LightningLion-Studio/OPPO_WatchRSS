@@ -159,8 +159,11 @@ fun BiliPlayerScreen(
         videoRotation = rotation
     }
 
-    val panRangePx = remember(viewSize, videoSize, isFullscreen, videoRotation) {
-        calculateHorizontalPanRange(viewSize, videoSize, isFullscreen, videoRotation)
+    val isVerticalPan = remember(videoSize, videoRotation) {
+        isPortraitVideo(videoSize, videoRotation)
+    }
+    val panRangePx = remember(viewSize, videoSize, isFullscreen, videoRotation, isVerticalPan) {
+        calculatePanRange(viewSize, videoSize, isFullscreen, videoRotation, isVerticalPan)
     }
 
     LaunchedEffect(panRangePx) {
@@ -176,8 +179,17 @@ fun BiliPlayerScreen(
             videoSize,
             isFullscreen,
             videoRotation,
-            panOffsetX
+            panOffsetX,
+            isVerticalPan
         )
+    }
+
+    LaunchedEffect(isVerticalPan) {
+        if (panOffsetX != 0f) {
+            stopPanFling()
+            panOffsetX = 0f
+            panAnimator.snapTo(0f)
+        }
     }
 
     LaunchedEffect(isFullscreen) {
@@ -188,18 +200,33 @@ fun BiliPlayerScreen(
         }
     }
 
-    LaunchedEffect(panOffsetX, panRangePx) {
-        onPanStateChange(panOffsetX, panRangePx)
+    LaunchedEffect(panOffsetX, panRangePx, isVerticalPan, rotationAngle) {
+        val rotationStep = normalizeRotationStep(rotationAngle)
+        val backPanSign = panSignForBack(rotationStep, isVerticalPan)
+        if (backPanSign == 0f) {
+            onPanStateChange(0f, 0f)
+        } else {
+            onPanStateChange(panOffsetX * backPanSign, panRangePx)
+        }
     }
 
-    LaunchedEffect(isFullscreen, viewSize, videoSize, textureViewRef, videoRotation, panOffsetX) {
+    LaunchedEffect(
+        isFullscreen,
+        viewSize,
+        videoSize,
+        textureViewRef,
+        videoRotation,
+        panOffsetX,
+        isVerticalPan
+    ) {
         updateTextureTransform(
             textureViewRef,
             viewSize,
             videoSize,
             isFullscreen,
             videoRotation,
-            panOffsetX
+            panOffsetX,
+            isVerticalPan
         )
     }
 
@@ -236,7 +263,8 @@ fun BiliPlayerScreen(
                 videoSize,
                 isFullscreen,
                 videoRotation,
-                panOffsetX
+                panOffsetX,
+                isVerticalPan
             )
             mp.start()
             isPlaying = true
@@ -249,7 +277,8 @@ fun BiliPlayerScreen(
                 videoSize,
                 isFullscreen,
                 videoRotation,
-                panOffsetX
+                panOffsetX,
+                isVerticalPan
             )
         }
         player.setOnCompletionListener { isPlaying = false }
@@ -306,7 +335,8 @@ fun BiliPlayerScreen(
                             videoSize,
                             isFullscreen,
                             videoRotation,
-                            panOffsetX
+                            panOffsetX,
+                            isVerticalPan
                         )
                     }
                 }
@@ -344,7 +374,8 @@ fun BiliPlayerScreen(
                                     videoSize,
                                     isFullscreen,
                                     videoRotation,
-                                    panOffsetX
+                                    panOffsetX,
+                                    isVerticalPan
                                 )
                             }
 
@@ -360,7 +391,8 @@ fun BiliPlayerScreen(
                                     videoSize,
                                     isFullscreen,
                                     videoRotation,
-                                    panOffsetX
+                                    panOffsetX,
+                                    isVerticalPan
                                 )
                             }
 
@@ -387,7 +419,8 @@ fun BiliPlayerScreen(
                             videoSize,
                             isFullscreen,
                             videoRotation,
-                            panOffsetX
+                            panOffsetX,
+                            isVerticalPan
                         )
                     }
                 },
@@ -404,7 +437,7 @@ fun BiliPlayerScreen(
                         )
                     }
                     .draggable(
-                        orientation = Orientation.Horizontal,
+                        orientation = if (isVerticalPan) Orientation.Vertical else Orientation.Horizontal,
                         enabled = panRangePx > 0f,
                         state = rememberDraggableState { delta ->
                             if (panRangePx <= 0f) return@rememberDraggableState
@@ -418,7 +451,8 @@ fun BiliPlayerScreen(
                                     videoSize,
                                     isFullscreen,
                                     videoRotation,
-                                    panOffsetX
+                                    panOffsetX,
+                                    isVerticalPan
                                 )
                             }
                         },
@@ -438,7 +472,8 @@ fun BiliPlayerScreen(
                                             videoSize,
                                             isFullscreen,
                                             videoRotation,
-                                            panOffsetX
+                                            panOffsetX,
+                                            isVerticalPan
                                         )
                                     }
                                 }
@@ -714,7 +749,8 @@ private fun updateTextureTransform(
     videoSize: IntSize,
     isFullscreen: Boolean,
     videoRotation: Int,
-    panOffsetX: Float
+    panOffsetX: Float,
+    isVerticalPan: Boolean
 ) {
     val view = textureView ?: return
     if (viewSize.width <= 0 || viewSize.height <= 0 || videoSize.width <= 0 || videoSize.height <= 0) {
@@ -747,7 +783,11 @@ private fun updateTextureTransform(
     val rotated = videoRotation % 180 != 0
     val effectiveWidth = if (rotated) contentHeight else contentWidth
     val effectiveHeight = if (rotated) contentWidth else contentHeight
-    val maxPan = calculatePanRange(viewWidth, viewHeight, effectiveWidth, effectiveHeight)
+    val maxPan = if (isVerticalPan) {
+        calculateVerticalPanRange(viewWidth, viewHeight, effectiveWidth, effectiveHeight)
+    } else {
+        calculateHorizontalPanRange(viewWidth, viewHeight, effectiveWidth, effectiveHeight)
+    }
     val clampedOffset = panOffsetX.coerceIn(-maxPan, maxPan)
     val matrix = Matrix().apply {
         setScale(scaleX, scaleY, centerX, centerY)
@@ -755,18 +795,23 @@ private fun updateTextureTransform(
             postRotate(videoRotation.toFloat(), centerX, centerY)
         }
         if (clampedOffset != 0f) {
-            postTranslate(clampedOffset, 0f)
+            if (isVerticalPan) {
+                postTranslate(0f, clampedOffset)
+            } else {
+                postTranslate(clampedOffset, 0f)
+            }
         }
     }
     view.setTransform(matrix)
     view.invalidate()
 }
 
-private fun calculateHorizontalPanRange(
+private fun calculatePanRange(
     viewSize: IntSize,
     videoSize: IntSize,
     isFullscreen: Boolean,
-    videoRotation: Int
+    videoRotation: Int,
+    isVerticalPan: Boolean
 ): Float {
     if (viewSize.width <= 0 || viewSize.height <= 0 || videoSize.width <= 0 || videoSize.height <= 0) {
         return 0f
@@ -796,10 +841,14 @@ private fun calculateHorizontalPanRange(
     val rotated = videoRotation % 180 != 0
     val effectiveWidth = if (rotated) contentHeight else contentWidth
     val effectiveHeight = if (rotated) contentWidth else contentHeight
-    return calculatePanRange(viewWidth, viewHeight, effectiveWidth, effectiveHeight)
+    return if (isVerticalPan) {
+        calculateVerticalPanRange(viewWidth, viewHeight, effectiveWidth, effectiveHeight)
+    } else {
+        calculateHorizontalPanRange(viewWidth, viewHeight, effectiveWidth, effectiveHeight)
+    }
 }
 
-private fun calculatePanRange(
+private fun calculateHorizontalPanRange(
     viewWidth: Float,
     viewHeight: Float,
     contentWidth: Float,
@@ -810,6 +859,51 @@ private fun calculatePanRange(
     val halfHeight = min(contentHeight / 2f, radius)
     val circleHalfWidth = sqrt((radius * radius - halfHeight * halfHeight).coerceAtLeast(0f))
     return (contentWidth / 2f - circleHalfWidth).coerceAtLeast(0f)
+}
+
+private fun calculateVerticalPanRange(
+    viewWidth: Float,
+    viewHeight: Float,
+    contentWidth: Float,
+    contentHeight: Float
+): Float {
+    val radius = min(viewWidth, viewHeight) / 2f
+    if (contentWidth <= 0f || contentHeight <= 0f) return 0f
+    val halfWidth = min(contentWidth / 2f, radius)
+    val circleHalfHeight = sqrt((radius * radius - halfWidth * halfWidth).coerceAtLeast(0f))
+    return (contentHeight / 2f - circleHalfHeight).coerceAtLeast(0f)
+}
+
+private fun isPortraitVideo(
+    videoSize: IntSize,
+    videoRotation: Int
+): Boolean {
+    if (videoSize.width <= 0 || videoSize.height <= 0) return false
+    val rotated = videoRotation % 180 != 0
+    val effectiveWidth = if (rotated) videoSize.height else videoSize.width
+    val effectiveHeight = if (rotated) videoSize.width else videoSize.height
+    return effectiveHeight > effectiveWidth
+}
+
+private fun normalizeRotationStep(rotationAngle: Float): Int {
+    val normalized = ((rotationAngle % 360f) + 360f) % 360f
+    return ((normalized / 90f).roundToInt()) % 4
+}
+
+private fun panSignForBack(rotationStep: Int, isVerticalPan: Boolean): Float {
+    return if (isVerticalPan) {
+        when (rotationStep) {
+            1 -> -1f
+            3 -> 1f
+            else -> 0f
+        }
+    } else {
+        when (rotationStep) {
+            0 -> 1f
+            2 -> -1f
+            else -> 0f
+        }
+    }
 }
 
 @Composable

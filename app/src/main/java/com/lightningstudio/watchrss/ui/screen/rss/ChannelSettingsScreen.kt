@@ -1,6 +1,7 @@
 package com.lightningstudio.watchrss.ui.screen.rss
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,10 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.unit.dp
 import com.heytap.wearable.R as HeytapR
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ui.components.WatchSurface
@@ -147,14 +149,17 @@ private fun SettingsDangerRow(
     val startPadding = dimensionResource(HeytapR.dimen.hey_content_horizontal_distance_6_0)
     val endPadding = dimensionResource(HeytapR.dimen.hey_distance_10dp)
     val verticalPadding = dimensionResource(HeytapR.dimen.hey_distance_8dp)
+    val background = if (enabled) pillColor else pillColor.copy(alpha = 0.7f)
+    val textColor = colorResource(R.color.danger_red).copy(alpha = if (enabled) 1f else 0.6f)
+    val strokeColor = Color(0x33FFFFFF)
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(pillHeight)
             .clip(RoundedCornerShape(pillRadius))
-            .background(pillColor)
-            .alpha(if (enabled) 1f else 0.5f)
+            .background(background)
+            .border(1.dp, strokeColor, RoundedCornerShape(pillRadius))
             .clickable(enabled = enabled, onClick = onClick)
             .padding(
                 start = startPadding,
@@ -167,7 +172,7 @@ private fun SettingsDangerRow(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = colorResource(R.color.danger_red)
+            color = textColor
         )
     }
 }

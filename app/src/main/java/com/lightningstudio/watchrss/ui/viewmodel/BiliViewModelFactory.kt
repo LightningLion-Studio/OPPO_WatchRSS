@@ -32,7 +32,8 @@ class BiliViewModelFactory(
                 BiliListViewModel(savedStateHandle, repository)
             }
             modelClass.isAssignableFrom(BiliSettingsViewModel::class.java) -> {
-                BiliSettingsViewModel(repository)
+                val rss = rssRepository ?: throw IllegalStateException("Missing RssRepository")
+                BiliSettingsViewModel(repository, rss)
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         } as T

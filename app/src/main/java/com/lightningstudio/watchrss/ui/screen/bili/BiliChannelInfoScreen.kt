@@ -1,6 +1,7 @@
 package com.lightningstudio.watchrss.ui.screen.bili
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,12 +18,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.heytap.wearable.R as HeytapR
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ui.components.WatchSurface
@@ -105,6 +107,16 @@ fun BiliChannelInfoScreen(
 
             Spacer(modifier = Modifier.height(buttonSpacing))
 
+            ActionButton(
+                label = "设置",
+                enabled = true,
+                width = buttonWidth,
+                height = buttonHeight,
+                onClick = onOpenSettings
+            )
+
+            Spacer(modifier = Modifier.height(buttonSpacing))
+
             if (!isLoggedIn) {
                 ActionButton(
                     label = "登录",
@@ -143,16 +155,6 @@ fun BiliChannelInfoScreen(
                 height = buttonHeight,
                 onClick = onOpenFavorites
             )
-
-            Spacer(modifier = Modifier.height(buttonSpacing))
-
-            ActionButton(
-                label = "设置",
-                enabled = true,
-                width = buttonWidth,
-                height = buttonHeight,
-                onClick = onOpenSettings
-            )
         }
     }
 }
@@ -167,21 +169,24 @@ private fun ActionButton(
 ) {
     val pillColor = colorResource(R.color.watch_pill_background)
     val pillRadius = dimensionResource(HeytapR.dimen.hey_button_default_radius)
+    val background = if (enabled) pillColor else pillColor.copy(alpha = 0.7f)
+    val textColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.6f)
+    val strokeColor = Color(0x33FFFFFF)
 
     androidx.compose.foundation.layout.Box(
         modifier = Modifier
             .width(width)
             .height(height)
             .clip(RoundedCornerShape(pillRadius))
-            .background(pillColor)
-            .alpha(if (enabled) 1f else 0.5f)
+            .background(background)
+            .border(1.dp, strokeColor, RoundedCornerShape(pillRadius))
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = textColor
         )
     }
 }
