@@ -93,6 +93,10 @@ dependencies {
         exclude(group = "com.android.support", module = "support-v4")
     }
     implementation(libs.zxing.core)
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

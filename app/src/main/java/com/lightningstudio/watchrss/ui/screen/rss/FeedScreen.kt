@@ -369,7 +369,8 @@ private fun FeedItemEntry(
                     onClick = {
                         onCloseSwipe()
                         onFavoriteClick()
-                    }
+                    },
+                    iconRes = R.drawable.ic_action_favorite
                 )
                 SwipeActionButton(
                     text = "稍后再看",
@@ -377,7 +378,8 @@ private fun FeedItemEntry(
                     onClick = {
                         onCloseSwipe()
                         onWatchLaterClick()
-                    }
+                    },
+                    iconRes = R.drawable.ic_action_watch_later
                 )
             }
 

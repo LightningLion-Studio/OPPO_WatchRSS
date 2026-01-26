@@ -32,6 +32,7 @@ fun BiliChannelInfoScreen(
     isLoggedIn: Boolean,
     lastRefreshAt: Long?,
     onLoginClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onOpenWatchLater: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenFavorites: () -> Unit,
@@ -124,6 +125,16 @@ fun BiliChannelInfoScreen(
                 )
                 Spacer(modifier = Modifier.height(buttonSpacing))
             }
+
+            ActionButton(
+                label = "搜索",
+                enabled = isLoggedIn,
+                width = buttonWidth,
+                height = buttonHeight,
+                onClick = onSearchClick
+            )
+
+            Spacer(modifier = Modifier.height(buttonSpacing))
 
             ActionButton(
                 label = "稍后再看",

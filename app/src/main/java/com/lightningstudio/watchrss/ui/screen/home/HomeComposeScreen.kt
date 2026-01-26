@@ -1,5 +1,6 @@
 package com.lightningstudio.watchrss.ui.screen.home
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -30,6 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -313,7 +316,8 @@ private fun HomeChannelEntry(
                     onClick = {
                         onCloseSwipe()
                         onMoveTopClick()
-                    }
+                    },
+                    iconRes = R.drawable.ic_action_move_top
                 )
                 val isBuiltin = BuiltinChannelType.fromUrl(channel.url) != null
                 val canMarkRead = channel.unreadCount > 0 && !isBuiltin
@@ -326,7 +330,8 @@ private fun HomeChannelEntry(
                         if (canMarkRead) {
                             onMarkReadClick()
                         }
-                    }
+                    },
+                    iconRes = R.drawable.ic_action_mark_read
                 )
             }
 
@@ -376,11 +381,14 @@ private fun HomeSwipeActionButton(
     text: String,
     width: Dp,
     alpha: Float = 1f,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    @DrawableRes iconRes: Int? = null
 ) {
     val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
     val textSize = textSize(R.dimen.feed_card_action_text_size)
     val textPadding = dimensionResource(R.dimen.hey_distance_8dp)
+    val iconSize = dimensionResource(R.dimen.hey_distance_16dp)
+    val iconSpacing = dimensionResource(R.dimen.hey_distance_4dp)
 
     Box(
         modifier = Modifier
@@ -392,15 +400,36 @@ private fun HomeSwipeActionButton(
             .alpha(alpha),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = textSize,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = textPadding)
-        )
+        if (iconRes != null) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = textPadding)
+            ) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = text,
+                    tint = Color.White,
+                    modifier = Modifier.size(iconSize)
+                )
+                Spacer(modifier = Modifier.height(iconSpacing))
+                Text(
+                    text = text,
+                    color = Color.White,
+                    fontSize = textSize,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = textSize,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = textPadding)
+            )
+        }
     }
 }
 

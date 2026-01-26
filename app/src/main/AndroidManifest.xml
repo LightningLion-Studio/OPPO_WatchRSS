@@ -106,6 +106,10 @@
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity
+            android:name=".ProjectInfoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
             android:name=".BiliDetailActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
@@ -139,6 +143,18 @@
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity
             android:name=".BiliEntryActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".BiliCommentActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".BiliReplyDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".BiliSearchActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity

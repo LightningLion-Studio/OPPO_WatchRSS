@@ -72,6 +72,14 @@ class BiliDetailActivity : BaseHeytapActivity() {
                         } else {
                             showShareQr(context, item?.title, link)
                         }
+                    },
+                    onCommentClick = {
+                        val item = uiState.detail?.item
+                        val oid = item?.aid ?: 0L
+                        val uploaderMid = item?.owner?.mid ?: 0L
+                        context.startActivity(
+                            BiliCommentActivity.createIntent(context, oid, uploaderMid)
+                        )
                     }
                 )
             }

@@ -15,6 +15,7 @@ import com.lightningstudio.watchrss.BiliChannelInfoActivity
 import com.lightningstudio.watchrss.BiliDetailActivity
 import com.lightningstudio.watchrss.BiliLoginActivity
 import com.lightningstudio.watchrss.BiliListActivity
+import com.lightningstudio.watchrss.BiliSearchActivity
 import com.lightningstudio.watchrss.data.bili.BiliRepository
 import com.lightningstudio.watchrss.ui.viewmodel.BiliFeedViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliViewModelFactory
@@ -26,6 +27,14 @@ import com.lightningstudio.watchrss.data.rss.RssRepository
 
 object BiliRoutes {
     const val FEED = "bili_feed"
+    const val SEARCH = "bili_search"
+    const val SEARCH_RESULT = "bili_search_result/{keyword}"
+    const val COMMENT = "bili_comment/{oid}/{uploaderMid}"
+    const val REPLY_DETAIL = "bili_reply_detail/{oid}/{root}/{uploaderMid}"
+
+    fun searchResult(keyword: String) = "bili_search_result/$keyword"
+    fun comment(oid: Long, uploaderMid: Long) = "bili_comment/$oid/$uploaderMid"
+    fun replyDetail(oid: Long, root: Long, uploaderMid: Long) = "bili_reply_detail/$oid/$root/$uploaderMid"
 }
 
 @Composable
@@ -84,7 +93,37 @@ fun BiliEntryNavGraph(repository: BiliRepository, rssRepository: RssRepository) 
                     context.startActivity(
                         BiliDetailActivity.createIntent(context, item.aid, item.bvid, item.cid)
                     )
+                },
+                onSearchClick = {
+                    context.startActivity(BiliSearchActivity.createIntent(context))
                 }
+            )
+        }
+
+        composable(BiliRoutes.COMMENT) { backStackEntry ->
+            val oid = backStackEntry.arguments?.getString("oid")?.toLongOrNull() ?: 0L
+            val uploaderMid = backStackEntry.arguments?.getString("uploaderMid")?.toLongOrNull() ?: 0L
+            BiliCommentScreen(
+                oid = oid,
+                uploaderMid = uploaderMid,
+                factory = factory,
+                onNavigateBack = { navController.popBackStack() },
+                onReplyClick = { commentOid, root ->
+                    navController.navigate(BiliRoutes.replyDetail(commentOid, root, uploaderMid))
+                }
+            )
+        }
+
+        composable(BiliRoutes.REPLY_DETAIL) { backStackEntry ->
+            val oid = backStackEntry.arguments?.getString("oid")?.toLongOrNull() ?: 0L
+            val root = backStackEntry.arguments?.getString("root")?.toLongOrNull() ?: 0L
+            val uploaderMid = backStackEntry.arguments?.getString("uploaderMid")?.toLongOrNull() ?: 0L
+            BiliReplyDetailScreen(
+                oid = oid,
+                root = root,
+                uploaderMid = uploaderMid,
+                factory = factory,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

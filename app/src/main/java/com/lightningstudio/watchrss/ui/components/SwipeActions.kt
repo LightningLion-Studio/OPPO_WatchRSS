@@ -2,16 +2,22 @@ package com.lightningstudio.watchrss.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -37,11 +44,14 @@ import kotlin.math.roundToInt
 fun SwipeActionButton(
     text: String,
     width: Dp,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    @DrawableRes iconRes: Int? = null
 ) {
     val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
     val textSize = textSize(R.dimen.feed_card_action_text_size)
     val textPadding = dimensionResource(R.dimen.hey_distance_8dp)
+    val iconSize = dimensionResource(R.dimen.hey_distance_16dp)
+    val iconSpacing = dimensionResource(R.dimen.hey_distance_4dp)
 
     Box(
         modifier = Modifier
@@ -52,13 +62,34 @@ fun SwipeActionButton(
             .clickableWithoutRipple(onClick),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = textSize,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = textPadding)
-        )
+        if (iconRes != null) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = textPadding)
+            ) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = text,
+                    tint = Color.White,
+                    modifier = Modifier.size(iconSize)
+                )
+                Spacer(modifier = Modifier.height(iconSpacing))
+                Text(
+                    text = text,
+                    color = Color.White,
+                    fontSize = textSize,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            Text(
+                text = text,
+                color = Color.White,
+                fontSize = textSize,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = textPadding)
+            )
+        }
     }
 }
 

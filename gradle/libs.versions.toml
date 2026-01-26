@@ -1,5 +1,5 @@
 [versions]
-agp = "8.5.2"
+agp = "8.13.0"
 kotlin = "2.0.21"
 coreKtx = "1.10.1"
 coreSplashscreen = "1.0.1"
@@ -27,6 +27,8 @@ jsoup = "1.17.2"
 swipeReveal = "1.4.0"
 zxing = "3.5.2"
 metricsPerformance = "1.0.0-beta01"
+paging = "3.2.1"
+coil = "2.5.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -68,6 +70,10 @@ protobuf-javalite = { group = "com.google.protobuf", name = "protobuf-javalite",
 grpc-okhttp = { group = "io.grpc", name = "grpc-okhttp", version.ref = "grpc" }
 grpc-protobuf-lite = { group = "io.grpc", name = "grpc-protobuf-lite", version.ref = "grpc" }
 grpc-stub = { group = "io.grpc", name = "grpc-stub", version.ref = "grpc" }
+androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+coil-gif = { group = "io.coil-kt", name = "coil-gif", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

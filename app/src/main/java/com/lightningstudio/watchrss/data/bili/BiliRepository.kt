@@ -9,15 +9,19 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.lightningstudio.watchrss.debug.DebugLogBuffer
 import com.lightningstudio.watchrss.sdk.bili.BiliAccount
 import com.lightningstudio.watchrss.sdk.bili.BiliClient
+import com.lightningstudio.watchrss.sdk.bili.BiliCommentPage
+import com.lightningstudio.watchrss.sdk.bili.BiliCommentReplyPage
 import com.lightningstudio.watchrss.sdk.bili.BiliCookies
 import com.lightningstudio.watchrss.sdk.bili.BiliFavoriteFolder
 import com.lightningstudio.watchrss.sdk.bili.BiliFavoritePage
 import com.lightningstudio.watchrss.sdk.bili.BiliFeedPage
 import com.lightningstudio.watchrss.sdk.bili.BiliHistoryCursor
 import com.lightningstudio.watchrss.sdk.bili.BiliHistoryPage
+import com.lightningstudio.watchrss.sdk.bili.BiliHotSearchResponse
 import com.lightningstudio.watchrss.sdk.bili.BiliItem
 import com.lightningstudio.watchrss.sdk.bili.BiliPlayUrl
 import com.lightningstudio.watchrss.sdk.bili.BiliResult
+import com.lightningstudio.watchrss.sdk.bili.BiliSearchResponse
 import com.lightningstudio.watchrss.sdk.bili.BiliSdkConfig
 import com.lightningstudio.watchrss.sdk.bili.BiliToViewPage
 import com.lightningstudio.watchrss.sdk.bili.BiliVideoDetail
@@ -44,6 +48,7 @@ import kotlin.math.min
 
 private val FEED_CACHE_JSON = stringPreferencesKey("bili_feed_cache_json")
 private val FEED_CACHE_AT = longPreferencesKey("bili_feed_cache_at")
+private val SEARCH_HISTORY_JSON = stringPreferencesKey("bili_search_history")
 private const val FEED_CACHE_LIMIT = 50
 private const val PREVIEW_CACHE_QN = 32
 private const val PREVIEW_CACHE_MS = 30 * 60 * 1000L
@@ -193,6 +198,43 @@ class BiliRepository(
 
     suspend fun fetchFavoriteItems(mediaId: Long, pn: Int = 1, ps: Int = 20): BiliResult<BiliFavoritePage> =
         safeCall { client.favorite.listResources(mediaId = mediaId, pn = pn, ps = ps) }
+
+    // Search methods
+    suspend fun getHotSearch(): BiliResult<BiliHotSearchResponse> =
+        safeCall { client.search.getHotSearch() }
+
+    suspend fun searchAll(keyword: String, page: Int): BiliResult<BiliSearchResponse> =
+        safeCall { client.search.searchAll(keyword, page) }
+
+    suspend fun getSearchHistory(): List<String> = withContext(Dispatchers.IO) {
+        val raw = dataStore.data.first()[SEARCH_HISTORY_JSON].orEmpty()
+        if (raw.isBlank()) return@withContext emptyList()
+        parseSearchHistory(raw)
+    }
+
+    suspend fun addSearchHistory(keyword: String) {
+        val history = getSearchHistory().toMutableList()
+        history.remove(keyword)
+        history.add(0, keyword)
+        val trimmed = history.take(20)
+        val raw = buildSearchHistoryJson(trimmed)
+        dataStore.edit { preferences ->
+            preferences[SEARCH_HISTORY_JSON] = raw
+        }
+    }
+
+    suspend fun clearSearchHistory() {
+        dataStore.edit { preferences ->
+            preferences.remove(SEARCH_HISTORY_JSON)
+        }
+    }
+
+    // Comment methods
+    suspend fun getComments(oid: Long, next: Long = 0): BiliResult<BiliCommentPage> =
+        safeCall { client.comment.getComments(oid, next) }
+
+    suspend fun getReplies(oid: Long, root: Long, pn: Int = 1): BiliResult<BiliCommentReplyPage> =
+        safeCall { client.comment.getReplies(oid, root, pn) }
 
     suspend fun buildPlayHeaders(): Map<String, String> {
         val account = accountStore.read()
@@ -499,5 +541,25 @@ class BiliRepository(
         } catch (error: Exception) {
             QrPollResult(QrPollStatus.ERROR, BiliErrorCodes.REQUEST_FAILED, errorMessage(error))
         }
+    }
+
+    private fun buildSearchHistoryJson(history: List<String>): String {
+        val array = JSONArray()
+        history.forEach { array.put(it) }
+        return array.toString()
+    }
+
+    private fun parseSearchHistory(raw: String): List<String> {
+        return runCatching {
+            val array = JSONArray(raw)
+            val list = mutableListOf<String>()
+            for (index in 0 until array.length()) {
+                val keyword = array.optString(index, "")
+                if (keyword.isNotBlank()) {
+                    list.add(keyword)
+                }
+            }
+            list
+        }.getOrDefault(emptyList())
     }
 }

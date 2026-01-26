@@ -67,7 +67,8 @@ fun BiliFeedScreen(
     onOpenFavorites: () -> Unit,
     onFavoriteClick: (BiliItem) -> Unit,
     onWatchLaterClick: (BiliItem) -> Unit,
-    onItemClick: (BiliItem) -> Unit
+    onItemClick: (BiliItem) -> Unit,
+    onSearchClick: () -> Unit = {}
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val itemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
@@ -260,6 +261,10 @@ fun BiliFeedScreen(
                 menuOpen = false
                 onHeaderClick()
             },
+            onSearchClick = {
+                menuOpen = false
+                onSearchClick()
+            },
             onOpenWatchLater = {
                 menuOpen = false
                 onOpenWatchLater()
@@ -333,7 +338,8 @@ private fun BiliFeedItemEntry(
                     onClick = {
                         onCloseSwipe()
                         onFavoriteClick()
-                    }
+                    },
+                    iconRes = R.drawable.ic_action_favorite
                 )
                 SwipeActionButton(
                     text = "稍后再看",
@@ -341,7 +347,8 @@ private fun BiliFeedItemEntry(
                     onClick = {
                         onCloseSwipe()
                         onWatchLaterClick()
-                    }
+                    },
+                    iconRes = R.drawable.ic_action_watch_later
                 )
             }
 
@@ -444,6 +451,7 @@ private fun BiliSideMenu(
     modifier: Modifier = Modifier,
     onLoginClick: () -> Unit,
     onHeaderClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onOpenWatchLater: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenFavorites: () -> Unit
@@ -474,6 +482,11 @@ private fun BiliSideMenu(
                 onClick = onLoginClick
             )
         }
+        BiliSideMenuItem(
+            label = "搜索",
+            enabled = isLoggedIn,
+            onClick = onSearchClick
+        )
         BiliSideMenuItem(
             label = "稍后再看",
             enabled = isLoggedIn,

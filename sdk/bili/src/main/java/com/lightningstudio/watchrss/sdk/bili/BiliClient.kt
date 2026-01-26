@@ -13,4 +13,6 @@ class BiliClient(
     val action: BiliAction = BiliAction(this)
     val history: BiliHistory = BiliHistory(this)
     val favorite: BiliFavorite = BiliFavorite(this)
+    val search: BiliSearch = BiliSearch(this)
+    val comment: BiliComment = BiliComment(this)
 }
