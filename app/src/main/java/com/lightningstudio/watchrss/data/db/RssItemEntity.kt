@@ -17,7 +17,8 @@ import androidx.room.PrimaryKey
     ],
     indices = [
         Index(value = ["channelId"]),
-        Index(value = ["channelId", "dedupKey"], unique = true)
+        Index(value = ["channelId", "dedupKey"], unique = true),
+        Index(value = ["channelId", "fetchedAt"])
     ]
 )
 data class RssItemEntity(
@@ -33,6 +34,8 @@ data class RssItemEntity(
     val imageUrl: String?,
     val audioUrl: String?,
     val videoUrl: String?,
+    val summary: String?,
+    val previewImageUrl: String?,
     val isRead: Boolean,
     val isLiked: Boolean,
     val readingProgress: Float,

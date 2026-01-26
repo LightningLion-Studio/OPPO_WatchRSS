@@ -194,11 +194,18 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
                 detailProgressIndicatorEnabled = viewModel.detailProgressIndicatorEnabled,
                 shareUseSystem = viewModel.shareUseSystem,
                 readingFontSizeSp = viewModel.readingFontSizeSp,
+                showPerformanceTools = com.lightningstudio.watchrss.BuildConfig.DEBUG,
                 onSelectCacheLimit = viewModel::updateCacheLimitMb,
                 onToggleReadingTheme = viewModel::toggleReadingTheme,
                 onToggleProgressIndicator = viewModel::toggleDetailProgressIndicator,
                 onToggleShareMode = viewModel::toggleShareUseSystem,
-                onSelectFontSize = viewModel::updateReadingFontSizeSp
+                onSelectFontSize = viewModel::updateReadingFontSizeSp,
+                onOpenPerfLargeList = {
+                    context.startActivity(Intent(context, com.lightningstudio.watchrss.debug.PerfLargeListActivity::class.java))
+                },
+                onOpenPerfLargeArticle = {
+                    context.startActivity(Intent(context, com.lightningstudio.watchrss.debug.PerfLargeArticleActivity::class.java))
+                }
             )
         }
     }

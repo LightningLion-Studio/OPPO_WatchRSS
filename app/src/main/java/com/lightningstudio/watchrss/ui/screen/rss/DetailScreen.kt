@@ -17,7 +17,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,10 +27,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -81,7 +81,6 @@ import com.lightningstudio.watchrss.data.rss.OfflineMedia
 import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
 import com.lightningstudio.watchrss.ui.util.ContentBlock
-import com.lightningstudio.watchrss.ui.util.RssContentParser
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
@@ -101,6 +100,7 @@ fun DetailScreen(
     val item by viewModel.item.collectAsState()
     val savedState by viewModel.savedState.collectAsState()
     val offlineMedia by viewModel.offlineMedia.collectAsState()
+    val contentBlocks by viewModel.contentBlocks.collectAsState()
     val readingThemeDark by viewModel.readingThemeDark.collectAsState()
     val readingFontSizeSp by viewModel.readingFontSizeSp.collectAsState()
     val progressIndicatorEnabled by viewModel.detailProgressIndicatorEnabled.collectAsState(initial = true)
@@ -111,6 +111,7 @@ fun DetailScreen(
 
     DetailContent(
         item = item,
+        contentBlocks = contentBlocks,
         offlineMedia = offlineMap,
         hasOfflineFailures = hasOfflineFailures,
         isFavorite = savedState.isFavorite,
@@ -127,8 +128,9 @@ fun DetailScreen(
 }
 
 @Composable
-private fun DetailContent(
+internal fun DetailContent(
     item: RssItem?,
+    contentBlocks: List<ContentBlock>,
     offlineMedia: Map<String, OfflineMedia>,
     hasOfflineFailures: Boolean,
     isFavorite: Boolean,
@@ -144,7 +146,7 @@ private fun DetailContent(
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
-    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val pagePadding = dimensionResource(R.dimen.detail_page_horizontal_padding)
     val blockSpacing = dimensionResource(R.dimen.detail_block_spacing)
@@ -162,8 +164,6 @@ private fun DetailContent(
     val textColor = if (readingThemeDark) Color.White else Color(0xFF111111)
     val activeColor = colorResource(R.color.oppo_orange)
     val normalIconColor = textColor
-
-    val contentBlocks = remember(item) { buildContentBlocks(item) }
 
     val maxImageWidthPx = remember(context) {
         val safePaddingPx = context.resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
@@ -198,45 +198,60 @@ private fun DetailContent(
 
     LaunchedEffect(readingFontSizeSp, readingThemeDark, offlineMedia) {
         if (item == null || !hasRestoredPosition) return@LaunchedEffect
-        pendingRestoreProgress = calculateReadingProgress(scrollState)
+        pendingRestoreProgress = calculateReadingProgress(listState)
         hasRestoredPosition = false
     }
 
-    LaunchedEffect(pendingRestoreProgress, scrollState.maxValue) {
+    LaunchedEffect(pendingRestoreProgress, listState.layoutInfo.totalItemsCount) {
         val progress = pendingRestoreProgress ?: return@LaunchedEffect
-        val maxValue = scrollState.maxValue
-        if (maxValue == 0) {
+        val totalItems = listState.layoutInfo.totalItemsCount
+        if (totalItems == 0) {
             if (progress <= 0f) {
                 pendingRestoreProgress = null
                 hasRestoredPosition = true
             }
             return@LaunchedEffect
         }
-        val target = (maxValue * progress).roundToInt().coerceAtLeast(0)
-        scrollState.scrollTo(target)
+        val target = ((totalItems - 1) * progress)
+            .roundToInt()
+            .coerceIn(0, totalItems - 1)
+        listState.scrollToItem(target)
         pendingRestoreProgress = null
         hasRestoredPosition = true
     }
 
-    LaunchedEffect(scrollState, density) {
+    LaunchedEffect(listState, density) {
         val thresholdPx = with(density) { 8.dp.toPx() }
-        snapshotFlow { scrollState.value to scrollState.maxValue }
-            .collectLatest { (value, maxValue) ->
-                ringProgress = if (maxValue == 0) 0f else value.toFloat() / maxValue.toFloat()
-                val readingProgress = if (maxValue == 0) 1f else value.toFloat() / maxValue.toFloat()
-                reachedBottom = maxValue - value <= thresholdPx
-                if (hasRestoredPositionState.value) {
-                    maybeSaveReadingProgress(
-                        readingProgress = readingProgress,
-                        force = false,
-                        lastSavedProgress = { lastSavedProgress },
-                        lastProgressSavedAt = { lastProgressSavedAt },
-                        updateLastSavedProgress = { lastSavedProgress = it },
-                        updateLastProgressSavedAt = { lastProgressSavedAt = it },
-                        onSave = onSaveReadingProgressState.value
-                    )
-                }
+        snapshotFlow {
+            Triple(
+                listState.firstVisibleItemIndex,
+                listState.firstVisibleItemScrollOffset,
+                listState.layoutInfo.totalItemsCount
+            )
+        }.collectLatest {
+            val readingProgress = calculateReadingProgress(listState)
+            ringProgress = readingProgress
+            val layoutInfo = listState.layoutInfo
+            val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()
+            reachedBottom = if (lastVisible == null) {
+                false
+            } else {
+                val bottom = lastVisible.offset + lastVisible.size
+                lastVisible.index >= layoutInfo.totalItemsCount - 1 &&
+                    bottom >= layoutInfo.viewportEndOffset - thresholdPx
             }
+            if (hasRestoredPositionState.value) {
+                maybeSaveReadingProgress(
+                    readingProgress = readingProgress,
+                    force = false,
+                    lastSavedProgress = { lastSavedProgress },
+                    lastProgressSavedAt = { lastProgressSavedAt },
+                    updateLastSavedProgress = { lastSavedProgress = it },
+                    updateLastProgressSavedAt = { lastProgressSavedAt = it },
+                    onSave = onSaveReadingProgressState.value
+                )
+            }
+        }
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -244,7 +259,7 @@ private fun DetailContent(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_PAUSE) {
                 maybeSaveReadingProgress(
-                    readingProgress = calculateReadingProgress(scrollState),
+                    readingProgress = calculateReadingProgress(listState),
                     force = true,
                     lastSavedProgress = { lastSavedProgress },
                     lastProgressSavedAt = { lastProgressSavedAt },
@@ -261,7 +276,7 @@ private fun DetailContent(
     }
 
     BackHandler {
-        val progress = calculateReadingProgress(scrollState)
+        val progress = calculateReadingProgress(listState)
         maybeSaveReadingProgress(
             readingProgress = progress,
             force = true,
@@ -279,68 +294,74 @@ private fun DetailContent(
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = pagePadding)
+        val bodyFontSize = adjustedTextSizeSp(
+            context = context,
+            density = density,
+            baseDimenRes = R.dimen.detail_body_text_size,
+            currentFontSizeSp = readingFontSizeSp
+        )
+        val link = item?.link?.trim().orEmpty()
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = PaddingValues(horizontal = pagePadding)
         ) {
-            Spacer(modifier = Modifier.height(safePadding + extraSafePadding))
-            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.hey_distance_4dp)))
-
-            DetailTitle(
-                title = item?.title ?: "加载中...",
-                titlePadding = titlePadding,
-                textColor = textColor
-            )
-
-            val link = item?.link?.trim().orEmpty()
-            if (link.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(blockSpacing))
-                DetailActionButton(
-                    text = "打开原文",
-                    fontSize = adjustedTextSizeSp(
-                        context = context,
-                        density = density,
-                        baseDimenRes = R.dimen.detail_body_text_size,
-                        currentFontSizeSp = readingFontSizeSp
-                    ),
-                    onClick = { openLinkInApp(context, link) }
+            item(key = "topSpacer") {
+                Spacer(modifier = Modifier.height(safePadding + extraSafePadding))
+            }
+            item(key = "titleGap") {
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.hey_distance_4dp)))
+            }
+            item(key = "title") {
+                DetailTitle(
+                    title = item?.title ?: "加载中...",
+                    titlePadding = titlePadding,
+                    textColor = textColor
                 )
+            }
+            if (link.isNotEmpty()) {
+                item(key = "linkAction") {
+                    Spacer(modifier = Modifier.height(blockSpacing))
+                    DetailActionButton(
+                        text = "打开原文",
+                        fontSize = bodyFontSize,
+                        onClick = { openLinkInApp(context, link) }
+                    )
+                }
             }
             if (hasOfflineFailures) {
-                Spacer(modifier = Modifier.height(blockSpacing))
-                DetailActionButton(
-                    text = "离线媒体下载失败，点此重试",
-                    fontSize = adjustedTextSizeSp(
-                        context = context,
-                        density = density,
-                        baseDimenRes = R.dimen.detail_body_text_size,
-                        currentFontSizeSp = readingFontSizeSp
-                    ),
-                    onClick = onRetryOfflineMedia
-                )
+                item(key = "offlineAction") {
+                    Spacer(modifier = Modifier.height(blockSpacing))
+                    DetailActionButton(
+                        text = "离线媒体下载失败，点此重试",
+                        fontSize = bodyFontSize,
+                        onClick = onRetryOfflineMedia
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(blockSpacing))
-
+            item(key = "contentGap") {
+                Spacer(modifier = Modifier.height(blockSpacing))
+            }
             if (item == null) {
-                // Keep layout consistent while content loads.
+                item(key = "loading") {
+                    // Keep layout consistent while content loads.
+                }
             } else if (contentBlocks.isEmpty()) {
-                DetailTextBlock(
-                    text = "暂无正文",
-                    style = ContentTextStyle.BODY,
-                    textColor = textColor,
-                    fontSizeSp = adjustedTextSizeSp(
-                        context = context,
-                        density = density,
-                        baseDimenRes = R.dimen.detail_body_text_size,
-                        currentFontSizeSp = readingFontSizeSp
-                    ),
-                    topPadding = 0.dp
-                )
+                item(key = "emptyContent") {
+                    DetailTextBlock(
+                        text = "暂无正文",
+                        style = ContentTextStyle.BODY,
+                        textColor = textColor,
+                        fontSizeSp = bodyFontSize,
+                        topPadding = 0.dp
+                    )
+                }
             } else {
-                contentBlocks.forEachIndexed { index, block ->
+                itemsIndexed(
+                    items = contentBlocks,
+                    key = { index, block -> "${block.hashCode()}_$index" }
+                ) { index, block ->
                     val topPadding = if (index == 0) 0.dp else blockSpacing
                     when (block) {
                         is ContentBlock.Text -> {
@@ -386,42 +407,45 @@ private fun DetailContent(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(actionSpacing))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CircleIconButton(
-                    iconRes = R.drawable.ic_action_favorite,
-                    contentDescription = "收藏",
-                    tint = if (isFavorite) activeColor else normalIconColor,
-                    size = iconSize,
-                    padding = iconPadding,
-                    onClick = onToggleFavorite
-                )
-                Spacer(modifier = Modifier.width(actionSpacing))
-                CircleIconButton(
-                    iconRes = R.drawable.ic_action_share,
-                    contentDescription = "分享",
-                    tint = normalIconColor,
-                    size = iconSize,
-                    padding = iconPadding,
-                    onClick = {
-                        val title = item?.title.orEmpty()
-                        val shareLink = item?.link?.trim().orEmpty().ifBlank { null }
-                        if (shareUseSystem) {
-                            shareCurrent(context, title, shareLink)
-                        } else {
-                            showShareQr(context, title, shareLink)
-                        }
-                    }
-                )
+            item(key = "actionSpacing") {
+                Spacer(modifier = Modifier.height(actionSpacing))
             }
-
-            Spacer(modifier = Modifier.height(safePadding + extraSafePadding))
+            item(key = "actions") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircleIconButton(
+                        iconRes = R.drawable.ic_action_favorite,
+                        contentDescription = "收藏",
+                        tint = if (isFavorite) activeColor else normalIconColor,
+                        size = iconSize,
+                        padding = iconPadding,
+                        onClick = onToggleFavorite
+                    )
+                    Spacer(modifier = Modifier.width(actionSpacing))
+                    CircleIconButton(
+                        iconRes = R.drawable.ic_action_share,
+                        contentDescription = "分享",
+                        tint = normalIconColor,
+                        size = iconSize,
+                        padding = iconPadding,
+                        onClick = {
+                            val title = item?.title.orEmpty()
+                            val shareLink = item?.link?.trim().orEmpty().ifBlank { null }
+                            if (shareUseSystem) {
+                                shareCurrent(context, title, shareLink)
+                            } else {
+                                showShareQr(context, title, shareLink)
+                            }
+                        }
+                    )
+                }
+            }
+            item(key = "bottomSpacer") {
+                Spacer(modifier = Modifier.height(safePadding + extraSafePadding))
+            }
         }
 
         if (progressIndicatorEnabled) {
@@ -752,33 +776,21 @@ private fun adjustedTextSizeSp(
     return with(density) { sizePx.toSp() }
 }
 
-private fun buildContentBlocks(item: RssItem?): List<ContentBlock> {
-    if (item == null) return emptyList()
-    val raw = item.content ?: item.description
-    val blocks = if (raw.isNullOrBlank()) {
-        mutableListOf()
-    } else {
-        RssContentParser.parse(raw).toMutableList()
-    }
-    val itemImage = item.imageUrl?.takeIf { it.isNotBlank() }
-    if (itemImage != null && blocks.none { it is ContentBlock.Image && it.url == itemImage }) {
-        blocks.add(ContentBlock.Image(itemImage, null))
-    }
-    val itemVideo = item.videoUrl?.takeIf { it.isNotBlank() }
-    if (itemVideo != null && blocks.none { it is ContentBlock.Video && it.url == itemVideo }) {
-        blocks.add(ContentBlock.Video(itemVideo, null))
-    }
-    return blocks
-}
-
 private fun resolveMediaUrl(url: String, offlineMedia: Map<String, OfflineMedia>): String {
     val local = offlineMedia[url]?.localPath
     return if (!local.isNullOrBlank()) local else url
 }
 
-private fun calculateReadingProgress(scrollState: androidx.compose.foundation.ScrollState): Float {
-    val maxValue = scrollState.maxValue
-    return if (maxValue == 0) 1f else scrollState.value.toFloat() / maxValue.toFloat()
+private fun calculateReadingProgress(listState: androidx.compose.foundation.lazy.LazyListState): Float {
+    val layoutInfo = listState.layoutInfo
+    val totalItems = layoutInfo.totalItemsCount
+    if (totalItems == 0) return 1f
+    val firstIndex = listState.firstVisibleItemIndex
+    val firstOffset = listState.firstVisibleItemScrollOffset
+    val firstSize = layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
+    val offsetProgress = if (firstSize > 0) firstOffset.toFloat() / firstSize.toFloat() else 0f
+    val rawProgress = (firstIndex + offsetProgress) / totalItems.toFloat()
+    return rawProgress.coerceIn(0f, 1f)
 }
 
 private fun maybeSaveReadingProgress(

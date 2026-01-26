@@ -145,6 +145,14 @@
             android:name=".DouyinEntryActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".debug.PerfLargeListActivity"
+            android:exported="true"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
+            android:name=".debug.PerfLargeArticleActivity"
+            android:exported="true"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
     </application>
 
 </manifest>

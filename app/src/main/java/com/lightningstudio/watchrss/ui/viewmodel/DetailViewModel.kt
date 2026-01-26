@@ -7,10 +7,17 @@ import com.lightningstudio.watchrss.data.rss.RssRepository
 import com.lightningstudio.watchrss.data.rss.SavedState
 import com.lightningstudio.watchrss.data.settings.SettingsRepository
 import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
+import com.lightningstudio.watchrss.ui.util.RssContentCache
+import com.lightningstudio.watchrss.ui.util.buildContentBlocks
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class DetailViewModel(
     savedStateHandle: SavedStateHandle,
     private val repository: RssRepository,
@@ -20,6 +27,20 @@ class DetailViewModel(
 
     val item = repository.observeItem(itemId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val contentBlocks = item
+        .mapLatest { current ->
+            if (current == null) return@mapLatest emptyList()
+            val raw = current.content ?: current.description
+            if (raw.isNullOrBlank()) return@mapLatest emptyList()
+            val contentHash = raw.hashCode()
+            withContext(Dispatchers.Default) {
+                RssContentCache.getOrPut(current.id, contentHash) {
+                    buildContentBlocks(current)
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val savedState = repository.observeSavedState(itemId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SavedState(false, false))

@@ -3,6 +3,10 @@ package com.lightningstudio.watchrss
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import android.content.Intent
+import com.lightningstudio.watchrss.BuildConfig
+import com.lightningstudio.watchrss.debug.PerfLargeArticleActivity
+import com.lightningstudio.watchrss.debug.PerfLargeListActivity
 import com.lightningstudio.watchrss.ui.screen.rss.SettingsScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
@@ -26,11 +30,18 @@ class SettingsActivity : BaseHeytapActivity() {
                     detailProgressIndicatorEnabled = viewModel.detailProgressIndicatorEnabled,
                     shareUseSystem = viewModel.shareUseSystem,
                     readingFontSizeSp = viewModel.readingFontSizeSp,
+                    showPerformanceTools = BuildConfig.DEBUG,
                     onSelectCacheLimit = viewModel::updateCacheLimitMb,
                     onToggleReadingTheme = viewModel::toggleReadingTheme,
                     onToggleProgressIndicator = viewModel::toggleDetailProgressIndicator,
                     onToggleShareMode = viewModel::toggleShareUseSystem,
-                    onSelectFontSize = viewModel::updateReadingFontSizeSp
+                    onSelectFontSize = viewModel::updateReadingFontSizeSp,
+                    onOpenPerfLargeList = {
+                        startActivity(Intent(this, PerfLargeListActivity::class.java))
+                    },
+                    onOpenPerfLargeArticle = {
+                        startActivity(Intent(this, PerfLargeArticleActivity::class.java))
+                    }
                 )
             }
         }

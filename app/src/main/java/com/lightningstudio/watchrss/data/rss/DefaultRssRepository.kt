@@ -37,6 +37,7 @@ class DefaultRssRepository(
     private val offlineStore: RssOfflineStore
 ) : RssRepository {
     private val refreshJobs = ConcurrentHashMap<Long, Job>()
+    private val previewJobs: MutableSet<Long> = ConcurrentHashMap.newKeySet()
 
     override fun observeChannels(): Flow<List<RssChannel>> =
         combine(
@@ -57,19 +58,29 @@ class DefaultRssRepository(
             channel?.toModel(unreadCount)
         }
 
-    override fun observeItems(channelId: Long): Flow<List<RssItem>> =
-        itemDao.observeItems(channelId).map { items ->
+    override fun observeItemsPaged(channelId: Long, limit: Int): Flow<List<RssItem>> =
+        itemDao.observeItemsPaged(channelId, limit).map { items ->
+            schedulePreviewUpdates(items)
             items.map { it.toModel() }
         }
 
+    override fun observeItemCount(channelId: Long): Flow<Int> =
+        itemDao.observeItemCount(channelId)
+
     override fun observeItem(itemId: Long): Flow<RssItem?> =
-        itemDao.observeItem(itemId).map { it?.toModel() }
+        itemDao.observeItem(itemId).map { item ->
+            if (item != null) {
+                schedulePreviewUpdate(item)
+            }
+            item?.toModel()
+        }
 
     override fun observeCacheUsageBytes(): Flow<Long> =
         itemDao.observeTotalCacheBytes().map { it ?: 0L }
 
     override fun observeSavedItems(saveType: SaveType): Flow<List<SavedItem>> =
         savedEntryDao.observeSavedItems(saveType.name).map { items ->
+            schedulePreviewUpdates(items.map { it.item })
             items.map { it.toModel() }
         }
 
@@ -336,6 +347,8 @@ class DefaultRssRepository(
                                 imageUrl = entity.imageUrl,
                                 audioUrl = entity.audioUrl,
                                 videoUrl = entity.videoUrl,
+                                summary = entity.summary,
+                                previewImageUrl = entity.previewImageUrl,
                                 contentSizeBytes = entity.contentSizeBytes
                             )
                             updated += 1
@@ -416,6 +429,8 @@ class DefaultRssRepository(
                 imageUrl = entity.imageUrl,
                 audioUrl = entity.audioUrl,
                 videoUrl = entity.videoUrl,
+                summary = entity.summary,
+                previewImageUrl = entity.previewImageUrl,
                 contentSizeBytes = entity.contentSizeBytes
             )
             itemDao.getItemByDedupKey(channel.id, entity.dedupKey)?.id
@@ -491,6 +506,34 @@ class DefaultRssRepository(
             val limit = settingsRepository.cacheLimitBytes.first()
             enforceCacheLimit(limit)
         }
+    }
+
+    private fun schedulePreviewUpdates(items: List<RssItemEntity>) {
+        items.forEach { schedulePreviewUpdate(it) }
+    }
+
+    private fun schedulePreviewUpdate(item: RssItemEntity) {
+        if (!needsPreviewUpdate(item)) return
+        if (!previewJobs.add(item.id)) return
+        appScope.launch(Dispatchers.Default) {
+            try {
+                val preview = RssPreviewFormatter.buildPreview(
+                    description = item.description,
+                    content = item.content,
+                    imageUrl = item.imageUrl,
+                    link = item.link
+                )
+                itemDao.updatePreview(item.id, preview.summary, preview.previewImageUrl)
+            } finally {
+                previewJobs.remove(item.id)
+            }
+        }
+    }
+
+    private fun needsPreviewUpdate(item: RssItemEntity): Boolean {
+        val missingSummary = item.summary.isNullOrBlank()
+        val missingPreview = item.previewImageUrl.isNullOrBlank() && item.imageUrl.isNullOrBlank()
+        return missingSummary || missingPreview
     }
 
     private suspend fun enforceCacheLimit(limitBytes: Long) {
@@ -669,6 +712,8 @@ class DefaultRssRepository(
         imageUrl = imageUrl,
         audioUrl = audioUrl,
         videoUrl = videoUrl,
+        summary = summary,
+        previewImageUrl = previewImageUrl,
         isRead = isRead,
         isLiked = isLiked,
         readingProgress = readingProgress,

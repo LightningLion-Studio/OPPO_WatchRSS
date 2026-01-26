@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import com.heytap.wearable.support.util.HeyWidgetUtils
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.data.rss.SavedItem
-import com.lightningstudio.watchrss.ui.util.formatRssSummary
 import com.lightningstudio.watchrss.ui.util.formatTime
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -109,7 +108,7 @@ fun SavedItemsScreen(
 }
 
 private fun buildSavedSummary(savedItem: SavedItem): String {
-    val summary = formatRssSummary(savedItem.item.description) ?: "暂无摘要"
+    val summary = savedItem.item.summary ?: "暂无摘要"
     val meta = "${savedItem.channelTitle} · ${formatTime(savedItem.savedAt)}"
     return "$meta\n$summary"
 }

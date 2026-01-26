@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,12 +29,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -63,13 +60,11 @@ import androidx.core.content.res.ResourcesCompat
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.data.rss.RssChannel
 import com.lightningstudio.watchrss.data.rss.RssItem
-import com.lightningstudio.watchrss.data.rss.RssMediaExtractor
+import com.lightningstudio.watchrss.data.rss.RssUrlResolver
 import com.lightningstudio.watchrss.ui.components.PullRefreshBox
 import com.lightningstudio.watchrss.ui.components.SwipeActionButton
 import com.lightningstudio.watchrss.ui.components.SwipeActionRow
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
-import com.lightningstudio.watchrss.ui.util.formatRssSummary
-import kotlinx.coroutines.launch
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -94,10 +89,20 @@ fun FeedScreen(
     onWatchLaterClick: (RssItem) -> Unit,
     onBack: () -> Unit
 ) {
-    val entryList = buildFeedEntries(channel, items, isRefreshing, hasMore)
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val itemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+    val maxImageWidthPx = remember(context) {
+        val safePaddingPx = context.resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
+        (context.resources.displayMetrics.widthPixels - safePaddingPx * 2).coerceAtLeast(1)
+    }
+    val isAtTop by remember(listState) {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 &&
+                listState.firstVisibleItemScrollOffset == 0
+        }
+    }
 
     PullRefreshBox(
         isRefreshing = isRefreshing,
@@ -106,10 +111,7 @@ fun FeedScreen(
             .fillMaxSize()
             .background(Color.Black),
         indicatorPadding = safePadding,
-        isAtTop = {
-            listState.firstVisibleItemIndex == 0 &&
-                listState.firstVisibleItemScrollOffset == 0
-        }
+        isAtTop = { isAtTop }
     ) {
         LazyColumn(
             modifier = Modifier
@@ -119,69 +121,45 @@ fun FeedScreen(
             contentPadding = PaddingValues(bottom = itemSpacing),
             verticalArrangement = Arrangement.spacedBy(itemSpacing)
         ) {
-            items(entryList, key = { it.key }) { entry ->
-                when (entry) {
-                    is FeedEntry.Header -> {
-                        FeedHeader(
-                            title = entry.title,
-                            isRefreshing = entry.isRefreshing,
-                            onClick = onHeaderClick
-                        )
-                    }
-                    FeedEntry.Empty -> {
-                        FeedEmpty(
-                            onBack = onBack
-                        )
-                    }
-                    is FeedEntry.Actions -> {
-                        FeedActions(
-                            canLoadMore = entry.canLoadMore,
-                            onLoadMore = onLoadMore
-                        )
-                    }
-                    is FeedEntry.Item -> {
-                        FeedItemEntry(
-                            item = entry.item,
-                            openSwipeId = openSwipeId,
-                            onOpenSwipe = onOpenSwipe,
-                            onCloseSwipe = onCloseSwipe,
-                            draggingSwipeId = draggingSwipeId,
-                            onDragStart = onDragStart,
-                            onDragEnd = onDragEnd,
-                            onClick = { onItemClick(entry.item) },
-                            onLongClick = { onItemLongClick(entry.item) },
-                            onFavoriteClick = { onFavoriteClick(entry.item) },
-                            onWatchLaterClick = { onWatchLaterClick(entry.item) }
-                        )
-                    }
+            item(key = "header") {
+                FeedHeader(
+                    title = channel?.title ?: "RSS",
+                    isRefreshing = isRefreshing,
+                    onClick = onHeaderClick
+                )
+            }
+            if (items.isEmpty()) {
+                item(key = "empty") {
+                    FeedEmpty(
+                        onBack = onBack
+                    )
+                }
+            } else {
+                items(items, key = { it.id }) { item ->
+                    FeedItemEntry(
+                        item = item,
+                        maxImageWidthPx = maxImageWidthPx,
+                        openSwipeId = openSwipeId,
+                        onOpenSwipe = onOpenSwipe,
+                        onCloseSwipe = onCloseSwipe,
+                        draggingSwipeId = draggingSwipeId,
+                        onDragStart = onDragStart,
+                        onDragEnd = onDragEnd,
+                        onClick = { onItemClick(item) },
+                        onLongClick = { onItemLongClick(item) },
+                        onFavoriteClick = { onFavoriteClick(item) },
+                        onWatchLaterClick = { onWatchLaterClick(item) }
+                    )
+                }
+                item(key = "actions") {
+                    FeedActions(
+                        canLoadMore = hasMore,
+                        onLoadMore = onLoadMore
+                    )
                 }
             }
         }
     }
-}
-
-private sealed class FeedEntry(val key: String) {
-    data class Header(val title: String, val isRefreshing: Boolean) : FeedEntry("header")
-    data class Item(val item: RssItem) : FeedEntry("item_${item.id}")
-    data object Empty : FeedEntry("empty")
-    data class Actions(val canLoadMore: Boolean) : FeedEntry("actions")
-}
-
-private fun buildFeedEntries(
-    channel: RssChannel?,
-    items: List<RssItem>,
-    isRefreshing: Boolean,
-    hasMore: Boolean
-): List<FeedEntry> {
-    val entries = mutableListOf<FeedEntry>()
-    entries.add(FeedEntry.Header(channel?.title ?: "RSS", isRefreshing))
-    if (items.isEmpty()) {
-        entries.add(FeedEntry.Empty)
-    } else {
-        entries.addAll(items.map { FeedEntry.Item(it) })
-        entries.add(FeedEntry.Actions(hasMore))
-    }
-    return entries
 }
 
 @Composable
@@ -328,6 +306,7 @@ private fun FeedPillButton(
 @Composable
 private fun FeedItemEntry(
     item: RssItem,
+    maxImageWidthPx: Int,
     openSwipeId: Long?,
     onOpenSwipe: (Long) -> Unit,
     onCloseSwipe: () -> Unit,
@@ -346,8 +325,15 @@ private fun FeedItemEntry(
     }
     val revealGapPx = with(LocalDensity.current) { (actionPadding * 2).toPx() }
     var actionsWidthPx by remember { mutableStateOf(fallbackActionsWidthPx) }
+    var cardHeightPx by remember { mutableStateOf(0) }
+    val fallbackCardHeight = dimensionResource(R.dimen.feed_card_image_height)
+    val cardHeight = if (cardHeightPx > 0) {
+        with(LocalDensity.current) { cardHeightPx.toDp() }
+    } else {
+        fallbackCardHeight
+    }
     val pressState = rememberPressScaleState()
-    val thumbUrl = remember(item.id, item.imageUrl, item.description, item.link) {
+    val thumbUrl = remember(item.id, item.previewImageUrl, item.imageUrl, item.link) {
         resolveThumbUrl(item)
     }
 
@@ -365,12 +351,11 @@ private fun FeedItemEntry(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min)
         ) {
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .fillMaxHeight()
+                    .height(cardHeight)
                     .padding(horizontal = actionPadding)
                     .onSizeChanged { size ->
                         actionsWidthPx = size.width.toFloat()
@@ -400,6 +385,9 @@ private fun FeedItemEntry(
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(offsetModifier)
+                    .onSizeChanged { size ->
+                        cardHeightPx = size.height
+                    }
             ) {
                 Box(
                     modifier = Modifier
@@ -425,6 +413,7 @@ private fun FeedItemEntry(
                     FeedImageCard(
                         item = item,
                         thumbUrl = thumbUrl,
+                        maxImageWidthPx = maxImageWidthPx,
                         pressState = pressState,
                         modifier = Modifier.graphicsLayer(
                             scaleX = pressState.scale,
@@ -455,8 +444,8 @@ private fun FeedTextCard(
     val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
     val unreadSize = dimensionResource(R.dimen.hey_distance_8dp)
     val unreadMargin = dimensionResource(R.dimen.hey_distance_6dp)
-    val summary = remember(item.id, item.description) {
-        formatRssSummary(item.description) ?: "暂无摘要"
+    val summary = remember(item.id, item.summary) {
+        item.summary ?: "暂无摘要"
     }
 
     Box(
@@ -505,6 +494,7 @@ private fun FeedTextCard(
 private fun FeedImageCard(
     item: RssItem,
     thumbUrl: String,
+    maxImageWidthPx: Int,
     pressState: PressScaleState,
     modifier: Modifier,
     onClick: () -> Unit,
@@ -519,8 +509,8 @@ private fun FeedImageCard(
     val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
     val unreadSize = dimensionResource(R.dimen.hey_distance_8dp)
     val unreadMargin = dimensionResource(R.dimen.hey_distance_6dp)
-    val summary = remember(item.id, item.description) {
-        formatRssSummary(item.description) ?: "暂无摘要"
+    val summary = remember(item.id, item.summary) {
+        item.summary ?: "暂无摘要"
     }
     val overlay = remember {
         Brush.verticalGradient(
@@ -541,6 +531,7 @@ private fun FeedImageCard(
     ) {
         RssThumbnail(
             url = thumbUrl,
+            maxWidthPx = maxImageWidthPx,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(imageHeight)
@@ -588,10 +579,10 @@ private fun FeedImageCard(
 @Composable
 private fun RssThumbnail(
     url: String,
+    maxWidthPx: Int,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val maxWidthPx = remember(context) { context.resources.displayMetrics.widthPixels }
     val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, url, maxWidthPx) {
         value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
     }
@@ -659,55 +650,9 @@ private fun Modifier.clickableWithoutRipple(
 }
 
 private fun resolveThumbUrl(item: RssItem): String? {
-    val candidate = item.imageUrl?.takeIf { it.isNotBlank() }
-        ?: firstImageFromHtml(item.description)
-    return normalizeMediaUrl(candidate, item.link)
-}
-
-private fun firstImageFromHtml(html: String?): String? {
-    if (html.isNullOrBlank()) return null
-    val image = RssMediaExtractor.extractFromHtml(html)
-        .firstOrNull { it.type == com.lightningstudio.watchrss.data.rss.OfflineMediaType.IMAGE }
-    return image?.url
-}
-
-private fun normalizeMediaUrl(raw: String?, baseLink: String?): String? {
-    val trimmed = raw?.trim()?.ifEmpty { return null } ?: return null
-    if (trimmed.startsWith("data:", ignoreCase = true)) return null
-    val sanitized = trimmed.replace(" ", "%20")
-    if (sanitized.startsWith("//")) {
-        val scheme = baseLink?.let { runCatching { java.net.URI(it).scheme }.getOrNull() }
-            ?: "https"
-        return "$scheme:$sanitized"
-    }
-    if (sanitized.startsWith("http://") || sanitized.startsWith("https://") ||
-        sanitized.startsWith("file://") || sanitized.startsWith("/")
-    ) {
-        if (sanitized.startsWith("/") && !baseLink.isNullOrBlank()) {
-            return resolveRelativeUrl(baseLink, sanitized)
-        }
-        if (sanitized.startsWith("/") && baseLink.isNullOrBlank()) {
-            return if (java.io.File(sanitized).exists()) sanitized else null
-        }
-        return sanitized
-    }
-    if (!sanitized.contains("://")) {
-        if (sanitized.startsWith("www.", ignoreCase = true)) {
-            return "https://$sanitized"
-        }
-        if (!baseLink.isNullOrBlank()) {
-            return resolveRelativeUrl(baseLink, sanitized)
-        }
-    }
-    return null
-}
-
-private fun resolveRelativeUrl(baseLink: String, relative: String): String? {
-    return try {
-        java.net.URL(java.net.URL(baseLink), relative).toString()
-    } catch (e: Exception) {
-        null
-    }
+    val candidate = item.previewImageUrl?.takeIf { it.isNotBlank() }
+        ?: item.imageUrl?.takeIf { it.isNotBlank() }
+    return RssUrlResolver.resolveMediaUrl(candidate, item.link)
 }
 
 private fun formatTitleForWidthLimits(

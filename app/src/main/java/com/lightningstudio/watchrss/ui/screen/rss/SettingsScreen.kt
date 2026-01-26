@@ -45,11 +45,14 @@ fun SettingsScreen(
     detailProgressIndicatorEnabled: StateFlow<Boolean>,
     shareUseSystem: StateFlow<Boolean>,
     readingFontSizeSp: StateFlow<Int>,
+    showPerformanceTools: Boolean,
     onSelectCacheLimit: (Long) -> Unit,
     onToggleReadingTheme: () -> Unit,
     onToggleProgressIndicator: () -> Unit,
     onToggleShareMode: () -> Unit,
-    onSelectFontSize: (Int) -> Unit
+    onSelectFontSize: (Int) -> Unit,
+    onOpenPerfLargeList: () -> Unit,
+    onOpenPerfLargeArticle: () -> Unit
 ) {
     val cacheLimit by cacheLimitMb.collectAsState()
     val usage by cacheUsageMb.collectAsState()
@@ -176,6 +179,32 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = valueIndent, top = valueSpacing)
             )
+
+            if (showPerformanceTools) {
+                Spacer(modifier = Modifier.height(entrySpacing))
+                Text(
+                    text = "性能测试",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(start = valueIndent)
+                )
+                Spacer(modifier = Modifier.height(entrySpacing))
+                SettingsPillRow(label = "超大列表") {
+                    RoundIconButton(
+                        text = "进入",
+                        enabled = true,
+                        onClick = onOpenPerfLargeList
+                    )
+                }
+                Spacer(modifier = Modifier.height(entrySpacing))
+                SettingsPillRow(label = "超大文章") {
+                    RoundIconButton(
+                        text = "进入",
+                        enabled = true,
+                        onClick = onOpenPerfLargeArticle
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(pillHeight))
         }

@@ -5,7 +5,8 @@ import kotlinx.coroutines.flow.Flow
 interface RssRepository {
     fun observeChannels(): Flow<List<RssChannel>>
     fun observeChannel(channelId: Long): Flow<RssChannel?>
-    fun observeItems(channelId: Long): Flow<List<RssItem>>
+    fun observeItemsPaged(channelId: Long, limit: Int): Flow<List<RssItem>>
+    fun observeItemCount(channelId: Long): Flow<Int>
     fun observeItem(itemId: Long): Flow<RssItem?>
     fun observeCacheUsageBytes(): Flow<Long>
     fun observeSavedItems(saveType: SaveType): Flow<List<SavedItem>>

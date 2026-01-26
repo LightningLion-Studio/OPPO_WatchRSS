@@ -24,6 +24,8 @@ data class RssItem(
     val imageUrl: String?,
     val audioUrl: String?,
     val videoUrl: String?,
+    val summary: String?,
+    val previewImageUrl: String?,
     val isRead: Boolean,
     val isLiked: Boolean,
     val readingProgress: Float,

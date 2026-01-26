@@ -20,6 +20,8 @@ enum class TextStyle {
 }
 
 object RssContentParser {
+    private const val MAX_TEXT_BLOCK_CHARS = 240
+
     fun parse(raw: String): List<ContentBlock> {
         if (raw.isBlank()) {
             return emptyList()
@@ -32,7 +34,7 @@ object RssContentParser {
         doc.body().childNodes().forEach { node ->
             appendNode(node, blocks)
         }
-        return blocks
+        return splitLongTextBlocks(blocks)
     }
 
     private fun appendNode(node: Node, blocks: MutableList<ContentBlock>) {
@@ -150,5 +152,33 @@ object RssContentParser {
         if (trimmed.isNotEmpty()) {
             blocks.add(ContentBlock.Text(trimmed, style))
         }
+    }
+
+    private fun splitLongTextBlocks(blocks: List<ContentBlock>): List<ContentBlock> {
+        if (blocks.isEmpty()) return blocks
+        val result = mutableListOf<ContentBlock>()
+        blocks.forEach { block ->
+            if (block is ContentBlock.Text && block.text.length > MAX_TEXT_BLOCK_CHARS) {
+                result.addAll(splitTextBlock(block))
+            } else {
+                result.add(block)
+            }
+        }
+        return result
+    }
+
+    private fun splitTextBlock(block: ContentBlock.Text): List<ContentBlock.Text> {
+        val text = block.text
+        val result = mutableListOf<ContentBlock.Text>()
+        var start = 0
+        while (start < text.length) {
+            val end = (start + MAX_TEXT_BLOCK_CHARS).coerceAtMost(text.length)
+            val slice = text.substring(start, end).trim()
+            if (slice.isNotEmpty()) {
+                result.add(ContentBlock.Text(slice, block.style))
+            }
+            start = end
+        }
+        return result
     }
 }

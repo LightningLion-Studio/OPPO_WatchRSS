@@ -44,6 +44,12 @@ class RssParseService {
         val safeImage = item.image?.trim()?.ifEmpty { null }
         val safeAudio = item.audio?.trim()?.ifEmpty { null }
         val safeVideo = item.video?.trim()?.ifEmpty { null }
+        val preview = RssPreviewFormatter.buildPreview(
+            description = safeDescription,
+            content = safeContent,
+            imageUrl = safeImage,
+            link = safeLink
+        )
         val dedupKey = RssDedupKey.compute(safeGuid, safeLink, safeTitle)
 
         return RssItemEntity(
@@ -57,6 +63,8 @@ class RssParseService {
             imageUrl = safeImage,
             audioUrl = safeAudio,
             videoUrl = safeVideo,
+            summary = preview.summary,
+            previewImageUrl = preview.previewImageUrl,
             isRead = isRead,
             isLiked = false,
             readingProgress = 0f,
@@ -91,6 +99,12 @@ class RssParseService {
         val safeImage = item.imageUrl?.trim()?.ifEmpty { null }
         val safeAudio = item.audioUrl?.trim()?.ifEmpty { null }
         val safeVideo = item.videoUrl?.trim()?.ifEmpty { null }
+        val preview = RssPreviewFormatter.buildPreview(
+            description = safeDescription,
+            content = safeContent,
+            imageUrl = safeImage,
+            link = safeLink
+        )
         val dedupKey = RssDedupKey.compute(safeGuid, safeLink, safeTitle)
 
         return RssItemEntity(
@@ -104,6 +118,8 @@ class RssParseService {
             imageUrl = safeImage,
             audioUrl = safeAudio,
             videoUrl = safeVideo,
+            summary = preview.summary,
+            previewImageUrl = preview.previewImageUrl,
             isRead = isRead,
             isLiked = false,
             readingProgress = 0f,

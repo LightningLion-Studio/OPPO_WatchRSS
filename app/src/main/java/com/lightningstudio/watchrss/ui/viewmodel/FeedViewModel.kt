@@ -5,15 +5,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lightningstudio.watchrss.data.rss.RssRepository
 import com.lightningstudio.watchrss.data.rss.SavedState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class FeedViewModel(
     savedStateHandle: SavedStateHandle,
     private val repository: RssRepository
@@ -23,16 +26,19 @@ class FeedViewModel(
     val channel = repository.observeChannel(channelId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private val allItems = repository.observeItems(channelId)
-
     private val _visibleCount = MutableStateFlow(DEFAULT_PAGE_SIZE)
 
-    val items = combine(allItems, _visibleCount) { items, count ->
-        items.take(count)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val items = _visibleCount
+        .flatMapLatest { limit ->
+            repository.observeItemsPaged(channelId, limit)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val hasMore = combine(allItems, _visibleCount) { items, count ->
-        items.size > count
+    val hasMore = combine(
+        repository.observeItemCount(channelId),
+        _visibleCount
+    ) { totalCount, limit ->
+        totalCount > limit
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     private val _message = MutableStateFlow<String?>(null)

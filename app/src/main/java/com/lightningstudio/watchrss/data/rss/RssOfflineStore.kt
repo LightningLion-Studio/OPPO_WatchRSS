@@ -116,6 +116,8 @@ class RssOfflineStore(
         imageUrl = imageUrl,
         audioUrl = audioUrl,
         videoUrl = videoUrl,
+        summary = summary,
+        previewImageUrl = previewImageUrl,
         isRead = isRead,
         isLiked = isLiked,
         readingProgress = readingProgress,

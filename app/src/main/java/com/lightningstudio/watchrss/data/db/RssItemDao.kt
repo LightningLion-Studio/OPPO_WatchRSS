@@ -8,8 +8,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RssItemDao {
-    @Query("SELECT * FROM rss_items WHERE channelId = :channelId ORDER BY fetchedAt DESC, id DESC")
-    fun observeItems(channelId: Long): Flow<List<RssItemEntity>>
+    @Query(
+        """
+        SELECT * FROM rss_items
+        WHERE channelId = :channelId
+        ORDER BY fetchedAt DESC, id DESC
+        LIMIT :limit
+        """
+    )
+    fun observeItemsPaged(channelId: Long, limit: Int): Flow<List<RssItemEntity>>
 
     @Query("SELECT * FROM rss_items WHERE id = :id")
     fun observeItem(id: Long): Flow<RssItemEntity?>
@@ -43,6 +50,8 @@ interface RssItemDao {
             imageUrl = :imageUrl,
             audioUrl = :audioUrl,
             videoUrl = :videoUrl,
+            summary = :summary,
+            previewImageUrl = :previewImageUrl,
             contentSizeBytes = :contentSizeBytes
         WHERE channelId = :channelId AND dedupKey = :dedupKey
         """
@@ -55,8 +64,16 @@ interface RssItemDao {
         imageUrl: String?,
         audioUrl: String?,
         videoUrl: String?,
+        summary: String?,
+        previewImageUrl: String?,
         contentSizeBytes: Long
     )
+
+    @Query("UPDATE rss_items SET summary = :summary, previewImageUrl = :previewImageUrl WHERE id = :id")
+    suspend fun updatePreview(id: Long, summary: String?, previewImageUrl: String?)
+
+    @Query("SELECT COUNT(*) FROM rss_items WHERE channelId = :channelId")
+    fun observeItemCount(channelId: Long): Flow<Int>
 
     @Query("SELECT channelId, COUNT(*) as unreadCount FROM rss_items WHERE isRead = 0 GROUP BY channelId")
     fun observeUnreadCounts(): Flow<List<RssChannelUnreadCount>>

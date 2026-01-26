@@ -1,6 +1,7 @@
 package com.lightningstudio.watchrss
 
 import android.content.Context
+import android.os.Bundle
 import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
@@ -11,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.lightningstudio.watchrss.debug.PerformanceMonitor
 import com.lightningstudio.watchrss.ui.widget.WatchMaskLayout
 import kotlin.math.abs
 import kotlin.math.max
@@ -30,6 +32,11 @@ open class BaseHeytapActivity : ComponentActivity() {
     }
     private val maxSwipeOffPath by lazy {
         max(swipeSlop * 3f, resources.displayMetrics.density * 48f)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        PerformanceMonitor.attach(this)
     }
 
     override fun onResume() {
