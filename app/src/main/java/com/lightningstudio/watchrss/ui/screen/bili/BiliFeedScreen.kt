@@ -333,7 +333,8 @@ private fun BiliFeedItemEntry(
                     onClick = {
                         onCloseSwipe()
                         onFavoriteClick()
-                    }
+                    },
+                    iconRes = R.drawable.ic_action_favorite
                 )
                 SwipeActionButton(
                     text = "稍后再看",
@@ -341,7 +342,8 @@ private fun BiliFeedItemEntry(
                     onClick = {
                         onCloseSwipe()
                         onWatchLaterClick()
-                    }
+                    },
+                    iconRes = R.drawable.ic_action_watch_later
                 )
             }
 

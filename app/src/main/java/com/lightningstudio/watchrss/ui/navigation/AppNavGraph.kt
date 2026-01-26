@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -17,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import android.content.Intent
 import android.net.Uri
+import android.os.SystemClock
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.BiliEntryActivity
 import com.lightningstudio.watchrss.ChannelDetailActivity
@@ -54,6 +56,20 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
     val container = (context.applicationContext as WatchRssApplication).container
     val factory = remember(container) { AppViewModelFactory(container) }
 
+    // 导航节流：防止快速重复点击导致重复导航
+    var lastNavigationTime by remember { mutableLongStateOf(0L) }
+    val allowNavigation: () -> Boolean = remember {
+        {
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastNavigationTime < NAVIGATION_THROTTLE_MS) {
+                false
+            } else {
+                lastNavigationTime = now
+                true
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Routes.HOME,
@@ -67,9 +83,16 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
                 message = viewModel.message,
                 onRefreshAll = viewModel::refreshAll,
                 onMessageShown = viewModel::clearMessage,
-                onAddRss = { navController.navigate(Routes.ADD_RSS) },
-                onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                onAddRss = {
+                    if (!allowNavigation()) return@HomeScreen
+                    navController.navigate(Routes.ADD_RSS)
+                },
+                onOpenSettings = {
+                    if (!allowNavigation()) return@HomeScreen
+                    navController.navigate(Routes.SETTINGS)
+                },
                 onChannelClick = { channel ->
+                    if (!allowNavigation()) return@HomeScreen
                     when (BuiltinChannelType.fromUrl(channel.url)) {
                         BuiltinChannelType.BILI -> {
                             context.startActivity(android.content.Intent(context, BiliEntryActivity::class.java))
@@ -92,6 +115,7 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
                 onBack = { navController.popBackStack() },
                 onBackToInput = viewModel::backToInput,
                 onOpenExisting = { channel ->
+                    if (!allowNavigation()) return@AddRssScreen
                     when (BuiltinChannelType.fromUrl(channel.url)) {
                         BuiltinChannelType.BILI -> {
                             context.startActivity(android.content.Intent(context, BiliEntryActivity::class.java))
@@ -103,6 +127,7 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
                     }
                 },
                 onChannelAdded = { url, channelId ->
+                    if (!allowNavigation()) return@AddRssScreen
                     val builtin = BuiltinChannelType.fromUrl(url)
                         ?: BuiltinChannelType.fromHost(runCatching { Uri.parse(url).host }.getOrNull())
                     when (builtin) {
@@ -162,6 +187,7 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
                 onRefresh = viewModel::refresh,
                 onLoadMore = viewModel::loadMore,
                 onItemClick = { item ->
+                    if (!allowNavigation()) return@FeedScreen
                     navController.navigate(Routes.detail(item.id))
                 },
                 onItemLongClick = { item ->
@@ -203,3 +229,5 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
         }
     }
 }
+
+private const val NAVIGATION_THROTTLE_MS = 600L
