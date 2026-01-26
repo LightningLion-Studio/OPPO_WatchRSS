@@ -53,7 +53,8 @@ fun BiliDetailScreen(
     onLike: () -> Unit,
     onCoin: () -> Unit,
     onFavorite: () -> Unit,
-    onShare: () -> Unit
+    onShare: () -> Unit,
+    onCommentClick: () -> Unit
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val spacing = dimensionResource(R.dimen.hey_distance_6dp)
@@ -125,6 +126,12 @@ fun BiliDetailScreen(
                 item {
                     BiliDescriptionCard(text = detail?.desc.orEmpty())
                 }
+            }
+            item {
+                BiliSectionTitle(title = "评论")
+            }
+            item {
+                BiliCommentEntryCard(onClick = onCommentClick)
             }
             if (!uiState.message.isNullOrBlank()) {
                 item {
@@ -384,6 +391,29 @@ private fun BiliDescriptionCard(text: String) {
             text = text,
             color = Color.White,
             fontSize = textSize(R.dimen.hey_s_title)
+        )
+    }
+}
+
+@Composable
+private fun BiliCommentEntryCard(onClick: () -> Unit) {
+    val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
+    val padding = dimensionResource(R.dimen.hey_distance_6dp)
+    val background = colorResource(R.color.watch_card_background)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(radius))
+            .background(background)
+            .clickableWithoutRipple(onClick)
+            .padding(padding),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "查看评论",
+            color = Color.White,
+            fontSize = textSize(R.dimen.hey_s_title),
+            textAlign = TextAlign.Center
         )
     }
 }

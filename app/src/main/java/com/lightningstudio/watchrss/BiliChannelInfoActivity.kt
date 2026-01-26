@@ -60,6 +60,9 @@ class BiliChannelInfoActivity : BaseHeytapActivity() {
                     isLoggedIn = uiState.isLoggedIn,
                     lastRefreshAt = uiState.lastRefreshAt,
                     onLoginClick = { context.startActivity(BiliLoginActivity.createIntent(context)) },
+                    onSearchClick = {
+                        context.startActivity(BiliSearchActivity.createIntent(context))
+                    },
                     onOpenWatchLater = {
                         context.startActivity(BiliListActivity.createIntent(context, BiliListType.WATCH_LATER))
                     },
