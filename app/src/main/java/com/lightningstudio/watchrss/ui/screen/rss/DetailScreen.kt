@@ -38,12 +38,12 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -84,8 +84,12 @@ import com.lightningstudio.watchrss.ui.util.ContentBlock
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.abs
@@ -127,6 +131,7 @@ fun DetailScreen(
     )
 }
 
+@OptIn(FlowPreview::class)
 @Composable
 internal fun DetailContent(
     item: RssItem?,
@@ -173,10 +178,10 @@ internal fun DetailContent(
     var pendingRestoreProgress by remember { mutableStateOf<Float?>(null) }
     var hasRestoredPosition by remember { mutableStateOf(false) }
     var lastItemId by remember { mutableStateOf<Long?>(null) }
-    var reachedBottom by remember { mutableStateOf(false) }
-    var ringProgress by remember { mutableStateOf(0f) }
     var lastSavedProgress by remember { mutableStateOf(-1f) }
     var lastProgressSavedAt by remember { mutableStateOf(0L) }
+    val ringProgressState = remember { mutableFloatStateOf(0f) }
+    var isScrolling by remember { mutableStateOf(false) }
 
     val onSaveReadingProgressState = rememberUpdatedState(onSaveReadingProgress)
     val onBackState = rememberUpdatedState(onBack)
@@ -192,7 +197,6 @@ internal fun DetailContent(
             hasRestoredPosition = false
             lastSavedProgress = -1f
             lastProgressSavedAt = 0L
-            reachedBottom = false
         }
     }
 
@@ -220,38 +224,37 @@ internal fun DetailContent(
         hasRestoredPosition = true
     }
 
-    LaunchedEffect(listState, density) {
-        val thresholdPx = with(density) { 8.dp.toPx() }
-        snapshotFlow {
-            Triple(
-                listState.firstVisibleItemIndex,
-                listState.firstVisibleItemScrollOffset,
-                listState.layoutInfo.totalItemsCount
-            )
-        }.collectLatest {
-            val readingProgress = calculateReadingProgress(listState)
-            ringProgress = readingProgress
-            val layoutInfo = listState.layoutInfo
-            val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()
-            reachedBottom = if (lastVisible == null) {
-                false
-            } else {
-                val bottom = lastVisible.offset + lastVisible.size
-                lastVisible.index >= layoutInfo.totalItemsCount - 1 &&
-                    bottom >= layoutInfo.viewportEndOffset - thresholdPx
+    LaunchedEffect(listState) {
+        snapshotFlow { calculateReadingProgress(listState) }
+            .distinctUntilChanged()
+            .sample(400)
+            .collectLatest { readingProgress ->
+                if (hasRestoredPositionState.value) {
+                    maybeSaveReadingProgress(
+                        readingProgress = readingProgress,
+                        force = false,
+                        lastSavedProgress = { lastSavedProgress },
+                        lastProgressSavedAt = { lastProgressSavedAt },
+                        updateLastSavedProgress = { lastSavedProgress = it },
+                        updateLastProgressSavedAt = { lastProgressSavedAt = it },
+                        onSave = onSaveReadingProgressState.value
+                    )
+                }
             }
-            if (hasRestoredPositionState.value) {
-                maybeSaveReadingProgress(
-                    readingProgress = readingProgress,
-                    force = false,
-                    lastSavedProgress = { lastSavedProgress },
-                    lastProgressSavedAt = { lastProgressSavedAt },
-                    updateLastSavedProgress = { lastSavedProgress = it },
-                    updateLastProgressSavedAt = { lastProgressSavedAt = it },
-                    onSave = onSaveReadingProgressState.value
-                )
+    }
+
+    LaunchedEffect(listState) {
+        ringProgressState.floatValue =
+            (calculateReadingProgress(listState) * 100f).roundToInt() / 100f
+        snapshotFlow { listState.isScrollInProgress }
+            .distinctUntilChanged()
+            .collectLatest { scrolling ->
+                isScrolling = scrolling
+                if (!scrolling) {
+                    ringProgressState.floatValue =
+                        (calculateReadingProgress(listState) * 100f).roundToInt() / 100f
+                }
             }
-        }
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -286,6 +289,8 @@ internal fun DetailContent(
             updateLastProgressSavedAt = { lastProgressSavedAt = it },
             onSave = onSaveReadingProgressState.value
         )
+        val thresholdPx = with(density) { 8.dp.toPx() }
+        val reachedBottom = isReachedBottom(listState, thresholdPx)
         onBackState.value(item?.id ?: 0L, reachedBottom, isWatchLaterState.value)
     }
 
@@ -294,12 +299,30 @@ internal fun DetailContent(
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        val bodyFontSize = adjustedTextSizeSp(
-            context = context,
-            density = density,
-            baseDimenRes = R.dimen.detail_body_text_size,
-            currentFontSizeSp = readingFontSizeSp
-        )
+        val bodyFontSize = remember(readingFontSizeSp, density, context) {
+            adjustedTextSizeSp(
+                context = context,
+                density = density,
+                baseDimenRes = R.dimen.detail_body_text_size,
+                currentFontSizeSp = readingFontSizeSp
+            )
+        }
+        val titleBlockFontSize = remember(readingFontSizeSp, density, context) {
+            adjustedTextSizeSp(
+                context = context,
+                density = density,
+                baseDimenRes = R.dimen.detail_title_text_size,
+                currentFontSizeSp = readingFontSizeSp
+            )
+        }
+        val subtitleBlockFontSize = remember(readingFontSizeSp, density, context) {
+            adjustedTextSizeSp(
+                context = context,
+                density = density,
+                baseDimenRes = R.dimen.detail_subtitle_text_size,
+                currentFontSizeSp = readingFontSizeSp
+            )
+        }
         val link = item?.link?.trim().orEmpty()
 
         LazyColumn(
@@ -360,27 +383,30 @@ internal fun DetailContent(
             } else {
                 itemsIndexed(
                     items = contentBlocks,
-                    key = { index, block -> "${block.hashCode()}_$index" }
+                    key = { index, _ -> index },
+                    contentType = { _, block ->
+                        when (block) {
+                            is ContentBlock.Text -> "text_${block.style}"
+                            is ContentBlock.Image -> "image"
+                            is ContentBlock.Video -> "video"
+                        }
+                    }
                 ) { index, block ->
                     val topPadding = if (index == 0) 0.dp else blockSpacing
                     when (block) {
                         is ContentBlock.Text -> {
+                            val blockFontSize = when (block.style) {
+                                ContentTextStyle.TITLE -> titleBlockFontSize
+                                ContentTextStyle.SUBTITLE -> subtitleBlockFontSize
+                                ContentTextStyle.QUOTE -> bodyFontSize
+                                ContentTextStyle.CODE -> bodyFontSize
+                                ContentTextStyle.BODY -> bodyFontSize
+                            }
                             DetailTextBlock(
                                 text = block.text,
                                 style = block.style,
                                 textColor = textColor,
-                                fontSizeSp = adjustedTextSizeSp(
-                                    context = context,
-                                    density = density,
-                                    baseDimenRes = when (block.style) {
-                                        ContentTextStyle.TITLE -> R.dimen.detail_title_text_size
-                                        ContentTextStyle.SUBTITLE -> R.dimen.detail_subtitle_text_size
-                                        ContentTextStyle.QUOTE -> R.dimen.detail_body_text_size
-                                        ContentTextStyle.CODE -> R.dimen.detail_body_text_size
-                                        ContentTextStyle.BODY -> R.dimen.detail_body_text_size
-                                    },
-                                    currentFontSizeSp = readingFontSizeSp
-                                ),
+                                fontSizeSp = blockFontSize,
                                 topPadding = topPadding
                             )
                         }
@@ -391,6 +417,7 @@ internal fun DetailContent(
                                 alt = block.alt,
                                 maxWidthPx = maxImageWidthPx,
                                 topPadding = topPadding,
+                                isScrolling = isScrolling,
                                 onClick = { openImagePreview(context, resolvedUrl, block.alt) }
                             )
                         }
@@ -401,6 +428,7 @@ internal fun DetailContent(
                                 videoUrl = resolvedUrl,
                                 maxWidthPx = maxImageWidthPx,
                                 topPadding = topPadding,
+                                isScrolling = isScrolling,
                                 onClick = { openRssVideo(context, resolvedUrl, block.url) }
                             )
                         }
@@ -449,8 +477,19 @@ internal fun DetailContent(
         }
 
         if (progressIndicatorEnabled) {
-            ProgressRing(progress = ringProgress)
+            ProgressRingOverlay(
+                isScrolling = isScrolling,
+                progress = ringProgressState.floatValue
+            )
         }
+    }
+}
+
+@OptIn(FlowPreview::class)
+@Composable
+private fun ProgressRingOverlay(isScrolling: Boolean, progress: Float) {
+    if (!isScrolling) {
+        ProgressRing(progress = progress)
     }
 }
 
@@ -567,13 +606,18 @@ private fun DetailImageBlock(
     alt: String?,
     maxWidthPx: Int,
     topPadding: Dp,
+    isScrolling: Boolean,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
-    val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, url, maxWidthPx) {
-        value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
+    val bitmapState = remember(url, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    LaunchedEffect(url, maxWidthPx, isScrolling) {
+        if (isScrolling) return@LaunchedEffect
+        delay(120)
+        if (isScrolling) return@LaunchedEffect
+        bitmapState.value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
     }
-    val safeBitmap = bitmap
+    val safeBitmap = bitmapState.value
     val ratio = safeBitmap?.let { it.width.toFloat() / it.height.toFloat() }?.takeIf { it > 0f }
     if (safeBitmap != null && ratio != null) {
         Image(
@@ -603,14 +647,20 @@ private fun DetailVideoBlock(
     videoUrl: String,
     maxWidthPx: Int,
     topPadding: Dp,
+    isScrolling: Boolean,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
-    val coverBitmap by produceState<android.graphics.Bitmap?>(initialValue = null, poster, videoUrl, maxWidthPx) {
-        value = if (!poster.isNullOrBlank()) {
-            RssImageLoader.loadBitmap(context, poster, maxWidthPx)
-        } else {
-            loadVideoFrame(context, videoUrl, maxWidthPx)
+    val coverState =
+        remember(poster, videoUrl, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    LaunchedEffect(poster, videoUrl, maxWidthPx, isScrolling) {
+        if (isScrolling) return@LaunchedEffect
+        delay(120)
+        if (isScrolling) return@LaunchedEffect
+        coverState.value = when {
+            !poster.isNullOrBlank() -> RssImageLoader.loadBitmap(context, poster, maxWidthPx)
+            isLocalMedia(videoUrl) -> loadVideoFrame(context, videoUrl, maxWidthPx)
+            else -> null
         }
     }
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
@@ -626,7 +676,7 @@ private fun DetailVideoBlock(
             .clickableWithoutRipple(onClick)
             .padding(padding)
     ) {
-        val safeCover = coverBitmap
+        val safeCover = coverState.value
         if (safeCover != null) {
             Image(
                 bitmap = safeCover.asImageBitmap(),
@@ -781,6 +831,10 @@ private fun resolveMediaUrl(url: String, offlineMedia: Map<String, OfflineMedia>
     return if (!local.isNullOrBlank()) local else url
 }
 
+private fun isLocalMedia(url: String): Boolean {
+    return url.startsWith("/") || url.startsWith("file://") || url.startsWith("content://")
+}
+
 private fun calculateReadingProgress(listState: androidx.compose.foundation.lazy.LazyListState): Float {
     val layoutInfo = listState.layoutInfo
     val totalItems = layoutInfo.totalItemsCount
@@ -791,6 +845,17 @@ private fun calculateReadingProgress(listState: androidx.compose.foundation.lazy
     val offsetProgress = if (firstSize > 0) firstOffset.toFloat() / firstSize.toFloat() else 0f
     val rawProgress = (firstIndex + offsetProgress) / totalItems.toFloat()
     return rawProgress.coerceIn(0f, 1f)
+}
+
+private fun isReachedBottom(
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    thresholdPx: Float
+): Boolean {
+    val layoutInfo = listState.layoutInfo
+    val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull() ?: return false
+    val bottom = lastVisible.offset + lastVisible.size
+    return lastVisible.index >= layoutInfo.totalItemsCount - 1 &&
+        bottom >= layoutInfo.viewportEndOffset - thresholdPx
 }
 
 private fun maybeSaveReadingProgress(
