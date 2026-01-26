@@ -22,35 +22,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import com.heytap.wearable.R as HeytapR
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ui.components.WatchSurface
-import com.lightningstudio.watchrss.ui.util.formatTime
 
 @Composable
-fun BiliChannelInfoScreen(
+fun BiliSettingsScreen(
     isLoggedIn: Boolean,
-    lastRefreshAt: Long?,
-    onLoginClick: () -> Unit,
-    onOpenWatchLater: () -> Unit,
-    onOpenHistory: () -> Unit,
-    onOpenFavorites: () -> Unit,
-    onOpenSettings: () -> Unit
+    onLogout: () -> Unit
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val titleSpacing = dimensionResource(HeytapR.dimen.hey_distance_6dp)
     val infoSpacing = dimensionResource(HeytapR.dimen.hey_distance_4dp)
-    val buttonSpacing = dimensionResource(HeytapR.dimen.hey_distance_4dp)
     val buttonWidth = dimensionResource(R.dimen.watch_action_button_width)
     val buttonHeight = dimensionResource(R.dimen.watch_action_button_height)
-    val description = if (isLoggedIn) {
-        "已登录，可查看推荐内容"
-    } else {
-        "未登录，登录后获取推荐内容"
-    }
-    val url = "https://www.bilibili.com"
-    val updatedText = lastRefreshAt?.let { formatTime(it) } ?: "--"
+    val statusText = if (isLoggedIn) "已登录" else "未登录"
 
     WatchSurface {
         Column(
@@ -61,97 +47,27 @@ fun BiliChannelInfoScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "哔哩哔哩",
+                text = "设置",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                textAlign = TextAlign.Center
             )
-
             Spacer(modifier = Modifier.height(titleSpacing))
             Text(
-                text = description,
+                text = statusText,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(infoSpacing))
-            Text(
-                text = url,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(infoSpacing))
-            Text(
-                text = "更新: $updatedText",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(infoSpacing))
-            Text(
-                text = "未读 0",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(buttonSpacing))
-
-            if (!isLoggedIn) {
-                ActionButton(
-                    label = "登录",
-                    enabled = true,
-                    width = buttonWidth,
-                    height = buttonHeight,
-                    onClick = onLoginClick
-                )
-                Spacer(modifier = Modifier.height(buttonSpacing))
-            }
-
             ActionButton(
-                label = "稍后再看",
+                label = "退出登录",
                 enabled = isLoggedIn,
                 width = buttonWidth,
                 height = buttonHeight,
-                onClick = onOpenWatchLater
-            )
-
-            Spacer(modifier = Modifier.height(buttonSpacing))
-
-            ActionButton(
-                label = "历史记录",
-                enabled = isLoggedIn,
-                width = buttonWidth,
-                height = buttonHeight,
-                onClick = onOpenHistory
-            )
-
-            Spacer(modifier = Modifier.height(buttonSpacing))
-
-            ActionButton(
-                label = "收藏夹",
-                enabled = isLoggedIn,
-                width = buttonWidth,
-                height = buttonHeight,
-                onClick = onOpenFavorites
-            )
-
-            Spacer(modifier = Modifier.height(buttonSpacing))
-
-            ActionButton(
-                label = "设置",
-                enabled = true,
-                width = buttonWidth,
-                height = buttonHeight,
-                onClick = onOpenSettings
+                onClick = onLogout
             )
         }
     }

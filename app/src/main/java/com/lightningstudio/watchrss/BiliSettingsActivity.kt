@@ -14,15 +14,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.heytap.wearable.support.widget.HeyToast
-import com.lightningstudio.watchrss.ui.screen.bili.BiliChannelInfoScreen
+import com.lightningstudio.watchrss.ui.screen.bili.BiliSettingsScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
-import com.lightningstudio.watchrss.ui.viewmodel.BiliFeedViewModel
-import com.lightningstudio.watchrss.ui.viewmodel.BiliListType
+import com.lightningstudio.watchrss.ui.viewmodel.BiliSettingsViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliViewModelFactory
 
-class BiliChannelInfoActivity : BaseHeytapActivity() {
+class BiliSettingsActivity : BaseHeytapActivity() {
     private val repository by lazy { (application as WatchRssApplication).container.biliRepository }
-    private val viewModel: BiliFeedViewModel by viewModels {
+    private val viewModel: BiliSettingsViewModel by viewModels {
         BiliViewModelFactory(repository)
     }
 
@@ -56,22 +55,9 @@ class BiliChannelInfoActivity : BaseHeytapActivity() {
                     }
                 }
 
-                BiliChannelInfoScreen(
+                BiliSettingsScreen(
                     isLoggedIn = uiState.isLoggedIn,
-                    lastRefreshAt = uiState.lastRefreshAt,
-                    onLoginClick = { context.startActivity(BiliLoginActivity.createIntent(context)) },
-                    onOpenWatchLater = {
-                        context.startActivity(BiliListActivity.createIntent(context, BiliListType.WATCH_LATER))
-                    },
-                    onOpenHistory = {
-                        context.startActivity(BiliListActivity.createIntent(context, BiliListType.HISTORY))
-                    },
-                    onOpenFavorites = {
-                        context.startActivity(BiliListActivity.createIntent(context, BiliListType.FAVORITE))
-                    },
-                    onOpenSettings = {
-                        context.startActivity(BiliSettingsActivity.createIntent(context))
-                    }
+                    onLogout = viewModel::logout
                 )
             }
         }
@@ -79,7 +65,7 @@ class BiliChannelInfoActivity : BaseHeytapActivity() {
 
     companion object {
         fun createIntent(context: Context): Intent {
-            return Intent(context, BiliChannelInfoActivity::class.java)
+            return Intent(context, BiliSettingsActivity::class.java)
         }
     }
 }

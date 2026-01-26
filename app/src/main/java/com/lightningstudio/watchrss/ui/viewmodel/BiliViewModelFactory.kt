@@ -31,6 +31,9 @@ class BiliViewModelFactory(
             modelClass.isAssignableFrom(BiliListViewModel::class.java) -> {
                 BiliListViewModel(savedStateHandle, repository)
             }
+            modelClass.isAssignableFrom(BiliSettingsViewModel::class.java) -> {
+                BiliSettingsViewModel(repository)
+            }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         } as T
     }

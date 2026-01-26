@@ -73,6 +73,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.R
+import com.lightningstudio.watchrss.ImagePreviewActivity
 import com.lightningstudio.watchrss.ShareQrActivity
 import com.lightningstudio.watchrss.RssPlayerActivity
 import com.lightningstudio.watchrss.WebViewActivity
@@ -363,11 +364,13 @@ private fun DetailContent(
                             )
                         }
                         is ContentBlock.Image -> {
+                            val resolvedUrl = resolveMediaUrl(block.url, offlineMedia)
                             DetailImageBlock(
-                                url = resolveMediaUrl(block.url, offlineMedia),
+                                url = resolvedUrl,
                                 alt = block.alt,
                                 maxWidthPx = maxImageWidthPx,
-                                topPadding = topPadding
+                                topPadding = topPadding,
+                                onClick = { openImagePreview(context, resolvedUrl, block.alt) }
                             )
                         }
                         is ContentBlock.Video -> {
@@ -539,7 +542,8 @@ private fun DetailImageBlock(
     url: String,
     alt: String?,
     maxWidthPx: Int,
-    topPadding: Dp
+    topPadding: Dp,
+    onClick: () -> Unit
 ) {
     val context = LocalContext.current
     val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, url, maxWidthPx) {
@@ -556,6 +560,7 @@ private fun DetailImageBlock(
                 .fillMaxWidth()
                 .padding(top = topPadding)
                 .aspectRatio(ratio)
+                .clickableWithoutRipple(onClick)
         )
     } else {
         Box(
@@ -836,6 +841,12 @@ private fun openExternalLink(context: Context, link: String) {
     val intent = Intent(Intent.ACTION_VIEW, uri)
     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     context.startActivity(intent)
+}
+
+private fun openImagePreview(context: Context, url: String, alt: String?) {
+    val trimmed = url.trim()
+    if (trimmed.isEmpty()) return
+    context.startActivity(ImagePreviewActivity.createIntent(context, trimmed, alt))
 }
 
 private fun openRssVideo(context: Context, playUrl: String, webUrl: String?) {

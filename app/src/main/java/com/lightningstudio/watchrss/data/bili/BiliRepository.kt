@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.lightningstudio.watchrss.debug.DebugLogBuffer
 import com.lightningstudio.watchrss.sdk.bili.BiliAccount
 import com.lightningstudio.watchrss.sdk.bili.BiliClient
 import com.lightningstudio.watchrss.sdk.bili.BiliCookies
@@ -77,6 +78,7 @@ class BiliRepository(
             return Result.failure(IllegalArgumentException("缺少有效 Cookie"))
         }
         client.auth.applyCookies(cookies)
+        debugLogAuth("cookie", "applied")
         return Result.success(Unit)
     }
 
@@ -84,11 +86,21 @@ class BiliRepository(
 
     suspend fun requestTvQrCode(): TvQrCode? = safeNullableCall { client.auth.requestTvQrCode() }
 
-    suspend fun pollWebQrCode(qrKey: String): QrPollResult =
-        safeQrPoll { client.auth.pollWebQrCode(qrKey) }
+    suspend fun pollWebQrCode(qrKey: String): QrPollResult {
+        val result = safeQrPoll { client.auth.pollWebQrCode(qrKey) }
+        if (result.status == QrPollStatus.SUCCESS) {
+            debugLogAuth("web_qr", "success")
+        }
+        return result
+    }
 
-    suspend fun pollTvQrCode(authCode: String): QrPollResult =
-        safeQrPoll { client.auth.pollTvQrCode(authCode) }
+    suspend fun pollTvQrCode(authCode: String): QrPollResult {
+        val result = safeQrPoll { client.auth.pollTvQrCode(authCode) }
+        if (result.status == QrPollStatus.SUCCESS) {
+            debugLogAuth("tv_qr", "success")
+        }
+        return result
+    }
 
     suspend fun fetchFeed(): BiliResult<BiliFeedPage> =
         safeCall { client.feed.fetchDefaultFeed() }
@@ -125,14 +137,37 @@ class BiliRepository(
         )
     }
 
-    suspend fun like(aid: Long, like: Boolean): BiliResult<Unit> =
-        safeCall { client.action.like(aid, like) }
+    suspend fun like(aid: Long, like: Boolean): BiliResult<Unit> {
+        debugLogAction("like", aid, "start", extra = "like=$like")
+        val result = safeCall { client.action.like(aid, like) }
+        debugLogAction("like", aid, "result", result = result)
+        return result
+    }
 
-    suspend fun coin(aid: Long, multiply: Int = 1, selectLike: Boolean = false): BiliResult<Boolean> =
-        safeCall { client.action.coin(aid, multiply, selectLike) }
+    suspend fun coin(aid: Long, multiply: Int = 1, selectLike: Boolean = false): BiliResult<Boolean> {
+        debugLogAction(
+            "coin",
+            aid,
+            "start",
+            extra = "multiply=$multiply selectLike=$selectLike"
+        )
+        val result = safeCall { client.action.coin(aid, multiply, selectLike) }
+        debugLogAction(
+            "coin",
+            aid,
+            "result",
+            extra = "likeResult=${result.data}",
+            result = result
+        )
+        return result
+    }
 
-    suspend fun triple(aid: Long): BiliResult<com.lightningstudio.watchrss.sdk.bili.BiliTripleResult> =
-        safeCall { client.action.triple(aid) }
+    suspend fun triple(aid: Long): BiliResult<com.lightningstudio.watchrss.sdk.bili.BiliTripleResult> {
+        debugLogAction("triple", aid, "start")
+        val result = safeCall { client.action.triple(aid) }
+        debugLogAction("triple", aid, "result", result = result)
+        return result
+    }
 
     suspend fun favorite(aid: Long, add: Boolean): BiliResult<Boolean> = safeCall {
         val folderId = defaultFavoriteFolderId()
@@ -387,6 +422,60 @@ class BiliRepository(
             else -> error.message ?: "请求失败"
         }
     }
+
+    private suspend fun debugLogAction(
+        action: String,
+        aid: Long,
+        phase: String,
+        extra: String? = null,
+        result: BiliResult<*>? = null
+    ) {
+        if (!DebugLogBuffer.isEnabled()) return
+        val flags = readDebugAccountFlags()
+        val mode = if (flags.hasAccessKey) "app" else "web"
+        val extraPart = if (extra.isNullOrBlank()) "" else " $extra"
+        val resultPart = result?.let { " code=${it.code} msg=${it.message}" }.orEmpty()
+        DebugLogBuffer.log(
+            "bili",
+            "action=$action phase=$phase mode=$mode aid=$aid accessKey=${flags.hasAccessKey} " +
+                "sess=${flags.hasSessdata} csrf=${flags.hasCsrf} buvid3=${flags.hasBuvid3} " +
+                "buvid4=${flags.hasBuvid4} ticket=${flags.hasTicket}$extraPart$resultPart"
+        )
+    }
+
+    private suspend fun debugLogAuth(source: String, phase: String) {
+        if (!DebugLogBuffer.isEnabled()) return
+        val flags = readDebugAccountFlags()
+        val mode = if (flags.hasAccessKey) "app" else "web"
+        DebugLogBuffer.log(
+            "bili",
+            "auth=$source phase=$phase mode=$mode accessKey=${flags.hasAccessKey} " +
+                "sess=${flags.hasSessdata} csrf=${flags.hasCsrf} buvid3=${flags.hasBuvid3} " +
+                "buvid4=${flags.hasBuvid4} ticket=${flags.hasTicket}"
+        )
+    }
+
+    private suspend fun readDebugAccountFlags(): DebugAccountFlags {
+        val account = accountStore.read()
+        val cookies = account?.cookies.orEmpty()
+        return DebugAccountFlags(
+            hasAccessKey = !account?.accessToken.isNullOrBlank(),
+            hasSessdata = !cookies["SESSDATA"].isNullOrBlank(),
+            hasCsrf = !cookies["bili_jct"].isNullOrBlank(),
+            hasBuvid3 = !cookies["buvid3"].isNullOrBlank() || !account?.buvid3.isNullOrBlank(),
+            hasBuvid4 = !cookies["buvid4"].isNullOrBlank() || !account?.buvid4.isNullOrBlank(),
+            hasTicket = !account?.biliTicket.isNullOrBlank()
+        )
+    }
+
+    private data class DebugAccountFlags(
+        val hasAccessKey: Boolean,
+        val hasSessdata: Boolean,
+        val hasCsrf: Boolean,
+        val hasBuvid3: Boolean,
+        val hasBuvid4: Boolean,
+        val hasTicket: Boolean
+    )
 
     private suspend fun <T> safeCall(block: suspend () -> BiliResult<T>): BiliResult<T> {
         return try {
