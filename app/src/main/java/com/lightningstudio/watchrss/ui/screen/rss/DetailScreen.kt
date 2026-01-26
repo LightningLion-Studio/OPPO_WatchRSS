@@ -285,9 +285,6 @@ internal fun DetailContent(
             .fillMaxSize()
             .background(backgroundColor)
     ) {
-        val readingProgress by remember(listState) {
-            derivedStateOf { calculateReadingProgress(listState) }
-        }
         val isScrolling by remember(listState) {
             derivedStateOf { listState.isScrollInProgress }
         }
@@ -513,9 +510,17 @@ internal fun DetailContent(
         }
 
         if (progressIndicatorEnabled) {
-            ProgressRing(progress = readingProgress)
+            ProgressRingOverlay(listState = listState)
         }
     }
+}
+
+@Composable
+private fun ProgressRingOverlay(listState: androidx.compose.foundation.lazy.LazyListState) {
+    val readingProgress by remember(listState) {
+        derivedStateOf { calculateReadingProgress(listState) }
+    }
+    ProgressRing(progress = readingProgress)
 }
 
 @Composable

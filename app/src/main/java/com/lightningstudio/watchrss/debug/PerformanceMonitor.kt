@@ -1,6 +1,11 @@
 package com.lightningstudio.watchrss.debug
 
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.FrameMetrics
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -8,11 +13,15 @@ import androidx.metrics.performance.FrameData
 import androidx.metrics.performance.JankStats
 import androidx.metrics.performance.PerformanceMetricsState
 import com.lightningstudio.watchrss.BuildConfig
+import com.lightningstudio.watchrss.DetailActivity
 import java.util.Collections
 import java.util.WeakHashMap
 
+private const val PERF_TAG = "perf"
+private const val FRAME_TAG = "frame"
+private const val FRAME_BUDGET_MS = 16f
+
 object PerformanceMonitor {
-    private const val TAG = "perf"
     private val statsMap = Collections.synchronizedMap(WeakHashMap<ComponentActivity, FrameStats>())
 
     fun attach(activity: ComponentActivity) {
@@ -26,19 +35,27 @@ object PerformanceMonitor {
         val jankStats = JankStats.createAndTrack(window) { frameData ->
             stats.onFrame(frameData)
         }
+        val frameLogger = if (activity is DetailActivity) {
+            FrameMetricsLogger(activity)
+        } else {
+            null
+        }
 
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onResume(owner: LifecycleOwner) {
                 jankStats.isTrackingEnabled = true
+                frameLogger?.start()
             }
 
             override fun onPause(owner: LifecycleOwner) {
                 jankStats.isTrackingEnabled = false
+                frameLogger?.stop()
                 logAndReset(stats)
             }
 
             override fun onDestroy(owner: LifecycleOwner) {
                 jankStats.isTrackingEnabled = false
+                frameLogger?.stop()
                 logAndReset(stats)
             }
         })
@@ -66,8 +83,58 @@ object PerformanceMonitor {
             append("avgMs=${"%.2f".format(avgMs)} ")
             append("maxMs=${"%.2f".format(maxMs)} ")
         }
-        DebugLogBuffer.log(TAG, message)
-        Log.d(TAG, message)
+        DebugLogBuffer.log(PERF_TAG, message)
+        Log.d(PERF_TAG, message)
+    }
+}
+
+private class FrameMetricsLogger(private val activity: ComponentActivity) {
+    private val handler = Handler(Looper.getMainLooper())
+    private var attached = false
+    private var frameIndex = 0L
+    private val listener = Window.OnFrameMetricsAvailableListener { _, frameMetrics, dropCount ->
+        frameIndex += 1
+        val totalMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.TOTAL_DURATION))
+        if (totalMs < FRAME_BUDGET_MS) return@OnFrameMetricsAvailableListener
+        val layoutMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.LAYOUT_MEASURE_DURATION))
+        val drawMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.DRAW_DURATION))
+        val syncMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.SYNC_DURATION))
+        val commandMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.COMMAND_ISSUE_DURATION))
+        val swapMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.SWAP_BUFFERS_DURATION))
+        val animMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.ANIMATION_DURATION))
+        val inputMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.INPUT_HANDLING_DURATION))
+        val gpuMs = nanosToMs(frameMetrics.getMetric(FrameMetrics.GPU_DURATION))
+        val message = buildString {
+            append("frame=").append(frameIndex).append(' ')
+            append("total=").append("%.2f".format(totalMs)).append("ms ")
+            append("layout=").append("%.2f".format(layoutMs)).append("ms ")
+            append("draw=").append("%.2f".format(drawMs)).append("ms ")
+            append("sync=").append("%.2f".format(syncMs)).append("ms ")
+            append("cmd=").append("%.2f".format(commandMs)).append("ms ")
+            append("swap=").append("%.2f".format(swapMs)).append("ms ")
+            append("anim=").append("%.2f".format(animMs)).append("ms ")
+            append("input=").append("%.2f".format(inputMs)).append("ms ")
+            append("gpu=").append("%.2f".format(gpuMs)).append("ms ")
+            append("drop=").append(dropCount)
+        }
+        DebugLogBuffer.log(FRAME_TAG, message)
+        Log.d(FRAME_TAG, message)
+    }
+
+    fun start() {
+        if (attached || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
+        activity.window.addOnFrameMetricsAvailableListener(listener, handler)
+        attached = true
+    }
+
+    fun stop() {
+        if (!attached || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return
+        activity.window.removeOnFrameMetricsAvailableListener(listener)
+        attached = false
+    }
+
+    private fun nanosToMs(value: Long): Float {
+        return if (value <= 0L) 0f else value / 1_000_000f
     }
 }
 
