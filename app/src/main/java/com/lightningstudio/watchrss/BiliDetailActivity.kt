@@ -47,8 +47,17 @@ class BiliDetailActivity : BaseHeytapActivity() {
                     onPlayClick = {
                         val cid = viewModel.selectedCid()
                         val item = uiState.detail?.item
+                        val page = viewModel.selectedPage()
                         context.startActivity(
-                            BiliPlayerActivity.createIntent(context, item?.aid, item?.bvid, cid)
+                            BiliPlayerActivity.createIntent(
+                                context = context,
+                                aid = item?.aid,
+                                bvid = item?.bvid,
+                                cid = cid,
+                                title = item?.title,
+                                owner = item?.owner?.name,
+                                pageTitle = page?.part
+                            )
                         )
                     },
                     onSelectPage = viewModel::selectPage,

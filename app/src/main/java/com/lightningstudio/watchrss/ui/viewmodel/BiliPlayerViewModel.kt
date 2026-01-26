@@ -15,7 +15,10 @@ data class BiliPlayerUiState(
     val isLoading: Boolean = true,
     val playUrl: String? = null,
     val headers: Map<String, String> = emptyMap(),
-    val message: String? = null
+    val message: String? = null,
+    val title: String? = null,
+    val owner: String? = null,
+    val pageTitle: String? = null
 )
 
 class BiliPlayerViewModel(
@@ -29,8 +32,18 @@ class BiliPlayerViewModel(
     private val bvid: String? = savedStateHandle.get<String>("bvid")?.takeIf { it.isNotBlank() }
     private val cid: Long? = savedStateHandle.get<String>("cid")?.toLongOrNull()
     private var resolvedCid: Long? = cid
+    private val titleArg: String? = savedStateHandle.get<String>("title")?.trim()?.takeIf { it.isNotBlank() }
+    private val ownerArg: String? = savedStateHandle.get<String>("owner")?.trim()?.takeIf { it.isNotBlank() }
+    private val pageTitleArg: String? = savedStateHandle.get<String>("pageTitle")?.trim()?.takeIf { it.isNotBlank() }
 
     init {
+        _uiState.update {
+            it.copy(
+                title = titleArg,
+                owner = ownerArg,
+                pageTitle = pageTitleArg
+            )
+        }
         loadPlayUrl()
     }
 
@@ -77,10 +90,26 @@ class BiliPlayerViewModel(
         val pageCid = detail.pages.firstOrNull()?.cid
         val fallbackCid = pageCid ?: detail.item.cid
         resolvedCid = fallbackCid
+        applyDetailMeta(detail, fallbackCid)
         return fallbackCid
     }
 
     fun clearMessage() {
         _uiState.update { it.copy(message = null) }
+    }
+
+    private fun applyDetailMeta(detail: com.lightningstudio.watchrss.sdk.bili.BiliVideoDetail, cid: Long?) {
+        val title = detail.item.title?.trim()?.takeIf { it.isNotBlank() }
+        val owner = detail.item.owner?.name?.trim()?.takeIf { it.isNotBlank() }
+        val pageTitle = cid?.let { targetCid ->
+            detail.pages.firstOrNull { it.cid == targetCid }?.part?.trim()?.takeIf { it.isNotBlank() }
+        }
+        _uiState.update { current ->
+            current.copy(
+                title = current.title ?: title,
+                owner = current.owner ?: owner,
+                pageTitle = current.pageTitle ?: pageTitle
+            )
+        }
     }
 }
