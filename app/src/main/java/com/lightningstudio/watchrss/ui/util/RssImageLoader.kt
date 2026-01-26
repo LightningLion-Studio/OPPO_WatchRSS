@@ -68,18 +68,13 @@ object RssImageLoader {
 
     fun preload(context: Context, url: String, scope: CoroutineScope, maxWidthPx: Int) {
         if (cache.get(url) != null) return
-        if (isLocalPath(url)) {
-            val bitmap = decodeLocalBitmap(url, maxWidthPx) ?: return
-            cache.put(url, bitmap)
-            return
-        }
-        val diskBitmap = decodeDiskBitmap(context, url, maxWidthPx)
-        if (diskBitmap != null) {
-            cache.put(url, diskBitmap)
-            return
-        }
         scope.launch(Dispatchers.IO) {
-            val bitmap = fetchBitmap(context, url, maxWidthPx)
+            if (cache.get(url) != null) return@launch
+            val bitmap = if (isLocalPath(url)) {
+                decodeLocalBitmap(url, maxWidthPx)
+            } else {
+                decodeDiskBitmap(context, url, maxWidthPx) ?: fetchBitmap(context, url, maxWidthPx)
+            }
             if (bitmap != null) {
                 cache.put(url, bitmap)
             }

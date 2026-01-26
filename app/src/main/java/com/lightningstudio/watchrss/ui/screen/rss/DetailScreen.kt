@@ -317,45 +317,45 @@ internal fun DetailContent(
             4 + (if (link.isNotEmpty()) 1 else 0) + (if (hasOfflineFailures) 1 else 0)
         }
         val prefetchedUrls = remember(contentBlocks, offlineMedia) { mutableSetOf<String>() }
+        val blockPrefetchTargets = remember(contentBlocks, offlineMedia) {
+            contentBlocks.map { block ->
+                buildPrefetchTargets(block, offlineMedia)
+            }
+        }
 
-        LaunchedEffect(listState, contentBlocks, offlineMedia, baseItemCount, maxImageWidthPx, isScrolling) {
-            if (isScrolling || contentBlocks.isEmpty()) return@LaunchedEffect
-            val maxIndex = contentBlocks.lastIndex
+        LaunchedEffect(listState, blockPrefetchTargets, baseItemCount, maxImageWidthPx) {
+            if (blockPrefetchTargets.isEmpty()) return@LaunchedEffect
+            val maxIndex = blockPrefetchTargets.lastIndex
             snapshotFlow {
                 listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: baseItemCount
-            }.distinctUntilChanged().collectLatest { lastIndex ->
-                var blockIndex = (lastIndex - baseItemCount + 1).coerceAtLeast(0)
-                var scanned = 0
-                var prefetched = 0
-                while (blockIndex <= maxIndex &&
-                    prefetched < PREFETCH_MEDIA_COUNT &&
-                    scanned < PREFETCH_SCAN_LIMIT
-                ) {
-                    val block = contentBlocks[blockIndex]
-                    val urls = mediaUrlsForBlock(block, offlineMedia)
-                    urls.forEach { url ->
-                        if (prefetched < PREFETCH_MEDIA_COUNT && prefetchedUrls.add(url)) {
-                            prefetched++
-                            RssImageLoader.preload(context, url, prefetchScope, maxImageWidthPx)
-                        }
-                    }
-                    if (prefetched < PREFETCH_MEDIA_COUNT &&
-                        block is ContentBlock.Video &&
-                        block.poster.isNullOrBlank()
-                    ) {
-                        val resolvedUrl = resolveMediaUrl(block.url, offlineMedia)
-                        if (isLocalMedia(resolvedUrl)) {
-                            val key = "video:$resolvedUrl@$maxImageWidthPx"
-                            if (prefetchedUrls.add(key)) {
-                                prefetched++
-                                loadCachedVideoFrame(context, resolvedUrl, maxImageWidthPx)
-                            }
-                        }
-                    }
-                    blockIndex++
-                    scanned++
-                }
             }
+                .distinctUntilChanged()
+                .sample(120)
+                .collectLatest { lastIndex ->
+                    val startIndex = (lastIndex - baseItemCount + 1).coerceAtLeast(0)
+                    val targets = withContext(Dispatchers.Default) {
+                        collectPrefetchTargets(
+                            blockPrefetchTargets = blockPrefetchTargets,
+                            startIndex = startIndex,
+                            maxIndex = maxIndex,
+                            maxTargets = PREFETCH_MEDIA_COUNT,
+                            scanLimit = PREFETCH_SCAN_LIMIT
+                        )
+                    }
+                    var prefetched = 0
+                    targets.forEach { target ->
+                        if (prefetched >= PREFETCH_MEDIA_COUNT) return@forEach
+                        val key = target.cacheKey(maxImageWidthPx)
+                        if (!prefetchedUrls.add(key)) return@forEach
+                        prefetched++
+                        when (target.type) {
+                            PrefetchType.Image ->
+                                RssImageLoader.preload(context, target.url, prefetchScope, maxImageWidthPx)
+                            PrefetchType.VideoFrame ->
+                                loadCachedVideoFrame(context, target.url, maxImageWidthPx)
+                        }
+                    }
+                }
         }
 
         LazyColumn(
@@ -879,18 +879,73 @@ private val videoFrameCache = object : LruCache<String, Bitmap>(VIDEO_FRAME_CACH
     override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
 }
 
-private fun mediaUrlsForBlock(
+private enum class PrefetchType {
+    Image,
+    VideoFrame
+}
+
+private data class PrefetchTarget(
+    val url: String,
+    val type: PrefetchType
+) {
+    fun cacheKey(maxWidthPx: Int): String {
+        return when (type) {
+            PrefetchType.Image -> url
+            PrefetchType.VideoFrame -> "video:$url@$maxWidthPx"
+        }
+    }
+}
+
+private fun buildPrefetchTargets(
     block: ContentBlock,
     offlineMedia: Map<String, OfflineMedia>
-): List<String> {
+): List<PrefetchTarget> {
     return when (block) {
-        is ContentBlock.Image -> listOf(resolveMediaUrl(block.url, offlineMedia))
+        is ContentBlock.Image -> {
+            val resolved = resolveMediaUrl(block.url, offlineMedia)
+            if (resolved.isBlank()) emptyList()
+            else listOf(PrefetchTarget(resolved, PrefetchType.Image))
+        }
         is ContentBlock.Video -> {
             val poster = block.poster?.trim().orEmpty()
-            if (poster.isBlank()) emptyList() else listOf(resolveMediaUrl(poster, offlineMedia))
+            if (poster.isNotBlank()) {
+                listOf(PrefetchTarget(resolveMediaUrl(poster, offlineMedia), PrefetchType.Image))
+            } else {
+                val resolved = resolveMediaUrl(block.url, offlineMedia)
+                if (isLocalMedia(resolved)) {
+                    listOf(PrefetchTarget(resolved, PrefetchType.VideoFrame))
+                } else {
+                    emptyList()
+                }
+            }
         }
         is ContentBlock.Text -> emptyList()
     }
+}
+
+private fun collectPrefetchTargets(
+    blockPrefetchTargets: List<List<PrefetchTarget>>,
+    startIndex: Int,
+    maxIndex: Int,
+    maxTargets: Int,
+    scanLimit: Int
+): List<PrefetchTarget> {
+    if (startIndex > maxIndex || blockPrefetchTargets.isEmpty()) return emptyList()
+    val result = ArrayList<PrefetchTarget>(maxTargets)
+    var blockIndex = startIndex
+    var scanned = 0
+    while (blockIndex <= maxIndex && result.size < maxTargets && scanned < scanLimit) {
+        val targets = blockPrefetchTargets[blockIndex]
+        if (targets.isNotEmpty()) {
+            for (target in targets) {
+                if (result.size >= maxTargets) break
+                result.add(target)
+            }
+        }
+        blockIndex++
+        scanned++
+    }
+    return result
 }
 
 private fun isLocalMedia(url: String): Boolean {
