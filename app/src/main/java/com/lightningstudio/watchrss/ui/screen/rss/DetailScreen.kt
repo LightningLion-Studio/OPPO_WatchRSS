@@ -578,6 +578,7 @@ internal fun DetailContent(
                         tint = if (isFavorite) activeColor else normalIconColor,
                         size = iconSize,
                         padding = iconPadding,
+                        enabled = !isScrolling,
                         onClick = onToggleFavorite
                     )
                     Spacer(modifier = Modifier.width(actionSpacing))
@@ -587,6 +588,7 @@ internal fun DetailContent(
                         tint = normalIconColor,
                         size = iconSize,
                         padding = iconPadding,
+                        enabled = !isScrolling,
                         onClick = {
                             val title = item?.title.orEmpty()
                             val shareLink = item?.link?.trim().orEmpty().ifBlank { null }
@@ -696,7 +698,7 @@ private fun DetailActionButton(
         modifier = Modifier
             .clip(shape)
             .background(colorResource(R.color.watch_card_background))
-            .clickableWithoutRipple(onClick)
+            .clickableWithoutRipple(onClick = onClick)
             .padding(padding)
     ) {
         Text(
@@ -790,7 +792,7 @@ private fun DetailImageBlock(
                 .fillMaxWidth()
                 .padding(top = topPadding)
                 .aspectRatio(ratio)
-                .clickableWithoutRipple(onClick)
+                .clickableWithoutRipple(enabled = !isScrolling, onClick = onClick)
                 .scrollSemanticsDisabled(isScrolling)
                 .debugTraceLayout("DetailImageBlock/layout")
                 .debugTraceDraw("DetailImageBlock/draw")
@@ -861,7 +863,7 @@ private fun DetailVideoBlock(
             .padding(top = topPadding)
             .clip(shape)
             .background(colorResource(R.color.watch_card_background))
-            .clickableWithoutRipple(onClick)
+            .clickableWithoutRipple(enabled = !isScrolling, onClick = onClick)
             .padding(padding)
             .scrollSemanticsDisabled(isScrolling)
             .debugTraceLayout("DetailVideoBlock/layout")
@@ -990,6 +992,7 @@ private fun CircleIconButton(
     tint: Color,
     size: Dp,
     padding: Dp,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Box(
@@ -997,7 +1000,7 @@ private fun CircleIconButton(
             .size(size)
             .clip(CircleShape)
             .background(Color(0xFF303030))
-            .clickableWithoutRipple(onClick),
+            .clickableWithoutRipple(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -1050,8 +1053,12 @@ private fun textSize(id: Int): TextUnit {
 }
 
 @Composable
-private fun Modifier.clickableWithoutRipple(onClick: () -> Unit): Modifier {
+private fun Modifier.clickableWithoutRipple(
+    enabled: Boolean = true,
+    onClick: () -> Unit
+): Modifier {
     return clickable(
+        enabled = enabled,
         interactionSource = remember { MutableInteractionSource() },
         indication = null,
         onClick = onClick
