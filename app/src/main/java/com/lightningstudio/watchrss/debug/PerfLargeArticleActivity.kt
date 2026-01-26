@@ -46,7 +46,6 @@ class PerfLargeArticleActivity : BaseHeytapActivity() {
                     isWatchLater = false,
                     readingThemeDark = true,
                     readingFontSizeSp = 18,
-                    progressIndicatorEnabled = true,
                     shareUseSystem = true,
                     onToggleFavorite = {},
                     onRetryOfflineMedia = {},

@@ -42,13 +42,11 @@ fun SettingsScreen(
     cacheLimitMb: StateFlow<Long>,
     cacheUsageMb: StateFlow<Long>,
     readingThemeDark: StateFlow<Boolean>,
-    detailProgressIndicatorEnabled: StateFlow<Boolean>,
     shareUseSystem: StateFlow<Boolean>,
     readingFontSizeSp: StateFlow<Int>,
     showPerformanceTools: Boolean,
     onSelectCacheLimit: (Long) -> Unit,
     onToggleReadingTheme: () -> Unit,
-    onToggleProgressIndicator: () -> Unit,
     onToggleShareMode: () -> Unit,
     onSelectFontSize: (Int) -> Unit,
     onOpenPerfLargeList: () -> Unit,
@@ -57,7 +55,6 @@ fun SettingsScreen(
     val cacheLimit by cacheLimitMb.collectAsState()
     val usage by cacheUsageMb.collectAsState()
     val themeDark by readingThemeDark.collectAsState()
-    val progressEnabled by detailProgressIndicatorEnabled.collectAsState()
     val useSystemShare by shareUseSystem.collectAsState()
     val fontSizeSp by readingFontSizeSp.collectAsState()
 
@@ -123,18 +120,6 @@ fun SettingsScreen(
             }
             Text(
                 text = if (themeDark) "深色" else "浅色",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = valueIndent, top = valueSpacing)
-            )
-
-            Spacer(modifier = Modifier.height(entrySpacing))
-
-            SettingsPillRow(label = "阅读进度条") {
-                Switch(checked = progressEnabled, onCheckedChange = { onToggleProgressIndicator() })
-            }
-            Text(
-                text = if (progressEnabled) "开启" else "关闭",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = valueIndent, top = valueSpacing)

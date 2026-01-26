@@ -18,7 +18,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -63,13 +62,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
@@ -87,7 +82,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.Lifecycle
@@ -105,7 +99,6 @@ import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
 import com.lightningstudio.watchrss.ui.util.ContentBlock
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
-import com.lightningstudio.watchrss.ui.widget.ProgressRingView
 import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.FlowPreview
@@ -135,7 +128,6 @@ fun DetailScreen(
     val contentBlocks by viewModel.contentBlocks.collectAsState()
     val readingThemeDark by viewModel.readingThemeDark.collectAsState()
     val readingFontSizeSp by viewModel.readingFontSizeSp.collectAsState()
-    val progressIndicatorEnabled by viewModel.detailProgressIndicatorEnabled.collectAsState(initial = true)
     val shareUseSystem by viewModel.shareUseSystem.collectAsState(initial = true)
 
     val hasOfflineFailures = remember(offlineMedia) { offlineMedia.any { it.localPath == null } }
@@ -150,7 +142,6 @@ fun DetailScreen(
         isWatchLater = savedState.isWatchLater,
         readingThemeDark = readingThemeDark,
         readingFontSizeSp = readingFontSizeSp,
-        progressIndicatorEnabled = progressIndicatorEnabled,
         shareUseSystem = shareUseSystem,
         onToggleFavorite = viewModel::toggleFavorite,
         onRetryOfflineMedia = viewModel::retryOfflineMedia,
@@ -170,7 +161,6 @@ internal fun DetailContent(
     isWatchLater: Boolean,
     readingThemeDark: Boolean,
     readingFontSizeSp: Int,
-    progressIndicatorEnabled: Boolean,
     shareUseSystem: Boolean,
     onToggleFavorite: () -> Unit,
     onRetryOfflineMedia: () -> Unit,
@@ -188,11 +178,7 @@ internal fun DetailContent(
     val actionSpacing = dimensionResource(R.dimen.hey_content_horizontal_distance)
     val iconSize = dimensionResource(R.dimen.hey_listitem_lefticon_height_width)
     val iconPadding = dimensionResource(R.dimen.hey_distance_6dp)
-    val extraSafePadding = if (progressIndicatorEnabled) {
-        with(density) { 16f.toDp() }
-    } else {
-        0.dp
-    }
+    val extraSafePadding = 0.dp
 
     val backgroundColor = if (readingThemeDark) Color.Black else Color.White
     val textColor = if (readingThemeDark) Color.White else Color(0xFF111111)
@@ -619,31 +605,6 @@ internal fun DetailContent(
             }
         }
 
-        if (progressIndicatorEnabled) {
-            ProgressRingOverlay(progressFlow = readingProgressFlow)
-        }
-    }
-}
-
-@Composable
-private fun ProgressRingOverlay(progressFlow: kotlinx.coroutines.flow.Flow<Float>) {
-    val context = LocalContext.current
-    var ringView by remember { mutableStateOf<ProgressRingView?>(null) }
-
-    AndroidView(
-        factory = { ProgressRingView(context).also { ringView = it } },
-        modifier = Modifier.fillMaxSize(),
-        update = { ringView = it }
-    )
-
-    LaunchedEffect(progressFlow, ringView) {
-        val view = ringView ?: return@LaunchedEffect
-        progressFlow
-            .map { (it.coerceIn(0f, 1f) * 100).toInt() }
-            .distinctUntilChanged()
-            .collectLatest { percent ->
-                view.setProgress(percent / 100f)
-            }
     }
 }
 
@@ -1165,51 +1126,6 @@ private fun CircleIconButton(
 }
 
 @Composable
-private fun ProgressRing(progress: Float) {
-    val strokeWidthPx = 12f
-    val baseColor = Color(0xFF202124)
-    val progressColor = Color(0xFF476CFF)
-
-    // 使用 Animatable 实现平滑动画
-    val animatedProgress = remember { Animatable(0f) }
-
-    LaunchedEffect(progress) {
-        animatedProgress.animateTo(
-            targetValue = progress,
-            animationSpec = tween(
-                durationMillis = 300,
-                easing = androidx.compose.animation.core.FastOutSlowInEasing
-            )
-        )
-    }
-
-    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-        val minSize = min(size.width, size.height)
-        if (minSize <= 0f) return@Canvas
-        val radius = minSize / 2f - strokeWidthPx / 2f
-        val center = Offset(x = size.width / 2f, y = size.height / 2f)
-        val topLeft = Offset(center.x - radius, center.y - radius)
-        val arcSize = Size(radius * 2f, radius * 2f)
-        drawCircle(
-            color = baseColor,
-            radius = radius,
-            center = center,
-            style = Stroke(width = strokeWidthPx)
-        )
-        if (animatedProgress.value <= 0f) return@Canvas
-        drawArc(
-            color = progressColor,
-            startAngle = -90f,
-            sweepAngle = animatedProgress.value.coerceIn(0f, 1f) * 360f,
-            useCenter = false,
-            topLeft = topLeft,
-            size = arcSize,
-            style = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
-        )
-    }
-}
-
-@Composable
 private fun textSize(id: Int): TextUnit {
     val density = LocalDensity.current
     return with(density) { dimensionResource(id).toSp() }
@@ -1341,11 +1257,18 @@ private fun calculateReadingProgress(listState: androidx.compose.foundation.lazy
         }
         return 1f
     }
+    if (layoutInfo.visibleItemsInfo.isNotEmpty() && !listState.canScrollForward) {
+        if (BuildConfig.DEBUG) {
+            Trace.endSection()
+        }
+        return 1f
+    }
     val firstIndex = listState.firstVisibleItemIndex
     val firstOffset = listState.firstVisibleItemScrollOffset
     val firstSize = layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0
     val offsetProgress = if (firstSize > 0) firstOffset.toFloat() / firstSize.toFloat() else 0f
-    val rawProgress = (firstIndex + offsetProgress) / totalItems.toFloat()
+    val denominator = (totalItems - 1).coerceAtLeast(1)
+    val rawProgress = (firstIndex + offsetProgress) / denominator.toFloat()
     val clamped = rawProgress.coerceIn(0f, 1f)
     if (BuildConfig.DEBUG) {
         Trace.endSection()

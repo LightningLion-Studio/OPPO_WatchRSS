@@ -27,13 +27,11 @@ class SettingsActivity : BaseHeytapActivity() {
                     cacheLimitMb = viewModel.cacheLimitMb,
                     cacheUsageMb = viewModel.cacheUsageMb,
                     readingThemeDark = viewModel.readingThemeDark,
-                    detailProgressIndicatorEnabled = viewModel.detailProgressIndicatorEnabled,
                     shareUseSystem = viewModel.shareUseSystem,
                     readingFontSizeSp = viewModel.readingFontSizeSp,
                     showPerformanceTools = BuildConfig.DEBUG,
                     onSelectCacheLimit = viewModel::updateCacheLimitMb,
                     onToggleReadingTheme = viewModel::toggleReadingTheme,
-                    onToggleProgressIndicator = viewModel::toggleDetailProgressIndicator,
                     onToggleShareMode = viewModel::toggleShareUseSystem,
                     onSelectFontSize = viewModel::updateReadingFontSizeSp,
                     onOpenPerfLargeList = {
