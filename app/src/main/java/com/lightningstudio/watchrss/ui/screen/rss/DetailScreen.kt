@@ -734,7 +734,7 @@ private fun DetailImageBlock(
     }
     val safeBitmap = bitmapState.value
     val ratio = safeBitmap?.let { it.width.toFloat() / it.height.toFloat() }?.takeIf { it > 0f }
-    if (safeBitmap != null && ratio != null && !isScrolling) {
+    if (safeBitmap != null && ratio != null) {
         Image(
             bitmap = safeBitmap.asImageBitmap(),
             contentDescription = alt,
@@ -805,7 +805,7 @@ private fun DetailVideoBlock(
             .debugTraceDraw("DetailVideoBlock/draw")
     ) {
         val safeCover = coverState.value
-        if (safeCover != null && !isScrolling) {
+        if (safeCover != null) {
             Image(
                 bitmap = safeCover.asImageBitmap(),
                 contentDescription = "视频封面",
