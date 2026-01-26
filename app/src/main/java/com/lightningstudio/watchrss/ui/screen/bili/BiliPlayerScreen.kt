@@ -98,6 +98,7 @@ fun BiliPlayerScreen(
     var playbackError by remember { mutableStateOf<String?>(null) }
     var isPrepared by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(false) }
+    var isBuffering by remember { mutableStateOf(false) }
     var durationMs by remember { mutableStateOf(0) }
     var positionMs by remember { mutableStateOf(0) }
     var isFullscreen by remember { mutableStateOf(false) }
@@ -219,9 +220,14 @@ fun BiliPlayerScreen(
     fun prepareMediaPlayer(surface: Surface, targetUrl: String) {
         val headers = uiState.headers ?: emptyMap()
         val player = mediaPlayerRef ?: MediaPlayer().also { mediaPlayerRef = it }
+        isPrepared = false
+        isPlaying = false
+        isBuffering = true
+        playbackError = null
         player.reset()
         player.setOnPreparedListener { mp ->
             isPrepared = true
+            isBuffering = false
             durationMs = mp.duration.coerceAtLeast(0)
             videoSize = IntSize(mp.videoWidth, mp.videoHeight)
             updateTextureTransform(
@@ -247,8 +253,17 @@ fun BiliPlayerScreen(
             )
         }
         player.setOnCompletionListener { isPlaying = false }
+        player.setOnInfoListener { _, what, _ ->
+            when (what) {
+                MediaPlayer.MEDIA_INFO_BUFFERING_START -> isBuffering = true
+                MediaPlayer.MEDIA_INFO_BUFFERING_END,
+                MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START -> isBuffering = false
+            }
+            false
+        }
         player.setOnErrorListener { _, _, _ ->
             playbackError = "播放失败"
+            isBuffering = false
             true
         }
         player.setSurface(surface)
@@ -257,6 +272,7 @@ fun BiliPlayerScreen(
             player.prepareAsync()
         } catch (e: Exception) {
             playbackError = "播放失败"
+            isBuffering = false
         }
     }
 
@@ -432,14 +448,16 @@ fun BiliPlayerScreen(
             )
         }
 
-        if (uiState.isLoading) {
+        val errorText = playbackError ?: uiState.message
+        val showLoading = uiState.isLoading ||
+            (!isPrepared && !uiState.playUrl.isNullOrBlank()) ||
+            isBuffering
+        if (showLoading && errorText.isNullOrBlank()) {
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
-
-        val errorText = playbackError ?: uiState.message
         if (!errorText.isNullOrBlank()) {
             Column(
                 modifier = Modifier

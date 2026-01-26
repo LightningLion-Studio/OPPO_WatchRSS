@@ -2,7 +2,9 @@ package com.lightningstudio.watchrss.ui.screen.rss
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Paint
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.SystemClock
 import android.text.TextPaint
@@ -72,6 +74,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ShareQrActivity
+import com.lightningstudio.watchrss.RssPlayerActivity
 import com.lightningstudio.watchrss.WebViewActivity
 import com.lightningstudio.watchrss.data.rss.OfflineMedia
 import com.lightningstudio.watchrss.data.rss.RssItem
@@ -81,7 +84,9 @@ import com.lightningstudio.watchrss.ui.util.RssContentParser
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.min
@@ -366,11 +371,13 @@ private fun DetailContent(
                             )
                         }
                         is ContentBlock.Video -> {
+                            val resolvedUrl = resolveMediaUrl(block.url, offlineMedia)
                             DetailVideoBlock(
                                 poster = block.poster?.let { resolveMediaUrl(it, offlineMedia) },
+                                videoUrl = resolvedUrl,
                                 maxWidthPx = maxImageWidthPx,
                                 topPadding = topPadding,
-                                onClick = { openExternalLink(context, resolveMediaUrl(block.url, offlineMedia)) }
+                                onClick = { openRssVideo(context, resolvedUrl, block.url) }
                             )
                         }
                     }
@@ -564,13 +571,18 @@ private fun DetailImageBlock(
 @Composable
 private fun DetailVideoBlock(
     poster: String?,
+    videoUrl: String,
     maxWidthPx: Int,
     topPadding: Dp,
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
-    val coverBitmap by produceState<android.graphics.Bitmap?>(initialValue = null, poster, maxWidthPx) {
-        value = if (poster.isNullOrBlank()) null else RssImageLoader.loadBitmap(context, poster, maxWidthPx)
+    val coverBitmap by produceState<android.graphics.Bitmap?>(initialValue = null, poster, videoUrl, maxWidthPx) {
+        value = if (!poster.isNullOrBlank()) {
+            RssImageLoader.loadBitmap(context, poster, maxWidthPx)
+        } else {
+            loadVideoFrame(context, videoUrl, maxWidthPx)
+        }
     }
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val padding = dimensionResource(R.dimen.hey_distance_6dp)
@@ -609,6 +621,37 @@ private fun DetailVideoBlock(
                 .align(Alignment.Center)
                 .size(dimensionResource(R.dimen.hey_listitem_widget_size))
         )
+    }
+}
+
+private suspend fun loadVideoFrame(
+    context: Context,
+    url: String,
+    maxWidthPx: Int
+): Bitmap? {
+    if (url.isBlank()) return null
+    return withContext(Dispatchers.IO) {
+        val retriever = MediaMetadataRetriever()
+        try {
+            when {
+                url.startsWith("file://") -> retriever.setDataSource(url.removePrefix("file://"))
+                url.startsWith("/") -> retriever.setDataSource(url)
+                url.startsWith("content://") -> retriever.setDataSource(context, Uri.parse(url))
+                else -> retriever.setDataSource(url, emptyMap())
+            }
+            val frame = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                ?: return@withContext null
+            if (maxWidthPx > 0 && frame.width > maxWidthPx) {
+                val height = (frame.height * (maxWidthPx.toFloat() / frame.width)).roundToInt().coerceAtLeast(1)
+                Bitmap.createScaledBitmap(frame, maxWidthPx, height, true)
+            } else {
+                frame
+            }
+        } catch (e: Exception) {
+            null
+        } finally {
+            retriever.release()
+        }
     }
 }
 
@@ -793,6 +836,12 @@ private fun openExternalLink(context: Context, link: String) {
     val intent = Intent(Intent.ACTION_VIEW, uri)
     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     context.startActivity(intent)
+}
+
+private fun openRssVideo(context: Context, playUrl: String, webUrl: String?) {
+    val trimmed = playUrl.trim()
+    if (trimmed.isEmpty()) return
+    context.startActivity(RssPlayerActivity.createIntent(context, trimmed, webUrl))
 }
 
 private fun formatTitleForWidthLimits(

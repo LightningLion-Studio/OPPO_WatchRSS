@@ -57,6 +57,7 @@ fun BiliDetailScreen(
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val spacing = dimensionResource(R.dimen.hey_distance_6dp)
+    val extraBottomPadding = 32.dp
     val listState = rememberLazyListState()
     val detail = uiState.detail
 
@@ -72,7 +73,7 @@ fun BiliDetailScreen(
                 .padding(horizontal = safePadding),
             contentPadding = PaddingValues(
                 top = safePadding,
-                bottom = safePadding + spacing
+                bottom = safePadding + spacing + extraBottomPadding
             ),
             verticalArrangement = Arrangement.spacedBy(spacing)
         ) {
@@ -92,11 +93,12 @@ fun BiliDetailScreen(
                 )
             }
             item {
-                BiliActionSection(
-                    isLiked = uiState.isLiked,
-                    isFavorited = uiState.isFavorited,
-                    onLike = onLike,
-                    onCoin = onCoin,
+    BiliActionSection(
+        isLiked = uiState.isLiked,
+        isCoined = uiState.isCoined,
+        isFavorited = uiState.isFavorited,
+        onLike = onLike,
+        onCoin = onCoin,
                     onFavorite = onFavorite,
                     onShare = onShare
                 )
@@ -276,6 +278,7 @@ private fun BiliStatChip(text: String) {
 @Composable
 private fun BiliActionSection(
     isLiked: Boolean,
+    isCoined: Boolean,
     isFavorited: Boolean,
     onLike: () -> Unit,
     onCoin: () -> Unit,
@@ -296,6 +299,8 @@ private fun BiliActionSection(
         BiliActionCircleButton(
             iconRes = R.drawable.ic_action_coin,
             contentDescription = "投币",
+            selected = isCoined,
+            enabled = !isCoined,
             onClick = onCoin
         )
         BiliActionCircleButton(
@@ -317,6 +322,7 @@ private fun BiliActionCircleButton(
     iconRes: Int,
     contentDescription: String,
     selected: Boolean = false,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     val accent = colorResource(R.color.oppo_orange)
@@ -328,7 +334,7 @@ private fun BiliActionCircleButton(
             .size(size)
             .clip(CircleShape)
             .background(background)
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = dimensionResource(R.dimen.hey_distance_2dp)),
         contentAlignment = Alignment.Center
     ) {

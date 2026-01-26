@@ -226,16 +226,6 @@ fun BiliFeedScreen(
                         )
                     }
             )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 6.dp)
-                    .width(10.dp)
-                    .height(64.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Color.White.copy(alpha = 0.2f))
-                    .clickableWithoutRipple { menuOpen = true }
-            )
         }
 
         BiliSideMenu(

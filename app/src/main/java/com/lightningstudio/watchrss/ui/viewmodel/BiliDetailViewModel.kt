@@ -27,6 +27,7 @@ data class BiliDetailUiState(
     val detail: BiliVideoDetail? = null,
     val selectedPageIndex: Int = 0,
     val isLiked: Boolean = false,
+    val isCoined: Boolean = false,
     val isFavorited: Boolean = false,
     val isWatchLater: Boolean = false,
     val message: String? = null
@@ -85,7 +86,7 @@ class BiliDetailViewModel(
         viewModelScope.launch {
             val result = repository.like(safeAid, like = !_uiState.value.isLiked)
             if (result.isSuccess) {
-                _uiState.update { it.copy(isLiked = !it.isLiked, message = "已更新点赞") }
+                _uiState.update { it.copy(isLiked = !it.isLiked, message = null) }
             } else {
                 _uiState.update { it.copy(message = formatBiliError(result.code)) }
             }
@@ -93,11 +94,18 @@ class BiliDetailViewModel(
     }
 
     fun coin() {
+        if (_uiState.value.isCoined) return
         val safeAid = aid ?: return
         viewModelScope.launch {
             val result = repository.coin(safeAid)
             if (result.isSuccess) {
-                _uiState.update { it.copy(message = if (result.data == true) "投币并点赞" else "投币成功") }
+                _uiState.update {
+                    it.copy(
+                        isCoined = true,
+                        isLiked = if (result.data == true) true else it.isLiked,
+                        message = null
+                    )
+                }
             } else {
                 _uiState.update { it.copy(message = formatBiliError(result.code)) }
             }

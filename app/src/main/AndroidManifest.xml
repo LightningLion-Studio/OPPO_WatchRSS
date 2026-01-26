@@ -126,6 +126,10 @@
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity
+            android:name=".RssPlayerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
             android:name=".BiliEntryActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
