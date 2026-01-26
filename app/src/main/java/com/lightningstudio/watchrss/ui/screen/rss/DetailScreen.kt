@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import android.os.SystemClock
 import android.os.Trace
 import android.text.TextPaint
@@ -57,6 +58,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -103,8 +105,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.abs
@@ -188,8 +192,9 @@ internal fun DetailContent(
     val prefetchScope = rememberCoroutineScope()
 
     val maxImageWidthPx = remember(context) {
-        val safePaddingPx = context.resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
-        (context.resources.displayMetrics.widthPixels - safePaddingPx * 2).coerceAtLeast(1)
+        val pagePaddingPx =
+            context.resources.getDimensionPixelSize(R.dimen.detail_page_horizontal_padding)
+        (context.resources.displayMetrics.widthPixels - pagePaddingPx * 2).coerceAtLeast(1)
     }
 
     var pendingRestoreProgress by remember { mutableStateOf<Float?>(null) }
@@ -202,6 +207,7 @@ internal fun DetailContent(
     val onBackState = rememberUpdatedState(onBack)
     val isWatchLaterState = rememberUpdatedState(isWatchLater)
     val hasRestoredPositionState = rememberUpdatedState(hasRestoredPosition)
+    val offlineMediaState = rememberUpdatedState(offlineMedia)
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(item?.id) {
@@ -215,7 +221,7 @@ internal fun DetailContent(
         }
     }
 
-    LaunchedEffect(readingFontSizeSp, readingThemeDark, offlineMedia) {
+    LaunchedEffect(readingFontSizeSp, readingThemeDark) {
         if (item == null || !hasRestoredPosition) return@LaunchedEffect
         pendingRestoreProgress = calculateReadingProgress(listState)
         hasRestoredPosition = false
@@ -349,10 +355,10 @@ internal fun DetailContent(
         val baseItemCount = remember(link, hasOfflineFailures) {
             4 + (if (link.isNotEmpty()) 1 else 0) + (if (hasOfflineFailures) 1 else 0)
         }
-        val prefetchedUrls = remember(contentBlocks, offlineMedia) { mutableSetOf<String>() }
-        val blockPrefetchTargets = remember(contentBlocks, offlineMedia) {
+        val prefetchedUrls = remember(item?.id) { mutableSetOf<String>() }
+        val blockPrefetchTargets = remember(contentBlocks) {
             contentBlocks.map { block ->
-                buildPrefetchTargets(block, offlineMedia)
+                buildPrefetchTargets(block)
             }
         }
 
@@ -373,11 +379,17 @@ internal fun DetailContent(
                 val key = target.cacheKey(maxImageWidthPx)
                 if (!prefetchedUrls.add(key)) return@forEach
                 prefetched++
+                val resolvedUrl = resolveMediaUrl(target.url, offlineMediaState.value)
                 when (target.type) {
                     PrefetchType.Image ->
-                        RssImageLoader.preload(context, target.url, prefetchScope, maxImageWidthPx)
-                    PrefetchType.VideoFrame ->
-                        loadCachedVideoFrame(context, target.url, maxImageWidthPx)
+                        if (resolvedUrl.isNotBlank()) {
+                            RssImageLoader.preload(context, resolvedUrl, prefetchScope, maxImageWidthPx)
+                        }
+                    PrefetchType.VideoFrame -> {
+                        if (isLocalMedia(resolvedUrl)) {
+                            loadCachedVideoFrame(context, resolvedUrl, maxImageWidthPx)
+                        }
+                    }
                 }
             }
         }
@@ -407,11 +419,22 @@ internal fun DetailContent(
                         val key = target.cacheKey(maxImageWidthPx)
                         if (!prefetchedUrls.add(key)) return@forEach
                         prefetched++
+                        val resolvedUrl = resolveMediaUrl(target.url, offlineMediaState.value)
                         when (target.type) {
                             PrefetchType.Image ->
-                                RssImageLoader.preload(context, target.url, prefetchScope, maxImageWidthPx)
-                            PrefetchType.VideoFrame ->
-                                loadCachedVideoFrame(context, target.url, maxImageWidthPx)
+                                if (resolvedUrl.isNotBlank()) {
+                                    RssImageLoader.preload(
+                                        context,
+                                        resolvedUrl,
+                                        prefetchScope,
+                                        maxImageWidthPx
+                                    )
+                                }
+                            PrefetchType.VideoFrame -> {
+                                if (isLocalMedia(resolvedUrl)) {
+                                    loadCachedVideoFrame(context, resolvedUrl, maxImageWidthPx)
+                                }
+                            }
                         }
                     }
                 }
@@ -480,7 +503,14 @@ internal fun DetailContent(
             } else {
                 itemsIndexed(
                     items = contentBlocks,
-                    key = { index, _ -> index },
+                    key = { index, block ->
+                        when (block) {
+                            is ContentBlock.Image -> "img:${block.url}"
+                            is ContentBlock.Video -> "vid:${block.url}:${block.poster.orEmpty()}"
+                            is ContentBlock.Text ->
+                                "txt:${block.style}:${block.text.hashCode()}:$index"
+                        }
+                    },
                     contentType = { _, block ->
                         when (block) {
                             is ContentBlock.Text -> "text_${block.style}"
@@ -593,7 +623,12 @@ private fun ProgressRingOverlay(progressFlow: kotlinx.coroutines.flow.Flow<Float
 
     LaunchedEffect(progressFlow, ringView) {
         val view = ringView ?: return@LaunchedEffect
-        progressFlow.collectLatest { progress -> view.setProgress(progress) }
+        progressFlow
+            .map { (it.coerceIn(0f, 1f) * 100).toInt() }
+            .distinctUntilChanged()
+            .collectLatest { percent ->
+                view.setProgress(percent / 100f)
+            }
     }
 }
 
@@ -730,16 +765,27 @@ private fun DetailImageBlock(
     val bitmapState = remember(url, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
     LaunchedEffect(url, maxWidthPx, isScrolling) {
         if (isScrolling) return@LaunchedEffect
-        bitmapState.value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
+        if (bitmapState.value != null) return@LaunchedEffect
+        if (url.isBlank()) return@LaunchedEffect
+        decodeSemaphore.acquire()
+        try {
+            if (bitmapState.value == null) {
+                bitmapState.value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
+            }
+        } finally {
+            decodeSemaphore.release()
+        }
     }
     val safeBitmap = bitmapState.value
+    val imageBitmap = remember(safeBitmap) { safeBitmap?.asImageBitmap() }
     val ratio = safeBitmap?.let { it.width.toFloat() / it.height.toFloat() }
         ?: RssImageLoader.getCachedAspectRatio(url)
-    if (safeBitmap != null && ratio != null) {
+    if (imageBitmap != null && ratio != null) {
         Image(
-            bitmap = safeBitmap.asImageBitmap(),
+            bitmap = imageBitmap,
             contentDescription = alt,
             contentScale = ContentScale.Fit,
+            filterQuality = FilterQuality.None,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = topPadding)
@@ -788,10 +834,19 @@ private fun DetailVideoBlock(
         remember(poster, videoUrl, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
     LaunchedEffect(poster, videoUrl, maxWidthPx, isScrolling) {
         if (isScrolling) return@LaunchedEffect
-        coverState.value = when {
-            !poster.isNullOrBlank() -> RssImageLoader.loadBitmap(context, poster, maxWidthPx)
-            isLocalMedia(videoUrl) -> loadCachedVideoFrame(context, videoUrl, maxWidthPx)
-            else -> null
+        if (coverState.value != null) return@LaunchedEffect
+        if (poster.isNullOrBlank() && !isLocalMedia(videoUrl)) return@LaunchedEffect
+        decodeSemaphore.acquire()
+        try {
+            if (coverState.value == null) {
+                coverState.value = when {
+                    !poster.isNullOrBlank() -> RssImageLoader.loadBitmap(context, poster, maxWidthPx)
+                    isLocalMedia(videoUrl) -> loadCachedVideoFrame(context, videoUrl, maxWidthPx)
+                    else -> null
+                }
+            }
+        } finally {
+            decodeSemaphore.release()
         }
     }
     val coverRatio = coverState.value?.let { it.width.toFloat() / it.height.toFloat() }
@@ -813,11 +868,13 @@ private fun DetailVideoBlock(
             .debugTraceDraw("DetailVideoBlock/draw")
     ) {
         val safeCover = coverState.value
-        if (safeCover != null) {
+        val coverBitmap = remember(safeCover) { safeCover?.asImageBitmap() }
+        if (coverBitmap != null) {
             Image(
-                bitmap = safeCover.asImageBitmap(),
+                bitmap = coverBitmap,
                 contentDescription = "视频封面",
                 contentScale = ContentScale.Crop,
+                filterQuality = FilterQuality.None,
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(
@@ -882,13 +939,41 @@ private suspend fun loadVideoFrame(
                 url.startsWith("content://") -> retriever.setDataSource(context, Uri.parse(url))
                 else -> retriever.setDataSource(url, emptyMap())
             }
-            val frame = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                ?: return@withContext null
-            if (maxWidthPx > 0 && frame.width > maxWidthPx) {
-                val height = (frame.height * (maxWidthPx.toFloat() / frame.width)).roundToInt().coerceAtLeast(1)
-                Bitmap.createScaledBitmap(frame, maxWidthPx, height, true)
-            } else {
-                frame
+            val dstWidth = maxWidthPx.coerceAtLeast(1)
+            val dstHeight = (maxWidthPx * 2).coerceAtLeast(1)
+            when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+                    val params = MediaMetadataRetriever.BitmapParams().apply {
+                        setPreferredConfig(Bitmap.Config.RGB_565)
+                    }
+                    retriever.getScaledFrameAtTime(
+                        0,
+                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                        dstWidth,
+                        dstHeight,
+                        params
+                    )
+                }
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 -> {
+                    retriever.getScaledFrameAtTime(
+                        0,
+                        MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                        dstWidth,
+                        dstHeight
+                    )
+                }
+                else -> {
+                    val frame = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                        ?: return@withContext null
+                    if (maxWidthPx > 0 && frame.width > maxWidthPx) {
+                        val height =
+                            (frame.height * (maxWidthPx.toFloat() / frame.width)).roundToInt()
+                                .coerceAtLeast(1)
+                        Bitmap.createScaledBitmap(frame, maxWidthPx, height, true)
+                    } else {
+                        frame
+                    }
+                }
             }
         } catch (e: Exception) {
             null
@@ -999,6 +1084,8 @@ private const val PREFETCH_MEDIA_COUNT = 8
 private const val PREFETCH_SCAN_LIMIT = 120
 private const val VIDEO_FRAME_CACHE_BYTES = 4 * 1024 * 1024
 
+private val decodeSemaphore = Semaphore(permits = 2)
+
 private val videoFrameCache = object : LruCache<String, Bitmap>(VIDEO_FRAME_CACHE_BYTES) {
     override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
 }
@@ -1021,26 +1108,22 @@ private data class PrefetchTarget(
 }
 
 private fun buildPrefetchTargets(
-    block: ContentBlock,
-    offlineMedia: Map<String, OfflineMedia>
+    block: ContentBlock
 ): List<PrefetchTarget> {
     return when (block) {
         is ContentBlock.Image -> {
-            val resolved = resolveMediaUrl(block.url, offlineMedia)
-            if (resolved.isBlank()) emptyList()
-            else listOf(PrefetchTarget(resolved, PrefetchType.Image))
+            val url = block.url.trim()
+            if (url.isBlank()) emptyList()
+            else listOf(PrefetchTarget(url, PrefetchType.Image))
         }
         is ContentBlock.Video -> {
             val poster = block.poster?.trim().orEmpty()
             if (poster.isNotBlank()) {
-                listOf(PrefetchTarget(resolveMediaUrl(poster, offlineMedia), PrefetchType.Image))
+                listOf(PrefetchTarget(poster, PrefetchType.Image))
             } else {
-                val resolved = resolveMediaUrl(block.url, offlineMedia)
-                if (isLocalMedia(resolved)) {
-                    listOf(PrefetchTarget(resolved, PrefetchType.VideoFrame))
-                } else {
-                    emptyList()
-                }
+                val url = block.url.trim()
+                if (url.isBlank()) emptyList()
+                else listOf(PrefetchTarget(url, PrefetchType.VideoFrame))
             }
         }
         is ContentBlock.Text -> emptyList()

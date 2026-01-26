@@ -32,6 +32,7 @@ object RssImageLoader {
         val cached = cache.get(url)
         if (cached != null) {
             cacheAspectRatio(url, cached.width, cached.height)
+            prepareBitmap(cached)
             imageView.setImageBitmap(cached)
             imageView.visibility = View.VISIBLE
             return
@@ -39,6 +40,7 @@ object RssImageLoader {
         if (isLocalPath(url)) {
             val bitmap = decodeLocalBitmap(url, maxWidthPx)
             if (bitmap != null) {
+                prepareBitmap(bitmap)
                 cache.put(url, bitmap)
                 cacheAspectRatio(url, bitmap.width, bitmap.height)
                 imageView.setImageBitmap(bitmap)
@@ -50,6 +52,7 @@ object RssImageLoader {
         }
         val diskBitmap = decodeDiskBitmap(context, url, maxWidthPx)
         if (diskBitmap != null) {
+            prepareBitmap(diskBitmap)
             cache.put(url, diskBitmap)
             cacheAspectRatio(url, diskBitmap.width, diskBitmap.height)
             imageView.setImageBitmap(diskBitmap)
@@ -64,6 +67,7 @@ object RssImageLoader {
                     return@withContext
                 }
                 if (bitmap != null) {
+                    prepareBitmap(bitmap)
                     cache.put(url, bitmap)
                     cacheAspectRatio(url, bitmap.width, bitmap.height)
                     imageView.setImageBitmap(bitmap)
@@ -85,6 +89,7 @@ object RssImageLoader {
                 decodeDiskBitmap(context, url, maxWidthPx) ?: fetchBitmap(context, url, maxWidthPx)
             }
             if (bitmap != null) {
+                prepareBitmap(bitmap)
                 cache.put(url, bitmap)
                 cacheAspectRatio(url, bitmap.width, bitmap.height)
             }
@@ -97,6 +102,7 @@ object RssImageLoader {
             if (isLocalPath(url)) {
                 val bitmap = decodeLocalBitmap(url, maxWidthPx)
                 if (bitmap != null) {
+                    prepareBitmap(bitmap)
                     cache.put(url, bitmap)
                     cacheAspectRatio(url, bitmap.width, bitmap.height)
                 }
@@ -104,12 +110,14 @@ object RssImageLoader {
             }
             val diskBitmap = decodeDiskBitmap(context, url, maxWidthPx)
             if (diskBitmap != null) {
+                prepareBitmap(diskBitmap)
                 cache.put(url, diskBitmap)
                 cacheAspectRatio(url, diskBitmap.width, diskBitmap.height)
                 return@withContext diskBitmap
             }
             val bitmap = fetchBitmap(context, url, maxWidthPx)
             if (bitmap != null) {
+                prepareBitmap(bitmap)
                 cache.put(url, bitmap)
                 cacheAspectRatio(url, bitmap.width, bitmap.height)
             }
@@ -209,6 +217,10 @@ object RssImageLoader {
             inSampleSize = calculateInSampleSize(bounds, reqWidth, reqHeight)
             inPreferredConfig = Bitmap.Config.RGB_565
         }
+    }
+
+    private fun prepareBitmap(bitmap: Bitmap) {
+        runCatching { bitmap.prepareToDraw() }
     }
 
     private fun calculateInSampleSize(
