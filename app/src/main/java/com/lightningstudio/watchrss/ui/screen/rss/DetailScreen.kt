@@ -733,7 +733,8 @@ private fun DetailImageBlock(
         bitmapState.value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
     }
     val safeBitmap = bitmapState.value
-    val ratio = safeBitmap?.let { it.width.toFloat() / it.height.toFloat() }?.takeIf { it > 0f }
+    val ratio = safeBitmap?.let { it.width.toFloat() / it.height.toFloat() }
+        ?: RssImageLoader.getCachedAspectRatio(url)
     if (safeBitmap != null && ratio != null) {
         Image(
             bitmap = safeBitmap.asImageBitmap(),
@@ -749,11 +750,16 @@ private fun DetailImageBlock(
                 .debugTraceDraw("DetailImageBlock/draw")
         )
     } else {
+        val placeholderModifier = if (ratio != null && ratio > 0f) {
+            Modifier.aspectRatio(ratio)
+        } else {
+            Modifier.height(dimensionResource(R.dimen.hey_card_large_height))
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = topPadding)
-                .height(dimensionResource(R.dimen.hey_card_large_height))
+                .then(placeholderModifier)
                 .background(colorResource(R.color.watch_card_background))
                 .scrollSemanticsDisabled(isScrolling)
                 .debugTraceLayout("DetailImageBlock/placeholder/layout")
@@ -788,6 +794,8 @@ private fun DetailVideoBlock(
             else -> null
         }
     }
+    val coverRatio = coverState.value?.let { it.width.toFloat() / it.height.toFloat() }
+        ?: poster?.let { RssImageLoader.getCachedAspectRatio(it) }
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val padding = dimensionResource(R.dimen.hey_distance_6dp)
     val coverHeight = dimensionResource(R.dimen.hey_card_large_height)
@@ -812,13 +820,24 @@ private fun DetailVideoBlock(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(coverHeight)
+                    .then(
+                        if (coverRatio != null && coverRatio > 0f) {
+                            Modifier.aspectRatio(coverRatio)
+                        } else {
+                            Modifier.height(coverHeight)
+                        }
+                    )
             )
         } else {
+            val placeholderModifier = if (coverRatio != null && coverRatio > 0f) {
+                Modifier.aspectRatio(coverRatio)
+            } else {
+                Modifier.height(coverHeight)
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(coverHeight)
+                    .then(placeholderModifier)
             )
         }
         Image(

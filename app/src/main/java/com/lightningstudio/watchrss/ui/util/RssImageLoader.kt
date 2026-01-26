@@ -17,15 +17,21 @@ import java.security.MessageDigest
 
 object RssImageLoader {
     private const val cacheSizeBytes = 8 * 1024 * 1024
+    private const val ratioCacheSize = 300
 
     private val cache = object : LruCache<String, Bitmap>(cacheSizeBytes) {
         override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
     }
 
+    private val ratioCache = object : LruCache<String, Float>(ratioCacheSize) {}
+
+    fun getCachedAspectRatio(url: String): Float? = ratioCache.get(url)
+
     fun load(context: Context, url: String, imageView: ImageView, scope: CoroutineScope, maxWidthPx: Int) {
         imageView.tag = url
         val cached = cache.get(url)
         if (cached != null) {
+            cacheAspectRatio(url, cached.width, cached.height)
             imageView.setImageBitmap(cached)
             imageView.visibility = View.VISIBLE
             return
@@ -34,6 +40,7 @@ object RssImageLoader {
             val bitmap = decodeLocalBitmap(url, maxWidthPx)
             if (bitmap != null) {
                 cache.put(url, bitmap)
+                cacheAspectRatio(url, bitmap.width, bitmap.height)
                 imageView.setImageBitmap(bitmap)
                 imageView.visibility = View.VISIBLE
             } else {
@@ -44,6 +51,7 @@ object RssImageLoader {
         val diskBitmap = decodeDiskBitmap(context, url, maxWidthPx)
         if (diskBitmap != null) {
             cache.put(url, diskBitmap)
+            cacheAspectRatio(url, diskBitmap.width, diskBitmap.height)
             imageView.setImageBitmap(diskBitmap)
             imageView.visibility = View.VISIBLE
             return
@@ -57,6 +65,7 @@ object RssImageLoader {
                 }
                 if (bitmap != null) {
                     cache.put(url, bitmap)
+                    cacheAspectRatio(url, bitmap.width, bitmap.height)
                     imageView.setImageBitmap(bitmap)
                     imageView.visibility = View.VISIBLE
                 } else {
@@ -77,6 +86,7 @@ object RssImageLoader {
             }
             if (bitmap != null) {
                 cache.put(url, bitmap)
+                cacheAspectRatio(url, bitmap.width, bitmap.height)
             }
         }
     }
@@ -88,17 +98,20 @@ object RssImageLoader {
                 val bitmap = decodeLocalBitmap(url, maxWidthPx)
                 if (bitmap != null) {
                     cache.put(url, bitmap)
+                    cacheAspectRatio(url, bitmap.width, bitmap.height)
                 }
                 return@withContext bitmap
             }
             val diskBitmap = decodeDiskBitmap(context, url, maxWidthPx)
             if (diskBitmap != null) {
                 cache.put(url, diskBitmap)
+                cacheAspectRatio(url, diskBitmap.width, diskBitmap.height)
                 return@withContext diskBitmap
             }
             val bitmap = fetchBitmap(context, url, maxWidthPx)
             if (bitmap != null) {
                 cache.put(url, bitmap)
+                cacheAspectRatio(url, bitmap.width, bitmap.height)
             }
             bitmap
         }
@@ -119,6 +132,7 @@ object RssImageLoader {
                 inJustDecodeBounds = true
             }
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+            cacheAspectRatio(urlString, bounds.outWidth, bounds.outHeight)
             val options = decodeOptions(bounds, maxWidthPx)
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
         } catch (e: Exception) {
@@ -138,6 +152,7 @@ object RssImageLoader {
             val bytes = java.io.File(path).takeIf { it.exists() }?.readBytes() ?: return null
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+            cacheAspectRatio(url, bounds.outWidth, bounds.outHeight)
             val options = decodeOptions(bounds, maxWidthPx)
             BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
         } catch (e: Exception) {
@@ -151,6 +166,7 @@ object RssImageLoader {
         return try {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeFile(file.absolutePath, bounds)
+            cacheAspectRatio(url, bounds.outWidth, bounds.outHeight)
             val options = decodeOptions(bounds, maxWidthPx)
             BitmapFactory.decodeFile(file.absolutePath, options)
         } catch (e: Exception) {
@@ -179,6 +195,11 @@ object RssImageLoader {
         } catch (e: Exception) {
             url.hashCode().toString()
         }
+    }
+
+    private fun cacheAspectRatio(url: String, width: Int, height: Int) {
+        if (width <= 0 || height <= 0) return
+        ratioCache.put(url, width.toFloat() / height.toFloat())
     }
 
     private fun decodeOptions(bounds: BitmapFactory.Options, maxWidthPx: Int): BitmapFactory.Options {
