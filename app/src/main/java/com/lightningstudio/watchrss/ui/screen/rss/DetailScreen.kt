@@ -10,6 +10,11 @@ import android.os.SystemClock
 import android.text.TextPaint
 import android.util.TypedValue
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +30,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -48,6 +54,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -87,6 +95,7 @@ import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.abs
@@ -389,36 +398,40 @@ private fun DetailContent(
 
             Spacer(modifier = Modifier.height(actionSpacing))
 
-            Row(
+            Box(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                contentAlignment = Alignment.Center
             ) {
-                CircleIconButton(
-                    iconRes = R.drawable.ic_action_favorite,
-                    contentDescription = "收藏",
-                    tint = if (isFavorite) activeColor else normalIconColor,
-                    size = iconSize,
-                    padding = iconPadding,
-                    onClick = onToggleFavorite
-                )
-                Spacer(modifier = Modifier.width(actionSpacing))
-                CircleIconButton(
-                    iconRes = R.drawable.ic_action_share,
-                    contentDescription = "分享",
-                    tint = normalIconColor,
-                    size = iconSize,
-                    padding = iconPadding,
-                    onClick = {
-                        val title = item?.title.orEmpty()
-                        val shareLink = item?.link?.trim().orEmpty().ifBlank { null }
-                        if (shareUseSystem) {
-                            shareCurrent(context, title, shareLink)
-                        } else {
-                            showShareQr(context, title, shareLink)
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FavoriteButtonWithStars(
+                        isFavorite = isFavorite,
+                        activeColor = activeColor,
+                        normalIconColor = normalIconColor,
+                        iconSize = iconSize,
+                        iconPadding = iconPadding,
+                        onClick = onToggleFavorite
+                    )
+                    Spacer(modifier = Modifier.width(actionSpacing))
+                    CircleIconButton(
+                        iconRes = R.drawable.ic_action_share,
+                        contentDescription = "分享",
+                        tint = normalIconColor,
+                        size = iconSize,
+                        padding = iconPadding,
+                        onClick = {
+                            val title = item?.title.orEmpty()
+                            val shareLink = item?.link?.trim().orEmpty().ifBlank { null }
+                            if (shareUseSystem) {
+                                shareCurrent(context, title, shareLink)
+                            } else {
+                                showShareQr(context, title, shareLink)
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(safePadding + extraSafePadding))
@@ -661,6 +674,141 @@ private suspend fun loadVideoFrame(
 }
 
 @Composable
+private fun FavoriteButtonWithStars(
+    isFavorite: Boolean,
+    activeColor: Color,
+    normalIconColor: Color,
+    iconSize: Dp,
+    iconPadding: Dp,
+    onClick: () -> Unit
+) {
+    var triggerAnimation by remember { mutableStateOf(0) }
+
+    Box(
+        modifier = Modifier.size(iconSize * 2.5f),
+        contentAlignment = Alignment.Center
+    ) {
+        // 星星粒子动画层
+        if (triggerAnimation > 0) {
+            StarParticles(
+                key = triggerAnimation,
+                color = activeColor
+            )
+        }
+
+        // 收藏按钮
+        CircleIconButton(
+            iconRes = R.drawable.ic_action_favorite,
+            contentDescription = "收藏",
+            tint = if (isFavorite) activeColor else normalIconColor,
+            size = iconSize,
+            padding = iconPadding,
+            onClick = {
+                onClick()
+                triggerAnimation++
+            }
+        )
+    }
+}
+
+@Composable
+private fun StarParticles(
+    key: Int,
+    color: Color
+) {
+    // 创建8个星星粒子，每个有不同的角度
+    val particleCount = 8
+    val angles = remember { List(particleCount) { it * 360f / particleCount } }
+
+    angles.forEach { angle ->
+        StarParticle(
+            key = key,
+            angle = angle,
+            color = color
+        )
+    }
+}
+
+@Composable
+private fun StarParticle(
+    key: Int,
+    angle: Float,
+    color: Color
+) {
+    // 动画状态
+    val progress = remember { Animatable(0f) }
+    val scale = remember { Animatable(0f) }
+    val rotation = remember { Animatable(0f) }
+    val alpha = remember { Animatable(1f) }
+
+    LaunchedEffect(key) {
+        // 重置所有动画
+        progress.snapTo(0f)
+        scale.snapTo(0f)
+        rotation.snapTo(0f)
+        alpha.snapTo(1f)
+
+        // 并行启动所有动画
+        launch {
+            progress.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+        }
+        launch {
+            scale.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                )
+            )
+        }
+        launch {
+            rotation.animateTo(
+                targetValue = 720f,
+                animationSpec = tween(durationMillis = 1200)
+            )
+        }
+        launch {
+            alpha.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(
+                    durationMillis = 1200,
+                    delayMillis = 200
+                )
+            )
+        }
+    }
+
+    // 计算星星位置
+    val distance = 60f * progress.value
+    val radians = Math.toRadians(angle.toDouble())
+    val offsetX = (distance * kotlin.math.cos(radians)).toFloat()
+    val offsetY = (distance * kotlin.math.sin(radians)).toFloat()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .alpha(alpha.value),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "★",
+            color = color,
+            fontSize = with(LocalDensity.current) { (16.dp * scale.value).toSp() },
+            modifier = Modifier
+                .offset(x = with(LocalDensity.current) { offsetX.toDp() }, y = with(LocalDensity.current) { offsetY.toDp() })
+                .scale(scale.value)
+                .rotate(rotation.value)
+        )
+    }
+}
+
+@Composable
 private fun CircleIconButton(
     iconRes: Int,
     contentDescription: String,
@@ -694,6 +842,19 @@ private fun ProgressRing(progress: Float) {
     val baseColor = Color(0xFF202124)
     val progressColor = Color(0xFF476CFF)
 
+    // 使用 Animatable 实现平滑动画
+    val animatedProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(progress) {
+        animatedProgress.animateTo(
+            targetValue = progress,
+            animationSpec = tween(
+                durationMillis = 300,
+                easing = androidx.compose.animation.core.FastOutSlowInEasing
+            )
+        )
+    }
+
     androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
         val minSize = min(size.width, size.height)
         if (minSize <= 0f) return@Canvas
@@ -707,11 +868,11 @@ private fun ProgressRing(progress: Float) {
             center = center,
             style = Stroke(width = strokeWidthPx)
         )
-        if (progress <= 0f) return@Canvas
+        if (animatedProgress.value <= 0f) return@Canvas
         drawArc(
             color = progressColor,
             startAngle = -90f,
-            sweepAngle = progress.coerceIn(0f, 1f) * 360f,
+            sweepAngle = animatedProgress.value.coerceIn(0f, 1f) * 360f,
             useCenter = false,
             topLeft = topLeft,
             size = arcSize,
