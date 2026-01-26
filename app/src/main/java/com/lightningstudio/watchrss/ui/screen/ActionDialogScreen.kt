@@ -1,7 +1,6 @@
 package com.lightningstudio.watchrss.ui.screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
@@ -91,14 +89,14 @@ private fun ActionButton(
     backgroundColor: androidx.compose.ui.graphics.Color
 ) {
     val shape = RoundedCornerShape(radius)
+    val background = backgroundColor
+    val textColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.6f)
     Box(
         modifier = Modifier
             .width(width)
             .height(height)
             .clip(shape)
-            .background(backgroundColor)
-            .border(1.dp, colorResource(R.color.watch_card_background_pinned), shape)
-            .alpha(if (enabled) 1f else 0.5f)
+            .background(background)
             .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center
@@ -106,7 +104,7 @@ private fun ActionButton(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = textColor,
             textAlign = TextAlign.Center
         )
     }

@@ -9,6 +9,9 @@ import com.lightningstudio.watchrss.ui.screen.rss.ImagePreviewScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 
 class ImagePreviewActivity : BaseHeytapActivity() {
+    private var panOffsetX = 0f
+    private var panRangeX = 0f
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupSystemBars()
@@ -26,10 +29,20 @@ class ImagePreviewActivity : BaseHeytapActivity() {
             WatchRSSTheme {
                 ImagePreviewScreen(
                     url = url,
-                    alt = alt.ifBlank { null }
+                    alt = alt.ifBlank { null },
+                    onPanStateChange = { offsetX, rangeX ->
+                        panOffsetX = offsetX
+                        panRangeX = rangeX
+                    }
                 )
             }
         }
+    }
+
+    override fun shouldDeferSwipeBack(dx: Float, dy: Float): Boolean {
+        if (dx <= 0f) return false
+        if (panRangeX <= 0f) return false
+        return panOffsetX < panRangeX - 1f
     }
 
     companion object {

@@ -54,13 +54,15 @@ import kotlin.math.roundToInt
 @Composable
 fun ImagePreviewScreen(
     url: String,
-    alt: String?
+    alt: String?,
+    onPanStateChange: (offsetX: Float, rangeX: Float) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
+    var lastScaleAt by remember { mutableStateOf(0L) }
     val scaleAnimator = remember { Animatable(1f) }
     val offsetXAnimator = remember { Animatable(0f) }
     val offsetYAnimator = remember { Animatable(0f) }
@@ -79,7 +81,7 @@ fun ImagePreviewScreen(
         )
     }
     val panDecay = remember { exponentialDecay<Float>(frictionMultiplier = 0.9f) }
-    val scaleDecay = remember { exponentialDecay<Float>(frictionMultiplier = 3.4f) }
+    val scaleDecay = remember { exponentialDecay<Float>(frictionMultiplier = 13.6f) }
 
     WatchSurface {
         BoxWithConstraints(
@@ -123,6 +125,10 @@ fun ImagePreviewScreen(
                 offset = clampOffset(offset, scale, containerSize, baseSize)
                 offsetXAnimator.snapTo(offset.x)
                 offsetYAnimator.snapTo(offset.y)
+            }
+            LaunchedEffect(offset, scale, containerSize, baseSize) {
+                val rangeX = calculatePanRangeX(scale, containerSize, baseSize)
+                onPanStateChange(offset.x, rangeX)
             }
 
             if (bitmap == null) {
@@ -240,7 +246,6 @@ fun ImagePreviewScreen(
                             if (!centroid.isFinite() || !panChange.isFinite() || !zoomChange.isFinite()) {
                                 continue
                             }
-                            panVelocityTracker.addPosition(time, centroid)
                             val currentScale = sanitizeScale(scale, minScale, maxScale)
                             val newScale = (currentScale * zoomChange).coerceIn(minScale, maxScale)
                             val scaleChange = if (currentScale == 0f) 1f else newScale / currentScale
@@ -249,25 +254,34 @@ fun ImagePreviewScreen(
                                 containerSize.height / 2f
                             )
                             val currentOffset = sanitizeOffset(offset)
-                            val newOffset = currentOffset + panChange +
+                            val scaleDelta = newScale - lastScale
+                            val isScaling = abs(scaleDelta) > 0.000018f
+                            if (isScaling) {
+                                lastScaleAt = time
+                            }
+                            val ignorePan = !isScaling && lastScaleAt != 0L && time - lastScaleAt < 100L
+                            val appliedPan = if (ignorePan) Offset.Zero else panChange
+                            if (!ignorePan) {
+                                panVelocityTracker.addPosition(time, centroid)
+                            }
+                            val newOffset = currentOffset + appliedPan +
                                 (centroid - center - currentOffset) * (1 - scaleChange)
 
                             scale = newScale
                             offset = clampOffset(newOffset, newScale, containerSize, baseSize)
-                            val scaleDelta = newScale - lastScale
-                            if (panChange.x != 0f || panChange.y != 0f) {
-                                totalPanDistance += panChange.getDistance()
-                                lastPanDelta = panChange
+                            if (!ignorePan && (appliedPan.x != 0f || appliedPan.y != 0f)) {
+                                totalPanDistance += appliedPan.getDistance()
+                                lastPanDelta = appliedPan
                             }
                             if (lastTime != 0L) {
                                 val dt = (time - lastTime).coerceAtLeast(1)
-                                if (abs(scaleDelta) > 0.0001f) {
+                                if (abs(scaleDelta) > 0.000018f) {
                                     val scaleVelocityCandidate = (scaleDelta / dt) * 1000f
                                     scaleVelocity = scaleVelocity * 0.2f + scaleVelocityCandidate * 0.8f
                                     lastScaleDelta = scaleDelta
                                 }
-                                if (panChange.x != 0f || panChange.y != 0f) {
-                                    val panVelocityCandidate = panChange * (1000f / dt)
+                                if (!ignorePan && (appliedPan.x != 0f || appliedPan.y != 0f)) {
+                                    val panVelocityCandidate = appliedPan * (1000f / dt)
                                     panVelocity = panVelocity * 0.2f + panVelocityCandidate * 0.8f
                                 }
                             }
@@ -283,11 +297,11 @@ fun ImagePreviewScreen(
                         }
 
                         val scaleFlingVelocity = when {
-                            abs(scaleVelocity) > 0.005f -> scaleVelocity
-                            abs(lastScaleDelta) > 0.0001f -> lastScaleDelta * 120f
+                            abs(scaleVelocity) > 0.0009f -> scaleVelocity
+                            abs(lastScaleDelta) > 0.000018f -> lastScaleDelta * 120f
                             else -> 0f
                         }
-                        if (abs(scaleFlingVelocity) > 0.005f) {
+                        if (abs(scaleFlingVelocity) > 0.0009f) {
                             scaleAnimJob = scope.launch {
                                 scaleAnimator.snapTo(sanitizeScale(scale, minScale, maxScale))
                                 scaleAnimator.animateDecay(scaleFlingVelocity, scaleDecay) {
@@ -407,6 +421,16 @@ private fun clampOffset(
         rawOffset.x.coerceIn(-maxX, maxX),
         rawOffset.y.coerceIn(-maxY, maxY)
     )
+}
+
+private fun calculatePanRangeX(
+    scale: Float,
+    container: IntSize,
+    baseSize: Size
+): Float {
+    if (baseSize.width <= 0f || baseSize.height <= 0f) return 0f
+    val scaledWidth = baseSize.width * scale
+    return ((scaledWidth - container.width) / 2f).coerceAtLeast(0f)
 }
 
 private fun nextDoubleTapScale(current: Float, maxScale: Float): Float {
