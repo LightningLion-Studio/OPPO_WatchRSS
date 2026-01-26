@@ -327,6 +327,32 @@ internal fun DetailContent(
             }
         }
 
+        LaunchedEffect(blockPrefetchTargets, maxImageWidthPx) {
+            if (blockPrefetchTargets.isEmpty()) return@LaunchedEffect
+            val targets = withContext(Dispatchers.Default) {
+                collectPrefetchTargets(
+                    blockPrefetchTargets = blockPrefetchTargets,
+                    startIndex = 0,
+                    maxIndex = blockPrefetchTargets.lastIndex,
+                    maxTargets = PREFETCH_MEDIA_COUNT,
+                    scanLimit = PREFETCH_SCAN_LIMIT
+                )
+            }
+            var prefetched = 0
+            targets.forEach { target ->
+                if (prefetched >= PREFETCH_MEDIA_COUNT) return@forEach
+                val key = target.cacheKey(maxImageWidthPx)
+                if (!prefetchedUrls.add(key)) return@forEach
+                prefetched++
+                when (target.type) {
+                    PrefetchType.Image ->
+                        RssImageLoader.preload(context, target.url, prefetchScope, maxImageWidthPx)
+                    PrefetchType.VideoFrame ->
+                        loadCachedVideoFrame(context, target.url, maxImageWidthPx)
+                }
+            }
+        }
+
         LaunchedEffect(listState, blockPrefetchTargets, baseItemCount, maxImageWidthPx) {
             if (blockPrefetchTargets.isEmpty()) return@LaunchedEffect
             val maxIndex = blockPrefetchTargets.lastIndex
@@ -903,8 +929,8 @@ private fun resolveMediaUrl(url: String, offlineMedia: Map<String, OfflineMedia>
     return if (!local.isNullOrBlank()) local else url
 }
 
-private const val PREFETCH_MEDIA_COUNT = 4
-private const val PREFETCH_SCAN_LIMIT = 60
+private const val PREFETCH_MEDIA_COUNT = 8
+private const val PREFETCH_SCAN_LIMIT = 120
 private const val VIDEO_FRAME_CACHE_BYTES = 4 * 1024 * 1024
 
 private val videoFrameCache = object : LruCache<String, Bitmap>(VIDEO_FRAME_CACHE_BYTES) {
