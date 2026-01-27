@@ -96,6 +96,7 @@ fun SwipeActionButton(
 @Composable
 fun SwipeActionRow(
     itemId: Long,
+    enabled: Boolean = true,
     openSwipeId: Long?,
     onOpenSwipe: (Long) -> Unit,
     onCloseSwipe: () -> Unit,
@@ -112,7 +113,11 @@ fun SwipeActionRow(
     val dragThreshold = revealWidth * 0.5f
     val openSwipeIdState = rememberUpdatedState(openSwipeId)
 
-    LaunchedEffect(openSwipeId, actionsWidthPx, revealGapPx, draggingSwipeId) {
+    LaunchedEffect(openSwipeId, actionsWidthPx, revealGapPx, draggingSwipeId, enabled) {
+        if (!enabled) {
+            offsetX.snapTo(0f)
+            return@LaunchedEffect
+        }
         if (draggingSwipeId != itemId && openSwipeId != itemId && offsetX.value != 0f) {
             offsetX.animateTo(0f, animationSpec = tween(durationMillis = 180))
         }
@@ -121,42 +126,46 @@ fun SwipeActionRow(
         }
     }
 
-    val dragModifier = Modifier.pointerInput(itemId, actionsWidthPx, revealGapPx) {
-        if (revealWidth <= 0f) return@pointerInput
-        detectHorizontalDragGestures(
-            onDragStart = {
-                onDragStart(itemId)
-                if (openSwipeIdState.value != null && openSwipeIdState.value != itemId) {
-                    onCloseSwipe()
+    val dragModifier = if (!enabled || revealWidth <= 0f) {
+        Modifier
+    } else {
+        Modifier.pointerInput(itemId, actionsWidthPx, revealGapPx) {
+            if (revealWidth <= 0f) return@pointerInput
+            detectHorizontalDragGestures(
+                onDragStart = {
+                    onDragStart(itemId)
+                    if (openSwipeIdState.value != null && openSwipeIdState.value != itemId) {
+                        onCloseSwipe()
+                    }
+                },
+                onDragEnd = {
+                    val shouldOpen = offsetX.value <= -dragThreshold
+                    val target = if (shouldOpen) -revealWidth else 0f
+                    scope.launch {
+                        offsetX.animateTo(target, animationSpec = tween(durationMillis = 180))
+                    }
+                    if (shouldOpen) {
+                        onOpenSwipe(itemId)
+                    } else if (openSwipeIdState.value == itemId) {
+                        onCloseSwipe()
+                    }
+                    onDragEnd()
+                },
+                onDragCancel = {
+                    scope.launch {
+                        offsetX.animateTo(0f, animationSpec = tween(durationMillis = 180))
+                    }
+                    if (openSwipeIdState.value == itemId) {
+                        onCloseSwipe()
+                    }
+                    onDragEnd()
                 }
-            },
-            onDragEnd = {
-                val shouldOpen = offsetX.value <= -dragThreshold
-                val target = if (shouldOpen) -revealWidth else 0f
+            ) { change, dragAmount ->
+                change.consume()
+                val newOffset = (offsetX.value + dragAmount).coerceIn(-revealWidth, 0f)
                 scope.launch {
-                    offsetX.animateTo(target, animationSpec = tween(durationMillis = 180))
+                    offsetX.snapTo(newOffset)
                 }
-                if (shouldOpen) {
-                    onOpenSwipe(itemId)
-                } else if (openSwipeIdState.value == itemId) {
-                    onCloseSwipe()
-                }
-                onDragEnd()
-            },
-            onDragCancel = {
-                scope.launch {
-                    offsetX.animateTo(0f, animationSpec = tween(durationMillis = 180))
-                }
-                if (openSwipeIdState.value == itemId) {
-                    onCloseSwipe()
-                }
-                onDragEnd()
-            }
-        ) { change, dragAmount ->
-            change.consume()
-            val newOffset = (offsetX.value + dragAmount).coerceIn(-revealWidth, 0f)
-            scope.launch {
-                offsetX.snapTo(newOffset)
             }
         }
     }

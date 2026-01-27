@@ -25,7 +25,14 @@ object RssImageLoader {
 
     private val ratioCache = object : LruCache<String, Float>(ratioCacheSize) {}
 
+    fun getCachedBitmap(url: String): Bitmap? = cache.get(url)
+
     fun getCachedAspectRatio(url: String): Float? = ratioCache.get(url)
+
+    suspend fun preloadAndCacheRatio(context: Context, url: String, maxWidthPx: Int): Float? {
+        loadBitmap(context, url, maxWidthPx)
+        return ratioCache.get(url)
+    }
 
     fun load(context: Context, url: String, imageView: ImageView, scope: CoroutineScope, maxWidthPx: Int) {
         imageView.tag = url

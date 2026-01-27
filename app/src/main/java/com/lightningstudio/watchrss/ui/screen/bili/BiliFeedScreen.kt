@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,6 +74,9 @@ fun BiliFeedScreen(
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val itemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
     val listState = rememberLazyListState()
+    val isScrolling by remember(listState) {
+        derivedStateOf { listState.isScrollInProgress }
+    }
     var menuOpen by remember { mutableStateOf(false) }
     var openSwipeId by remember { mutableStateOf<Long?>(null) }
     var draggingSwipeId by remember { mutableStateOf<Long?>(null) }
@@ -168,6 +172,7 @@ fun BiliFeedScreen(
                             item = item,
                             itemId = itemId,
                             summary = summary,
+                            isScrolling = isScrolling,
                             openSwipeId = openSwipeId,
                             onOpenSwipe = { openSwipeId = it },
                             onCloseSwipe = { openSwipeId = null },
@@ -286,6 +291,7 @@ private fun BiliFeedItemEntry(
     item: BiliItem,
     itemId: Long,
     summary: String,
+    isScrolling: Boolean,
     openSwipeId: Long?,
     onOpenSwipe: (Long) -> Unit,
     onCloseSwipe: () -> Unit,
@@ -307,6 +313,7 @@ private fun BiliFeedItemEntry(
 
     SwipeActionRow(
         itemId = itemId,
+        enabled = !isScrolling,
         openSwipeId = openSwipeId,
         onOpenSwipe = onOpenSwipe,
         onCloseSwipe = onCloseSwipe,

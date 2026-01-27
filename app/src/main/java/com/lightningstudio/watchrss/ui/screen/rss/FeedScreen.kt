@@ -29,19 +29,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -65,8 +68,15 @@ import com.lightningstudio.watchrss.ui.components.PullRefreshBox
 import com.lightningstudio.watchrss.ui.components.SwipeActionButton
 import com.lightningstudio.watchrss.ui.components.SwipeActionRow
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+private const val FEED_PREFETCH_BEFORE = 2
+private const val FEED_PREFETCH_AFTER = 6
+private const val FEED_PREFETCH_LIMIT = 8
 
 @Composable
 fun FeedScreen(
@@ -97,11 +107,48 @@ fun FeedScreen(
         val safePaddingPx = context.resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
         (context.resources.displayMetrics.widthPixels - safePaddingPx * 2).coerceAtLeast(1)
     }
+    val prefetchedUrls = remember(channel?.id) { mutableSetOf<String>() }
+    val imageRatios = remember(channel?.id) { mutableStateMapOf<String, Float>() }
     val isAtTop by remember(listState) {
         derivedStateOf {
             listState.firstVisibleItemIndex == 0 &&
                 listState.firstVisibleItemScrollOffset == 0
         }
+    }
+    val isScrolling by remember(listState) {
+        derivedStateOf { listState.isScrollInProgress }
+    }
+
+    LaunchedEffect(listState, items, maxImageWidthPx, channel?.id) {
+        if (items.isEmpty()) return@LaunchedEffect
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+            .map { info ->
+                val indices = info.mapNotNull { itemInfo ->
+                    val index = itemInfo.index - 1
+                    if (index in items.indices) index else null
+                }
+                val first = indices.minOrNull() ?: 0
+                val last = indices.maxOrNull() ?: -1
+                first to last
+            }
+            .distinctUntilChanged()
+            .collectLatest { (first, last) ->
+                if (listState.isScrollInProgress) return@collectLatest
+                if (last < 0) return@collectLatest
+                val start = (first - FEED_PREFETCH_BEFORE).coerceAtLeast(0)
+                val end = (last + FEED_PREFETCH_AFTER).coerceAtMost(items.lastIndex)
+                var prefetched = 0
+                for (index in start..end) {
+                    if (prefetched >= FEED_PREFETCH_LIMIT) break
+                    val url = resolveThumbUrl(items[index]) ?: continue
+                    if (!prefetchedUrls.add(url)) continue
+                    val ratio = RssImageLoader.preloadAndCacheRatio(context, url, maxImageWidthPx)
+                    if (!listState.isScrollInProgress && ratio != null && ratio > 0f) {
+                        imageRatios[url] = ratio
+                    }
+                    prefetched++
+                }
+            }
     }
 
     PullRefreshBox(
@@ -125,6 +172,7 @@ fun FeedScreen(
                 FeedHeader(
                     title = channel?.title ?: "RSS",
                     isRefreshing = isRefreshing,
+                    enabled = !isScrolling,
                     onClick = onHeaderClick
                 )
             }
@@ -135,10 +183,22 @@ fun FeedScreen(
                     )
                 }
             } else {
-                items(items, key = { it.id }) { item ->
+                items(
+                    items,
+                    key = { it.id },
+                    contentType = {
+                        if (!it.imageUrl.isNullOrBlank() || !it.previewImageUrl.isNullOrBlank()) {
+                            "image"
+                        } else {
+                            "text"
+                        }
+                    }
+                ) { item ->
                     FeedItemEntry(
                         item = item,
                         maxImageWidthPx = maxImageWidthPx,
+                        imageRatios = imageRatios,
+                        isScrolling = isScrolling,
                         openSwipeId = openSwipeId,
                         onOpenSwipe = onOpenSwipe,
                         onCloseSwipe = onCloseSwipe,
@@ -166,6 +226,7 @@ fun FeedScreen(
 private fun FeedHeader(
     title: String,
     isRefreshing: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit
 ) {
     val verticalPadding = dimensionResource(R.dimen.hey_content_horizontal_distance)
@@ -192,7 +253,10 @@ private fun FeedHeader(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = verticalPadding)
-            .clickableWithoutRipple(onClick)
+            .clickableWithoutRipple(
+                enabled = enabled,
+                onClick = onClick
+            )
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
             val availableWidthPx = with(density) { maxWidth.toPx() }
@@ -307,6 +371,8 @@ private fun FeedPillButton(
 private fun FeedItemEntry(
     item: RssItem,
     maxImageWidthPx: Int,
+    imageRatios: MutableMap<String, Float>,
+    isScrolling: Boolean,
     openSwipeId: Long?,
     onOpenSwipe: (Long) -> Unit,
     onCloseSwipe: () -> Unit,
@@ -332,99 +398,123 @@ private fun FeedItemEntry(
     } else {
         fallbackCardHeight
     }
-    val pressState = rememberPressScaleState()
+    val pressState = rememberPressScaleState(enabled = !isScrolling)
     val thumbUrl = remember(item.id, item.imageUrl, item.link) {
         resolveThumbUrl(item)
     }
+    val pressScale = pressState.scale
+    val cardScaleModifier = if (pressScale != 1f) {
+        Modifier.graphicsLayer(
+            scaleX = pressScale,
+            scaleY = pressScale
+        )
+    } else {
+        Modifier
+    }
+    val backgroundScaleModifier = if (pressScale != 1f) {
+        Modifier.graphicsLayer(
+            scaleX = pressScale,
+            scaleY = 1f
+        )
+    } else {
+        Modifier
+    }
 
-    SwipeActionRow(
-        itemId = item.id,
-        openSwipeId = openSwipeId,
-        onOpenSwipe = onOpenSwipe,
-        onCloseSwipe = onCloseSwipe,
-        draggingSwipeId = draggingSwipeId,
-        onDragStart = onDragStart,
-        onDragEnd = onDragEnd,
-        actionsWidthPx = actionsWidthPx,
-        revealGapPx = revealGapPx
-    ) { offsetModifier ->
+    val cardContent: @Composable (Modifier) -> Unit = { offsetModifier ->
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .then(offsetModifier)
+                .onSizeChanged { size ->
+                    if (!isScrolling) {
+                        cardHeightPx = size.height
+                    }
+                }
         ) {
-            Row(
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .height(cardHeight)
-                    .padding(horizontal = actionPadding)
-                    .onSizeChanged { size ->
-                        actionsWidthPx = size.width.toFloat()
-                    },
-                horizontalArrangement = Arrangement.spacedBy(actionPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SwipeActionButton(
-                    text = "收藏",
-                    width = actionWidth,
-                    onClick = {
-                        onCloseSwipe()
-                        onFavoriteClick()
-                    },
-                    iconRes = R.drawable.ic_action_favorite
+                    .matchParentSize()
+                    .then(backgroundScaleModifier)
+                    .background(Color.Black)
+            )
+            if (thumbUrl.isNullOrBlank()) {
+                FeedTextCard(
+                    item = item,
+                    pressState = pressState,
+                    enabled = !isScrolling,
+                    modifier = cardScaleModifier,
+                    onClick = onClick,
+                    onLongClick = onLongClick
                 )
-                SwipeActionButton(
-                    text = "稍后再看",
-                    width = actionWidth,
-                    onClick = {
-                        onCloseSwipe()
-                        onWatchLaterClick()
-                    },
-                    iconRes = R.drawable.ic_action_watch_later
+            } else {
+                FeedImageCard(
+                    item = item,
+                    thumbUrl = thumbUrl,
+                    maxImageWidthPx = maxImageWidthPx,
+                    imageRatios = imageRatios,
+                    pressState = pressState,
+                    enabled = !isScrolling,
+                    isScrolling = isScrolling,
+                    modifier = cardScaleModifier,
+                    onClick = onClick,
+                    onLongClick = onLongClick
                 )
             }
+        }
+    }
 
+    if (isScrolling) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            cardContent(Modifier)
+        }
+    } else {
+        SwipeActionRow(
+            itemId = item.id,
+            enabled = true,
+            openSwipeId = openSwipeId,
+            onOpenSwipe = onOpenSwipe,
+            onCloseSwipe = onCloseSwipe,
+            draggingSwipeId = draggingSwipeId,
+            onDragStart = onDragStart,
+            onDragEnd = onDragEnd,
+            actionsWidthPx = actionsWidthPx,
+            revealGapPx = revealGapPx
+        ) { offsetModifier ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .then(offsetModifier)
-                    .onSizeChanged { size ->
-                        cardHeightPx = size.height
-                    }
             ) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .matchParentSize()
-                        .graphicsLayer(
-                            scaleX = pressState.scale,
-                            scaleY = 1f
-                        )
-                        .background(Color.Black)
-                )
-                if (thumbUrl.isNullOrBlank()) {
-                    FeedTextCard(
-                        item = item,
-                        pressState = pressState,
-                        modifier = Modifier.graphicsLayer(
-                            scaleX = pressState.scale,
-                            scaleY = pressState.scale
-                        ),
-                        onClick = onClick,
-                        onLongClick = onLongClick
+                        .align(Alignment.CenterEnd)
+                        .height(cardHeight)
+                        .padding(horizontal = actionPadding)
+                        .onSizeChanged { size ->
+                            actionsWidthPx = size.width.toFloat()
+                        },
+                    horizontalArrangement = Arrangement.spacedBy(actionPadding),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SwipeActionButton(
+                        text = "收藏",
+                        width = actionWidth,
+                        onClick = {
+                            onCloseSwipe()
+                            onFavoriteClick()
+                        },
+                        iconRes = R.drawable.ic_action_favorite
                     )
-                } else {
-                    FeedImageCard(
-                        item = item,
-                        thumbUrl = thumbUrl,
-                        maxImageWidthPx = maxImageWidthPx,
-                        pressState = pressState,
-                        modifier = Modifier.graphicsLayer(
-                            scaleX = pressState.scale,
-                            scaleY = pressState.scale
-                        ),
-                        onClick = onClick,
-                        onLongClick = onLongClick
+                    SwipeActionButton(
+                        text = "稍后再看",
+                        width = actionWidth,
+                        onClick = {
+                            onCloseSwipe()
+                            onWatchLaterClick()
+                        },
+                        iconRes = R.drawable.ic_action_watch_later
                     )
                 }
+                cardContent(offsetModifier)
             }
         }
     }
@@ -434,6 +524,7 @@ private fun FeedItemEntry(
 private fun FeedTextCard(
     item: RssItem,
     pressState: PressScaleState,
+    enabled: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
     onLongClick: () -> Unit
@@ -456,6 +547,7 @@ private fun FeedTextCard(
             .clip(shape)
             .background(background)
             .clickableWithoutRipple(
+                enabled = enabled,
                 onClick = onClick,
                 onLongClick = onLongClick,
                 interactionSource = pressState.interactionSource
@@ -497,14 +589,27 @@ private fun FeedImageCard(
     item: RssItem,
     thumbUrl: String,
     maxImageWidthPx: Int,
+    imageRatios: MutableMap<String, Float>,
     pressState: PressScaleState,
+    enabled: Boolean,
+    isScrolling: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
     val background = colorResource(R.color.watch_card_background)
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
-    val imageHeight = dimensionResource(R.dimen.feed_card_image_height)
+    val defaultImageHeight = dimensionResource(R.dimen.feed_card_image_height)
+    val density = LocalDensity.current
+    val ratio = imageRatios[thumbUrl] ?: RssImageLoader.getCachedAspectRatio(thumbUrl)
+    val imageHeight = if (ratio != null && ratio > 0f) {
+        val minHeightPx = maxImageWidthPx * 0.6f
+        val maxHeightPx = maxImageWidthPx * 1.6f
+        val targetPx = (maxImageWidthPx / ratio).coerceIn(minHeightPx, maxHeightPx)
+        with(density) { targetPx.toDp() }
+    } else {
+        defaultImageHeight
+    }
     val padding = dimensionResource(R.dimen.hey_distance_8dp)
     val titleSize = textSize(R.dimen.feed_card_title_text_size)
     val summarySize = textSize(R.dimen.feed_card_summary_text_size)
@@ -526,6 +631,7 @@ private fun FeedImageCard(
             .clip(shape)
             .background(background)
             .clickableWithoutRipple(
+                enabled = enabled,
                 onClick = onClick,
                 onLongClick = onLongClick,
                 interactionSource = pressState.interactionSource
@@ -534,6 +640,12 @@ private fun FeedImageCard(
         RssThumbnail(
             url = thumbUrl,
             maxWidthPx = maxImageWidthPx,
+            isScrolling = isScrolling,
+            onRatioKnown = { ratioValue ->
+                if (ratioValue > 0f) {
+                    imageRatios[thumbUrl] = ratioValue
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(imageHeight)
@@ -582,18 +694,53 @@ private fun FeedImageCard(
 private fun RssThumbnail(
     url: String,
     maxWidthPx: Int,
+    isScrolling: Boolean,
+    onRatioKnown: ((Float) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, url, maxWidthPx) {
-        value = RssImageLoader.loadBitmap(context, url, maxWidthPx)
+    val cached = remember(url) { RssImageLoader.getCachedBitmap(url) }
+    val bitmapState = remember(url, maxWidthPx) { mutableStateOf(cached) }
+    val pendingState = remember(url) { mutableStateOf<android.graphics.Bitmap?>(null) }
+
+    LaunchedEffect(url, maxWidthPx, isScrolling) {
+        if (isScrolling && bitmapState.value == null) return@LaunchedEffect
+        val loaded = RssImageLoader.loadBitmap(context, url, maxWidthPx)
+        if (loaded != null) {
+            if (isScrolling && bitmapState.value == null) {
+                pendingState.value = loaded
+            } else {
+                bitmapState.value = loaded
+            }
+        }
     }
 
-    if (bitmap != null) {
+    LaunchedEffect(isScrolling) {
+        if (!isScrolling) {
+            pendingState.value?.let { bitmap ->
+                bitmapState.value = bitmap
+                pendingState.value = null
+            }
+        }
+    }
+
+    val bitmap = bitmapState.value
+    val imageBitmap = remember(bitmap) { bitmap?.asImageBitmap() }
+
+    LaunchedEffect(bitmap, isScrolling) {
+        if (isScrolling) return@LaunchedEffect
+        val ratio = bitmap?.takeIf { it.height > 0 }?.let { it.width.toFloat() / it.height.toFloat() }
+        if (ratio != null) {
+            onRatioKnown?.invoke(ratio)
+        }
+    }
+
+    if (imageBitmap != null) {
         androidx.compose.foundation.Image(
-            bitmap = bitmap!!.asImageBitmap(),
+            bitmap = imageBitmap,
             contentDescription = "缩略图",
             contentScale = ContentScale.Crop,
+            filterQuality = FilterQuality.None,
             modifier = modifier
         )
     } else {
@@ -610,8 +757,11 @@ private data class PressScaleState(
 )
 
 @Composable
-private fun rememberPressScaleState(): PressScaleState {
+private fun rememberPressScaleState(enabled: Boolean): PressScaleState {
     val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    if (!enabled) {
+        return PressScaleState(1f, interactionSource)
+    }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.97f else 1f,
@@ -630,6 +780,7 @@ private fun textSize(id: Int): TextUnit {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Modifier.clickableWithoutRipple(
+    enabled: Boolean = true,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
     interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource =
@@ -639,6 +790,7 @@ private fun Modifier.clickableWithoutRipple(
         combinedClickable(
             interactionSource = interactionSource,
             indication = null,
+            enabled = enabled,
             onClick = onClick,
             onLongClick = onLongClick
         )
@@ -646,6 +798,7 @@ private fun Modifier.clickableWithoutRipple(
         clickable(
             interactionSource = interactionSource,
             indication = null,
+            enabled = enabled,
             onClick = onClick
         )
     }

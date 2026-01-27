@@ -15,7 +15,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -36,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -91,6 +92,10 @@ fun HomeComposeScreen(
     val entries = remember(channels) { buildHomeEntries(channels) }
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val itemSpacing = dimensionResource(R.dimen.hey_distance_6dp)
+    val listState = rememberLazyListState()
+    val isScrolling by remember(listState) {
+        derivedStateOf { listState.isScrollInProgress }
+    }
 
     Box(
         modifier = Modifier
@@ -101,13 +106,18 @@ fun HomeComposeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = safePadding),
+            state = listState,
             contentPadding = PaddingValues(
                 top = safePadding,
                 bottom = safePadding + itemSpacing
             ),
             verticalArrangement = Arrangement.spacedBy(itemSpacing)
         ) {
-            items(entries, key = { it.key }) { entry ->
+            items(
+                entries,
+                key = { it.key },
+                contentType = { it::class }
+            ) { entry ->
                 when (entry) {
                     HomeEntry.Profile -> {
                         HomeProfileEntry(onProfileClick = onProfileClick)
@@ -135,6 +145,7 @@ fun HomeComposeScreen(
                     is HomeEntry.Channel -> {
                         HomeChannelEntry(
                             channel = entry.channel,
+                            isScrolling = isScrolling,
                             openSwipeId = openSwipeId,
                             onOpenSwipe = onOpenSwipe,
                             onCloseSwipe = onCloseSwipe,
@@ -189,7 +200,7 @@ private fun HomeProfileEntry(onProfileClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(padding)
-            .clickableWithoutRipple(onProfileClick),
+            .clickableWithoutRipple(onClick = onProfileClick),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
@@ -228,6 +239,15 @@ private fun HomeAddEntry(onAddRssClick: () -> Unit) {
     val padding = dimensionResource(R.dimen.hey_distance_4dp)
     val radius = dimensionResource(R.dimen.hey_button_default_radius)
     val pressState = rememberPressScaleState()
+    val pressScale = pressState.scale
+    val scaleModifier = if (pressScale != 1f) {
+        Modifier.graphicsLayer(
+            scaleX = pressScale,
+            scaleY = pressScale
+        )
+    } else {
+        Modifier
+    }
 
     Box(
         modifier = Modifier
@@ -238,10 +258,7 @@ private fun HomeAddEntry(onAddRssClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .size(buttonSize)
-                .graphicsLayer(
-                    scaleX = pressState.scale,
-                    scaleY = pressState.scale
-                )
+                .then(scaleModifier)
                 .clip(RoundedCornerShape(radius))
                 .background(colorResource(R.color.watch_card_background))
                 .clickableWithoutRipple(
@@ -263,6 +280,7 @@ private fun HomeAddEntry(onAddRssClick: () -> Unit) {
 @Composable
 private fun HomeChannelEntry(
     channel: RssChannel,
+    isScrolling: Boolean,
     openSwipeId: Long?,
     onOpenSwipe: (Long) -> Unit,
     onCloseSwipe: () -> Unit,
@@ -281,96 +299,140 @@ private fun HomeChannelEntry(
     }
     val revealGapPx = with(LocalDensity.current) { (actionPadding * 2).toPx() }
     var actionsWidthPx by remember { mutableStateOf(fallbackActionsWidthPx) }
-    val pressState = rememberPressScaleState()
+    var cardHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    val cardHeightModifier = if (cardHeightPx > 0) {
+        val height = with(density) { cardHeightPx.toDp() }
+        Modifier.height(height)
+    } else {
+        Modifier
+    }
+    val pressState = rememberPressScaleState(enabled = !isScrolling)
+    val pressScale = pressState.scale
+    val cardScaleModifier = if (pressScale != 1f) {
+        Modifier.graphicsLayer(
+            scaleX = pressScale,
+            scaleY = pressScale
+        )
+    } else {
+        Modifier
+    }
+    val backgroundScaleModifier = if (pressScale != 1f) {
+        Modifier.graphicsLayer(
+            scaleX = pressScale,
+            scaleY = 1f
+        )
+    } else {
+        Modifier
+    }
+    val summary = remember(
+        channel.id,
+        channel.description,
+        channel.url,
+        channel.isPinned,
+        channel.unreadCount,
+        channel.lastFetchedAt
+    ) {
+        buildChannelSummary(channel)
+    }
 
-    HomeSwipeRow(
-        itemId = channel.id,
-        openSwipeId = openSwipeId,
-        onOpenSwipe = onOpenSwipe,
-        onCloseSwipe = onCloseSwipe,
-        draggingSwipeId = draggingSwipeId,
-        onDragStart = onDragStart,
-        onDragEnd = onDragEnd,
-        actionsWidthPx = actionsWidthPx,
-        revealGapPx = revealGapPx
-    ) { offsetModifier ->
+    val cardContent: @Composable (Modifier) -> Unit = { offsetModifier ->
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min)
+                .then(offsetModifier)
+                .onSizeChanged { size ->
+                    if (!isScrolling) {
+                        cardHeightPx = size.height
+                    }
+                }
         ) {
-            Row(
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .fillMaxHeight()
-                    .padding(start = 0.dp, end = actionPadding)
-                    .onSizeChanged { size ->
-                        actionsWidthPx = size.width.toFloat()
-                    },
-                horizontalArrangement = Arrangement.spacedBy(actionPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HomeSwipeActionButton(
-                    text = "移到顶",
-                    width = actionWidth,
-                    onClick = {
-                        onCloseSwipe()
-                        onMoveTopClick()
-                    },
-                    iconRes = R.drawable.ic_action_move_top
-                )
-                val isBuiltin = BuiltinChannelType.fromUrl(channel.url) != null
-                val canMarkRead = channel.unreadCount > 0 && !isBuiltin
-                HomeSwipeActionButton(
-                    text = "标记已读",
-                    width = actionWidth,
-                    alpha = if (canMarkRead) 1f else 0.5f,
-                    onClick = {
-                        onCloseSwipe()
-                        if (canMarkRead) {
-                            onMarkReadClick()
-                        }
-                    },
-                    iconRes = R.drawable.ic_action_mark_read
-                )
-            }
+                    .matchParentSize()
+                    .then(backgroundScaleModifier)
+                    .background(Color.Black)
+            )
+            HomeDefaultItem(
+                title = channel.title,
+                summary = summary,
+                backgroundColor = colorResource(
+                    if (channel.isPinned) {
+                        R.color.watch_card_background_pinned
+                    } else {
+                        R.color.watch_card_background
+                    }
+                ),
+                showIndicator = channel.unreadCount > 0,
+                modifier = Modifier
+                    .then(cardScaleModifier)
+                    .clickableWithoutRipple(
+                        enabled = !isScrolling,
+                        onClick = onChannelClick,
+                        onLongClick = onChannelLongClick,
+                        interactionSource = pressState.interactionSource
+                    )
+            )
+        }
+    }
 
+    if (isScrolling) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            cardContent(Modifier)
+        }
+    } else {
+        HomeSwipeRow(
+            itemId = channel.id,
+            enabled = true,
+            openSwipeId = openSwipeId,
+            onOpenSwipe = onOpenSwipe,
+            onCloseSwipe = onCloseSwipe,
+            draggingSwipeId = draggingSwipeId,
+            onDragStart = onDragStart,
+            onDragEnd = onDragEnd,
+            actionsWidthPx = actionsWidthPx,
+            revealGapPx = revealGapPx
+        ) { offsetModifier ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .then(offsetModifier)
             ) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .matchParentSize()
-                        .graphicsLayer(
-                            scaleX = pressState.scale,
-                            scaleY = 1f
-                        )
-                        .background(Color.Black)
-                )
-                HomeDefaultItem(
-                    title = channel.title,
-                    summary = buildChannelSummary(channel),
-                    backgroundColor = colorResource(
-                        if (channel.isPinned) {
-                            R.color.watch_card_background_pinned
-                        } else {
-                            R.color.watch_card_background
-                        }
-                    ),
-                    showIndicator = channel.unreadCount > 0,
-                    modifier = Modifier
-                        .graphicsLayer(
-                            scaleX = pressState.scale,
-                            scaleY = pressState.scale
-                        )
-                        .clickableWithoutRipple(
-                            onClick = onChannelClick,
-                            onLongClick = onChannelLongClick,
-                            interactionSource = pressState.interactionSource
-                        )
-                )
+                        .align(Alignment.CenterEnd)
+                        .then(cardHeightModifier)
+                        .padding(start = 0.dp, end = actionPadding)
+                        .onSizeChanged { size ->
+                            actionsWidthPx = size.width.toFloat()
+                        },
+                    horizontalArrangement = Arrangement.spacedBy(actionPadding),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HomeSwipeActionButton(
+                        text = "移到顶",
+                        width = actionWidth,
+                        onClick = {
+                            onCloseSwipe()
+                            onMoveTopClick()
+                        },
+                        iconRes = R.drawable.ic_action_move_top
+                    )
+                    val isBuiltin = BuiltinChannelType.fromUrl(channel.url) != null
+                    val canMarkRead = channel.unreadCount > 0 && !isBuiltin
+                    HomeSwipeActionButton(
+                        text = "标记已读",
+                        width = actionWidth,
+                        alpha = if (canMarkRead) 1f else 0.5f,
+                        onClick = {
+                            onCloseSwipe()
+                            if (canMarkRead) {
+                                onMarkReadClick()
+                            }
+                        },
+                        iconRes = R.drawable.ic_action_mark_read
+                    )
+                }
+                cardContent(offsetModifier)
             }
         }
     }
@@ -396,7 +458,7 @@ private fun HomeSwipeActionButton(
             .fillMaxHeight()
             .clip(RoundedCornerShape(radius))
             .background(Color(0xFF2A2A2A))
-            .clickableWithoutRipple(onClick)
+            .clickableWithoutRipple(onClick = onClick)
             .alpha(alpha),
         contentAlignment = Alignment.Center
     ) {
@@ -436,6 +498,7 @@ private fun HomeSwipeActionButton(
 @Composable
 private fun HomeSwipeRow(
     itemId: Long,
+    enabled: Boolean = true,
     openSwipeId: Long?,
     onOpenSwipe: (Long) -> Unit,
     onCloseSwipe: () -> Unit,
@@ -452,7 +515,11 @@ private fun HomeSwipeRow(
     val dragThreshold = revealWidth * 0.5f
     val openSwipeIdState = rememberUpdatedState(openSwipeId)
 
-    LaunchedEffect(openSwipeId, actionsWidthPx, revealGapPx, draggingSwipeId) {
+    LaunchedEffect(openSwipeId, actionsWidthPx, revealGapPx, draggingSwipeId, enabled) {
+        if (!enabled) {
+            offsetX.snapTo(0f)
+            return@LaunchedEffect
+        }
         if (draggingSwipeId != itemId && openSwipeId != itemId && offsetX.value != 0f) {
             offsetX.animateTo(0f, animationSpec = tween(durationMillis = 180))
         }
@@ -461,42 +528,46 @@ private fun HomeSwipeRow(
         }
     }
 
-    val dragModifier = Modifier.pointerInput(itemId, actionsWidthPx, revealGapPx) {
-        if (revealWidth <= 0f) return@pointerInput
-        detectHorizontalDragGestures(
-            onDragStart = {
-                onDragStart(itemId)
-                if (openSwipeIdState.value != null && openSwipeIdState.value != itemId) {
-                    onCloseSwipe()
+    val dragModifier = if (!enabled || revealWidth <= 0f) {
+        Modifier
+    } else {
+        Modifier.pointerInput(itemId, actionsWidthPx, revealGapPx) {
+            if (revealWidth <= 0f) return@pointerInput
+            detectHorizontalDragGestures(
+                onDragStart = {
+                    onDragStart(itemId)
+                    if (openSwipeIdState.value != null && openSwipeIdState.value != itemId) {
+                        onCloseSwipe()
+                    }
+                },
+                onDragEnd = {
+                    val shouldOpen = offsetX.value <= -dragThreshold
+                    val target = if (shouldOpen) -revealWidth else 0f
+                    scope.launch {
+                        offsetX.animateTo(target, animationSpec = tween(durationMillis = 180))
+                    }
+                    if (shouldOpen) {
+                        onOpenSwipe(itemId)
+                    } else if (openSwipeIdState.value == itemId) {
+                        onCloseSwipe()
+                    }
+                    onDragEnd()
+                },
+                onDragCancel = {
+                    scope.launch {
+                        offsetX.animateTo(0f, animationSpec = tween(durationMillis = 180))
+                    }
+                    if (openSwipeIdState.value == itemId) {
+                        onCloseSwipe()
+                    }
+                    onDragEnd()
                 }
-            },
-            onDragEnd = {
-                val shouldOpen = offsetX.value <= -dragThreshold
-                val target = if (shouldOpen) -revealWidth else 0f
+            ) { change, dragAmount ->
+                change.consume()
+                val newOffset = (offsetX.value + dragAmount).coerceIn(-revealWidth, 0f)
                 scope.launch {
-                    offsetX.animateTo(target, animationSpec = tween(durationMillis = 180))
+                    offsetX.snapTo(newOffset)
                 }
-                if (shouldOpen) {
-                    onOpenSwipe(itemId)
-                } else if (openSwipeIdState.value == itemId) {
-                    onCloseSwipe()
-                }
-                onDragEnd()
-            },
-            onDragCancel = {
-                scope.launch {
-                    offsetX.animateTo(0f, animationSpec = tween(durationMillis = 180))
-                }
-                if (openSwipeIdState.value == itemId) {
-                    onCloseSwipe()
-                }
-                onDragEnd()
-            }
-        ) { change, dragAmount ->
-            change.consume()
-            val newOffset = (offsetX.value + dragAmount).coerceIn(-revealWidth, 0f)
-            scope.launch {
-                offsetX.snapTo(newOffset)
             }
         }
     }
@@ -533,7 +604,7 @@ private fun HomeDefaultItem(
     val indicatorSize = dimensionResource(R.dimen.hey_distance_6dp)
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val clickModifier = if (onClick != null) {
-        Modifier.clickableWithoutRipple(onClick)
+        Modifier.clickableWithoutRipple(onClick = onClick)
     } else {
         Modifier
     }
@@ -606,8 +677,11 @@ private data class PressScaleState(
 )
 
 @Composable
-private fun rememberPressScaleState(): PressScaleState {
+private fun rememberPressScaleState(enabled: Boolean = true): PressScaleState {
     val interactionSource = remember { MutableInteractionSource() }
+    if (!enabled) {
+        return PressScaleState(1f, interactionSource)
+    }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.97f else 1f,
@@ -625,6 +699,7 @@ private fun textSize(id: Int): TextUnit {
 
 @OptIn(ExperimentalFoundationApi::class)
 private fun Modifier.clickableWithoutRipple(
+    enabled: Boolean = true,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
     interactionSource: MutableInteractionSource = MutableInteractionSource()
@@ -633,6 +708,7 @@ private fun Modifier.clickableWithoutRipple(
         combinedClickable(
             interactionSource = interactionSource,
             indication = null,
+            enabled = enabled,
             onClick = onClick,
             onLongClick = onLongClick
         )
@@ -640,6 +716,7 @@ private fun Modifier.clickableWithoutRipple(
         clickable(
             interactionSource = interactionSource,
             indication = null,
+            enabled = enabled,
             onClick = onClick
         )
     }
