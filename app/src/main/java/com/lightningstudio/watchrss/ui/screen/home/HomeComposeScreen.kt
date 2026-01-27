@@ -365,6 +365,7 @@ private fun HomeChannelEntry(
                 ),
                 showIndicator = channel.unreadCount > 0,
                 modifier = Modifier
+                    .height(100.dp)
                     .then(cardScaleModifier)
                     .clickableWithoutRipple(
                         enabled = !isScrolling,

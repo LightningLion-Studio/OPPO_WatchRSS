@@ -33,7 +33,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -108,7 +107,6 @@ fun FeedScreen(
         (context.resources.displayMetrics.widthPixels - safePaddingPx * 2).coerceAtLeast(1)
     }
     val prefetchedUrls = remember(channel?.id) { mutableSetOf<String>() }
-    val imageRatios = remember(channel?.id) { mutableStateMapOf<String, Float>() }
     val isAtTop by remember(listState) {
         derivedStateOf {
             listState.firstVisibleItemIndex == 0 &&
@@ -142,10 +140,7 @@ fun FeedScreen(
                     if (prefetched >= FEED_PREFETCH_LIMIT) break
                     val url = resolveThumbUrl(items[index]) ?: continue
                     if (!prefetchedUrls.add(url)) continue
-                    val ratio = RssImageLoader.preloadAndCacheRatio(context, url, maxImageWidthPx)
-                    if (!listState.isScrollInProgress && ratio != null && ratio > 0f) {
-                        imageRatios[url] = ratio
-                    }
+                    RssImageLoader.preloadAndCacheRatio(context, url, maxImageWidthPx)
                     prefetched++
                 }
             }
@@ -197,7 +192,6 @@ fun FeedScreen(
                     FeedItemEntry(
                         item = item,
                         maxImageWidthPx = maxImageWidthPx,
-                        imageRatios = imageRatios,
                         isScrolling = isScrolling,
                         openSwipeId = openSwipeId,
                         onOpenSwipe = onOpenSwipe,
@@ -371,7 +365,6 @@ private fun FeedPillButton(
 private fun FeedItemEntry(
     item: RssItem,
     maxImageWidthPx: Int,
-    imageRatios: MutableMap<String, Float>,
     isScrolling: Boolean,
     openSwipeId: Long?,
     onOpenSwipe: (Long) -> Unit,
@@ -391,13 +384,8 @@ private fun FeedItemEntry(
     }
     val revealGapPx = with(LocalDensity.current) { (actionPadding * 2).toPx() }
     var actionsWidthPx by remember { mutableStateOf(fallbackActionsWidthPx) }
-    var cardHeightPx by remember { mutableStateOf(0) }
     val fallbackCardHeight = dimensionResource(R.dimen.feed_card_image_height)
-    val cardHeight = if (cardHeightPx > 0) {
-        with(LocalDensity.current) { cardHeightPx.toDp() }
-    } else {
-        fallbackCardHeight
-    }
+    val cardHeight = fallbackCardHeight
     val pressState = rememberPressScaleState(enabled = !isScrolling)
     val thumbUrl = remember(item.id, item.imageUrl, item.link) {
         resolveThumbUrl(item)
@@ -424,12 +412,8 @@ private fun FeedItemEntry(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(cardHeight)
                 .then(offsetModifier)
-                .onSizeChanged { size ->
-                    if (!isScrolling) {
-                        cardHeightPx = size.height
-                    }
-                }
         ) {
             Box(
                 modifier = Modifier
@@ -451,7 +435,6 @@ private fun FeedItemEntry(
                     item = item,
                     thumbUrl = thumbUrl,
                     maxImageWidthPx = maxImageWidthPx,
-                    imageRatios = imageRatios,
                     pressState = pressState,
                     enabled = !isScrolling,
                     isScrolling = isScrolling,
@@ -589,7 +572,6 @@ private fun FeedImageCard(
     item: RssItem,
     thumbUrl: String,
     maxImageWidthPx: Int,
-    imageRatios: MutableMap<String, Float>,
     pressState: PressScaleState,
     enabled: Boolean,
     isScrolling: Boolean,
@@ -599,17 +581,7 @@ private fun FeedImageCard(
 ) {
     val background = colorResource(R.color.watch_card_background)
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
-    val defaultImageHeight = dimensionResource(R.dimen.feed_card_image_height)
-    val density = LocalDensity.current
-    val ratio = imageRatios[thumbUrl] ?: RssImageLoader.getCachedAspectRatio(thumbUrl)
-    val imageHeight = if (ratio != null && ratio > 0f) {
-        val minHeightPx = maxImageWidthPx * 0.6f
-        val maxHeightPx = maxImageWidthPx * 1.6f
-        val targetPx = (maxImageWidthPx / ratio).coerceIn(minHeightPx, maxHeightPx)
-        with(density) { targetPx.toDp() }
-    } else {
-        defaultImageHeight
-    }
+    val imageHeight = dimensionResource(R.dimen.feed_card_image_height)
     val padding = dimensionResource(R.dimen.hey_distance_8dp)
     val titleSize = textSize(R.dimen.feed_card_title_text_size)
     val summarySize = textSize(R.dimen.feed_card_summary_text_size)
@@ -641,11 +613,6 @@ private fun FeedImageCard(
             url = thumbUrl,
             maxWidthPx = maxImageWidthPx,
             isScrolling = isScrolling,
-            onRatioKnown = { ratioValue ->
-                if (ratioValue > 0f) {
-                    imageRatios[thumbUrl] = ratioValue
-                }
-            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(imageHeight)
@@ -695,7 +662,6 @@ private fun RssThumbnail(
     url: String,
     maxWidthPx: Int,
     isScrolling: Boolean,
-    onRatioKnown: ((Float) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -726,14 +692,6 @@ private fun RssThumbnail(
 
     val bitmap = bitmapState.value
     val imageBitmap = remember(bitmap) { bitmap?.asImageBitmap() }
-
-    LaunchedEffect(bitmap, isScrolling) {
-        if (isScrolling) return@LaunchedEffect
-        val ratio = bitmap?.takeIf { it.height > 0 }?.let { it.width.toFloat() / it.height.toFloat() }
-        if (ratio != null) {
-            onRatioKnown?.invoke(ratio)
-        }
-    }
 
     if (imageBitmap != null) {
         androidx.compose.foundation.Image(
