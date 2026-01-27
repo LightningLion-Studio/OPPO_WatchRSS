@@ -130,7 +130,7 @@ fun DetailScreen(
     val contentBlocks by viewModel.contentBlocks.collectAsState()
     val readingThemeDark by viewModel.readingThemeDark.collectAsState()
     val readingFontSizeSp by viewModel.readingFontSizeSp.collectAsState()
-    val shareUseSystem by viewModel.shareUseSystem.collectAsState(initial = true)
+    val shareUseSystem by viewModel.shareUseSystem.collectAsState(initial = false)
 
     val hasOfflineFailures = remember(offlineMedia) { offlineMedia.any { it.localPath == null } }
     val offlineMap = remember(offlineMedia) { offlineMedia.associateBy { it.originUrl } }

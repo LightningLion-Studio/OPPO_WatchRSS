@@ -37,7 +37,7 @@ class BiliDetailActivity : BaseHeytapActivity() {
                 CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
                 val context = LocalContext.current
                 val uiState by viewModel.uiState.collectAsState()
-                val shareUseSystem by settingsRepository.shareUseSystem.collectAsState(initial = true)
+                val shareUseSystem by settingsRepository.shareUseSystem.collectAsState(initial = false)
 
                 LaunchedEffect(uiState.message) {
                     val message = uiState.message

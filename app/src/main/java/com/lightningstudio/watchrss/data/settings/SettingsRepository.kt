@@ -32,7 +32,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         preferences[READING_FONT_SIZE_SP] ?: DEFAULT_READING_FONT_SIZE_SP
     }
     val shareUseSystem: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[SHARE_USE_SYSTEM] ?: true
+        preferences[SHARE_USE_SYSTEM] ?: false
     }
 
     suspend fun setCacheLimitBytes(bytes: Long) {
