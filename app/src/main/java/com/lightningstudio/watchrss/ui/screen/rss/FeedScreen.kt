@@ -99,7 +99,8 @@ fun FeedScreen(
     onBack: () -> Unit
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
-    val itemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
+    val imageItemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
+    val textItemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
     val listState = rememberLazyListState()
     val context = LocalContext.current
     val maxImageWidthPx = remember(context) {
@@ -160,16 +161,17 @@ fun FeedScreen(
                 .fillMaxSize()
                 .padding(safePadding),
             state = listState,
-            contentPadding = PaddingValues(bottom = itemSpacing),
-            verticalArrangement = Arrangement.spacedBy(itemSpacing)
+            contentPadding = PaddingValues(bottom = imageItemSpacing)
         ) {
             item(key = "header") {
-                FeedHeader(
-                    title = channel?.title ?: "RSS",
-                    isRefreshing = isRefreshing,
-                    enabled = !isScrolling,
-                    onClick = onHeaderClick
-                )
+                Box(modifier = Modifier.padding(bottom = imageItemSpacing)) {
+                    FeedHeader(
+                        title = channel?.title ?: "RSS",
+                        isRefreshing = isRefreshing,
+                        enabled = !isScrolling,
+                        onClick = onHeaderClick
+                    )
+                }
             }
             if (items.isEmpty()) {
                 item(key = "empty") {
@@ -189,27 +191,38 @@ fun FeedScreen(
                         }
                     }
                 ) { item ->
-                    FeedItemEntry(
-                        item = item,
-                        maxImageWidthPx = maxImageWidthPx,
-                        isScrolling = isScrolling,
-                        openSwipeId = openSwipeId,
-                        onOpenSwipe = onOpenSwipe,
-                        onCloseSwipe = onCloseSwipe,
-                        draggingSwipeId = draggingSwipeId,
-                        onDragStart = onDragStart,
-                        onDragEnd = onDragEnd,
-                        onClick = { onItemClick(item) },
-                        onLongClick = { onItemLongClick(item) },
-                        onFavoriteClick = { onFavoriteClick(item) },
-                        onWatchLaterClick = { onWatchLaterClick(item) }
-                    )
+                    val thumbUrl = resolveThumbUrl(item)
+                    val itemSpacing = if (thumbUrl.isNullOrBlank()) {
+                        textItemSpacing
+                    } else {
+                        imageItemSpacing
+                    }
+                    Box(modifier = Modifier.padding(bottom = itemSpacing)) {
+                        FeedItemEntry(
+                            item = item,
+                            thumbUrl = thumbUrl,
+                            maxImageWidthPx = maxImageWidthPx,
+                            isScrolling = isScrolling,
+                            openSwipeId = openSwipeId,
+                            onOpenSwipe = onOpenSwipe,
+                            onCloseSwipe = onCloseSwipe,
+                            draggingSwipeId = draggingSwipeId,
+                            onDragStart = onDragStart,
+                            onDragEnd = onDragEnd,
+                            onClick = { onItemClick(item) },
+                            onLongClick = { onItemLongClick(item) },
+                            onFavoriteClick = { onFavoriteClick(item) },
+                            onWatchLaterClick = { onWatchLaterClick(item) }
+                        )
+                    }
                 }
                 item(key = "actions") {
-                    FeedActions(
-                        canLoadMore = hasMore,
-                        onLoadMore = onLoadMore
-                    )
+                    Box(modifier = Modifier.padding(top = imageItemSpacing)) {
+                        FeedActions(
+                            canLoadMore = hasMore,
+                            onLoadMore = onLoadMore
+                        )
+                    }
                 }
             }
         }
@@ -364,6 +377,7 @@ private fun FeedPillButton(
 @Composable
 private fun FeedItemEntry(
     item: RssItem,
+    thumbUrl: String?,
     maxImageWidthPx: Int,
     isScrolling: Boolean,
     openSwipeId: Long?,
@@ -384,12 +398,15 @@ private fun FeedItemEntry(
     }
     val revealGapPx = with(LocalDensity.current) { (actionPadding * 2).toPx() }
     var actionsWidthPx by remember { mutableStateOf(fallbackActionsWidthPx) }
-    val fallbackCardHeight = dimensionResource(R.dimen.feed_card_image_height)
-    val cardHeight = fallbackCardHeight
-    val pressState = rememberPressScaleState(enabled = !isScrolling)
-    val thumbUrl = remember(item.id, item.imageUrl, item.link) {
-        resolveThumbUrl(item)
+    var cardHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    val cardHeightModifier = if (cardHeightPx > 0) {
+        val height = with(density) { cardHeightPx.toDp() }
+        Modifier.height(height)
+    } else {
+        Modifier
     }
+    val pressState = rememberPressScaleState(enabled = !isScrolling)
     val pressScale = pressState.scale
     val cardScaleModifier = if (pressScale != 1f) {
         Modifier.graphicsLayer(
@@ -412,8 +429,12 @@ private fun FeedItemEntry(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(cardHeight)
                 .then(offsetModifier)
+                .onSizeChanged { size ->
+                    if (cardHeightPx == 0 || !isScrolling) {
+                        cardHeightPx = size.height
+                    }
+                }
         ) {
             Box(
                 modifier = Modifier
@@ -470,7 +491,7 @@ private fun FeedItemEntry(
                 Row(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .height(cardHeight)
+                        .then(cardHeightModifier)
                         .padding(horizontal = actionPadding)
                         .onSizeChanged { size ->
                             actionsWidthPx = size.width.toFloat()
@@ -517,6 +538,7 @@ private fun FeedTextCard(
     val padding = dimensionResource(R.dimen.hey_content_horizontal_distance)
     val titleSize = textSize(R.dimen.feed_card_title_text_size)
     val summarySize = textSize(R.dimen.feed_card_summary_text_size)
+    val summaryLineHeight = summarySize * 1.1f
     val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
     val unreadSize = dimensionResource(R.dimen.hey_distance_8dp)
     val unreadMargin = dimensionResource(R.dimen.hey_distance_6dp)
@@ -549,7 +571,8 @@ private fun FeedTextCard(
                 text = summary,
                 color = Color(0xB3FFFFFF),
                 fontSize = summarySize,
-                maxLines = 3,
+                lineHeight = summaryLineHeight,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = summaryTop)
             )
@@ -585,6 +608,7 @@ private fun FeedImageCard(
     val padding = dimensionResource(R.dimen.hey_distance_8dp)
     val titleSize = textSize(R.dimen.feed_card_title_text_size)
     val summarySize = textSize(R.dimen.feed_card_summary_text_size)
+    val summaryLineHeight = summarySize * 1.1f
     val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
     val unreadSize = dimensionResource(R.dimen.hey_distance_8dp)
     val unreadMargin = dimensionResource(R.dimen.hey_distance_6dp)
@@ -639,6 +663,7 @@ private fun FeedImageCard(
                 text = summary,
                 color = Color(0xCCFFFFFF),
                 fontSize = summarySize,
+                lineHeight = summaryLineHeight,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = summaryTop)
