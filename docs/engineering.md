@@ -361,6 +361,18 @@ interface ChannelRepository {
 - 冷启动到首页首屏（目标：尽可能 < 1.5s，按实际设备调整）
 - 列表快速滚动帧率
 - 连续阅读/播放功耗对比（A/B：预加载开关）
+- 性能信息获取（Debug 构建）
+  - 应用内 JankStats（PerformanceMonitor）
+    - 进入目标页面 → 触发滚动/交互 → 返回上一页或切后台，`onPause` 会输出统计
+    - 获取日志：`adb logcat -d -s perf`（汇总）与 `adb logcat -d -s frame`（逐帧分解，仅 DetailActivity）
+    - 日志字段：`screen`、`scenario`、`frames`、`jank`、`jankPct`、`avgMs`、`maxMs`
+  - 系统 framestats（dumpsys gfxinfo）
+    - 重置计数：`adb shell dumpsys gfxinfo com.lightningstudio.watchrss reset`
+    - 滚动/复现场景后导出：`adb shell dumpsys gfxinfo com.lightningstudio.watchrss framestats > /sdcard/gfxinfo.txt`
+    - 拉取分析：`adb shell cat /sdcard/gfxinfo.txt`
+    - 关注指标：`Janky frames / Total frames`、`90th/95th/99th percentile`、`Number High input latency`
+  - 屏幕刷新率确认（用于 16ms 阈值）
+    - `adb shell dumpsys SurfaceFlinger --latency`（首行约 16666666ns 表示 60Hz）
 
 ---
 
