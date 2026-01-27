@@ -98,6 +98,7 @@ import com.lightningstudio.watchrss.WebViewActivity
 import com.lightningstudio.watchrss.BuildConfig
 import com.lightningstudio.watchrss.data.rss.OfflineMedia
 import com.lightningstudio.watchrss.data.rss.RssItem
+import com.lightningstudio.watchrss.data.rss.RssUrlResolver
 import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
 import com.lightningstudio.watchrss.ui.util.ContentBlock
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
@@ -353,6 +354,7 @@ internal fun DetailContent(
             )
         }
         val link = item?.link?.trim().orEmpty()
+        val baseLink = link.takeIf { it.isNotBlank() }
         val baseItemCount = remember(link, hasOfflineFailures) {
             4 + (if (link.isNotEmpty()) 1 else 0) + (if (hasOfflineFailures) 1 else 0)
         }
@@ -380,7 +382,7 @@ internal fun DetailContent(
                 val key = target.cacheKey(maxImageWidthPx)
                 if (!prefetchedUrls.add(key)) return@forEach
                 prefetched++
-                val resolvedUrl = resolveMediaUrl(target.url, offlineMediaState.value)
+                val resolvedUrl = resolveMediaUrl(target.url, offlineMediaState.value, baseLink)
                 when (target.type) {
                     PrefetchType.Image ->
                         if (resolvedUrl.isNotBlank()) {
@@ -420,7 +422,7 @@ internal fun DetailContent(
                         val key = target.cacheKey(maxImageWidthPx)
                         if (!prefetchedUrls.add(key)) return@forEach
                         prefetched++
-                        val resolvedUrl = resolveMediaUrl(target.url, offlineMediaState.value)
+                        val resolvedUrl = resolveMediaUrl(target.url, offlineMediaState.value, baseLink)
                         when (target.type) {
                             PrefetchType.Image ->
                                 if (resolvedUrl.isNotBlank()) {
@@ -540,7 +542,7 @@ internal fun DetailContent(
                             )
                         }
                         is ContentBlock.Image -> {
-                            val resolvedUrl = resolveMediaUrl(block.url, offlineMedia)
+                            val resolvedUrl = resolveMediaUrl(block.url, offlineMedia, baseLink)
                             DetailImageBlock(
                                 url = resolvedUrl,
                                 alt = block.alt,
@@ -551,14 +553,15 @@ internal fun DetailContent(
                             )
                         }
                         is ContentBlock.Video -> {
-                            val resolvedUrl = resolveMediaUrl(block.url, offlineMedia)
+                            val resolvedUrl = resolveMediaUrl(block.url, offlineMedia, baseLink)
+                            val webUrl = resolveRemoteUrl(block.url, baseLink)
                             DetailVideoBlock(
-                                poster = block.poster?.let { resolveMediaUrl(it, offlineMedia) },
+                                poster = block.poster?.let { resolveMediaUrl(it, offlineMedia, baseLink) },
                                 videoUrl = resolvedUrl,
                                 maxWidthPx = maxImageWidthPx,
                                 topPadding = topPadding,
                                 isScrolling = isScrolling,
-                                onClick = { openRssVideo(context, resolvedUrl, block.url) }
+                                onClick = { openRssVideo(context, resolvedUrl, webUrl) }
                             )
                         }
                     }
@@ -815,16 +818,17 @@ private fun DetailVideoBlock(
     val context = LocalContext.current
     val coverState =
         remember(poster, videoUrl, maxWidthPx) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    val ratioState = remember(poster, videoUrl) { mutableStateOf<Float?>(null) }
     LaunchedEffect(poster, videoUrl, maxWidthPx, isScrolling) {
         if (isScrolling) return@LaunchedEffect
         if (coverState.value != null) return@LaunchedEffect
-        if (poster.isNullOrBlank() && !isLocalMedia(videoUrl)) return@LaunchedEffect
+        if (poster.isNullOrBlank() && !canExtractVideoFrame(videoUrl)) return@LaunchedEffect
         decodeSemaphore.acquire()
         try {
             if (coverState.value == null) {
                 coverState.value = when {
                     !poster.isNullOrBlank() -> RssImageLoader.loadBitmap(context, poster, maxWidthPx)
-                    isLocalMedia(videoUrl) -> loadCachedVideoFrame(context, videoUrl, maxWidthPx)
+                    canExtractVideoFrame(videoUrl) -> loadCachedVideoFrame(context, videoUrl, maxWidthPx)
                     else -> null
                 }
             }
@@ -832,10 +836,21 @@ private fun DetailVideoBlock(
             decodeSemaphore.release()
         }
     }
+    LaunchedEffect(poster, videoUrl, maxWidthPx) {
+        if (ratioState.value != null) return@LaunchedEffect
+        ratioState.value = when {
+            !poster.isNullOrBlank() -> {
+                RssImageLoader.getCachedAspectRatio(poster)
+                    ?: RssImageLoader.preloadAndCacheRatio(context, poster, maxWidthPx)
+            }
+            canExtractVideoFrame(videoUrl) -> loadCachedVideoRatio(context, videoUrl)
+            else -> null
+        }
+    }
     val coverRatio = coverState.value?.let { it.width.toFloat() / it.height.toFloat() }
         ?: poster?.let { RssImageLoader.getCachedAspectRatio(it) }
+        ?: ratioState.value
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
-    val padding = dimensionResource(R.dimen.hey_distance_6dp)
     val coverHeight = dimensionResource(R.dimen.hey_card_large_height)
 
     Box(
@@ -845,7 +860,6 @@ private fun DetailVideoBlock(
             .clip(shape)
             .background(colorResource(R.color.watch_card_background))
             .clickableWithoutRipple(enabled = !isScrolling, onClick = onClick)
-            .padding(padding)
             .scrollSemanticsDisabled(isScrolling)
             .debugTraceLayout("DetailVideoBlock/layout")
             .debugTraceDraw("DetailVideoBlock/draw")
@@ -869,8 +883,9 @@ private fun DetailVideoBlock(
                     )
             )
         } else {
-            val placeholderModifier = if (coverRatio != null && coverRatio > 0f) {
-                Modifier.aspectRatio(coverRatio)
+            val placeholderRatio = coverRatio ?: DEFAULT_VIDEO_ASPECT_RATIO
+            val placeholderModifier = if (placeholderRatio > 0f) {
+                Modifier.aspectRatio(placeholderRatio)
             } else {
                 Modifier.height(coverHeight)
             }
@@ -902,6 +917,7 @@ private suspend fun loadCachedVideoFrame(
     videoFrameCache.get(key)?.let { return it }
     val frame = loadVideoFrame(context, url, maxWidthPx)
     if (frame != null) {
+        cacheVideoAspectRatio(url, frame.width, frame.height, null)
         videoFrameCache.put(key, frame)
     }
     return frame
@@ -916,12 +932,8 @@ private suspend fun loadVideoFrame(
     return withContext(Dispatchers.IO) {
         val retriever = MediaMetadataRetriever()
         try {
-            when {
-                url.startsWith("file://") -> retriever.setDataSource(url.removePrefix("file://"))
-                url.startsWith("/") -> retriever.setDataSource(url)
-                url.startsWith("content://") -> retriever.setDataSource(context, Uri.parse(url))
-                else -> retriever.setDataSource(url, emptyMap())
-            }
+            setRetrieverDataSource(retriever, context, url)
+            extractVideoAspectRatio(retriever)?.let { videoRatioCache.put(url, it) }
             val dstWidth = maxWidthPx.coerceAtLeast(1)
             val dstHeight = (maxWidthPx * 2).coerceAtLeast(1)
             when {
@@ -963,6 +975,66 @@ private suspend fun loadVideoFrame(
         } finally {
             retriever.release()
         }
+    }
+}
+
+private suspend fun loadCachedVideoRatio(
+    context: Context,
+    url: String
+): Float? {
+    val trimmed = url.trim()
+    if (trimmed.isEmpty()) return null
+    videoRatioCache.get(trimmed)?.let { return it }
+    val ratio = loadVideoMetadataRatio(context, trimmed)
+    if (ratio != null) {
+        videoRatioCache.put(trimmed, ratio)
+    }
+    return ratio
+}
+
+private suspend fun loadVideoMetadataRatio(
+    context: Context,
+    url: String
+): Float? {
+    return withContext(Dispatchers.IO) {
+        val retriever = MediaMetadataRetriever()
+        try {
+            setRetrieverDataSource(retriever, context, url)
+            extractVideoAspectRatio(retriever)
+        } catch (e: Exception) {
+            null
+        } finally {
+            retriever.release()
+        }
+    }
+}
+
+private fun setRetrieverDataSource(
+    retriever: MediaMetadataRetriever,
+    context: Context,
+    url: String
+) {
+    when {
+        url.startsWith("file://") -> retriever.setDataSource(url.removePrefix("file://"))
+        url.startsWith("/") -> retriever.setDataSource(url)
+        url.startsWith("content://") -> retriever.setDataSource(context, Uri.parse(url))
+        else -> retriever.setDataSource(url, VIDEO_FRAME_HEADERS)
+    }
+}
+
+private fun extractVideoAspectRatio(retriever: MediaMetadataRetriever): Float? {
+    val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+        ?.toIntOrNull()
+    val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+        ?.toIntOrNull()
+    if (width == null || height == null || width <= 0 || height <= 0) return null
+    val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+        ?.toIntOrNull()
+        ?: 0
+    return if (rotation % 180 != 0) {
+        height.toFloat() / width.toFloat()
+    } else {
+        width.toFloat() / height.toFloat()
     }
 }
 
@@ -1170,9 +1242,18 @@ private fun adjustedTextSizeSp(
     return with(density) { sizePx.toSp() }
 }
 
-private fun resolveMediaUrl(url: String, offlineMedia: Map<String, OfflineMedia>): String {
+private fun resolveMediaUrl(
+    url: String,
+    offlineMedia: Map<String, OfflineMedia>,
+    baseLink: String?
+): String {
     val local = offlineMedia[url]?.localPath
-    return if (!local.isNullOrBlank()) local else url
+    if (!local.isNullOrBlank()) return local
+    return RssUrlResolver.resolveMediaUrl(url, baseLink) ?: url
+}
+
+private fun resolveRemoteUrl(url: String, baseLink: String?): String? {
+    return RssUrlResolver.resolveMediaUrl(url, baseLink)
 }
 
 private const val PREFETCH_MEDIA_COUNT = 8
@@ -1184,6 +1265,12 @@ private val decodeSemaphore = Semaphore(permits = 2)
 private val videoFrameCache = object : LruCache<String, Bitmap>(VIDEO_FRAME_CACHE_BYTES) {
     override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
 }
+private val videoRatioCache = object : LruCache<String, Float>(200) {}
+
+private const val DEFAULT_VIDEO_ASPECT_RATIO = 16f / 9f
+private val VIDEO_FRAME_HEADERS = mapOf(
+    "User-Agent" to "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36"
+)
 
 private enum class PrefetchType {
     Image,
@@ -1252,6 +1339,24 @@ private fun collectPrefetchTargets(
 
 private fun isLocalMedia(url: String): Boolean {
     return url.startsWith("/") || url.startsWith("file://") || url.startsWith("content://")
+}
+
+private fun canExtractVideoFrame(url: String): Boolean {
+    val trimmed = url.trim()
+    if (trimmed.isEmpty()) return false
+    if (isLocalMedia(trimmed)) return true
+    return trimmed.startsWith("http://", ignoreCase = true) ||
+        trimmed.startsWith("https://", ignoreCase = true)
+}
+
+private fun cacheVideoAspectRatio(url: String, width: Int, height: Int, rotation: Int?) {
+    if (width <= 0 || height <= 0) return
+    val rotated = rotation?.let { it % 180 != 0 } ?: false
+    val w = if (rotated) height else width
+    val h = if (rotated) width else height
+    if (w > 0 && h > 0) {
+        videoRatioCache.put(url, w.toFloat() / h.toFloat())
+    }
 }
 
 private fun calculateReadingProgress(listState: androidx.compose.foundation.lazy.LazyListState): Float {

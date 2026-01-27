@@ -42,7 +42,8 @@ import kotlin.math.min
 fun ChannelDetailScreen(
     channel: RssChannel?,
     onOpenSettings: () -> Unit,
-    onMarkRead: () -> Unit
+    onMarkRead: () -> Unit,
+    onShare: () -> Unit
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val titleSpacing = dimensionResource(HeytapR.dimen.hey_distance_6dp)
@@ -139,6 +140,16 @@ fun ChannelDetailScreen(
                 width = buttonWidth,
                 height = buttonHeight,
                 onClick = onOpenSettings
+            )
+
+            Spacer(modifier = Modifier.height(buttonSpacing))
+
+            ActionButton(
+                label = "分享",
+                enabled = channel != null,
+                width = buttonWidth,
+                height = buttonHeight,
+                onClick = onShare
             )
 
             Spacer(modifier = Modifier.height(buttonSpacing))

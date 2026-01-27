@@ -50,7 +50,7 @@ fun WatchSurface(modifier: Modifier = Modifier, content: @Composable BoxScope.()
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(innerGradient),
+                    .background(Color.Black),
                 contentAlignment = Alignment.Center
             ) {
                 content()
