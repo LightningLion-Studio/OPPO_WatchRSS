@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.lightningstudio.watchrss.data.bili.BiliRepository
+import com.lightningstudio.watchrss.data.douyin.DouyinRepository
 import com.lightningstudio.watchrss.data.db.WatchRssDatabase
 import com.lightningstudio.watchrss.data.rss.DefaultRssRepository
 import com.lightningstudio.watchrss.data.rss.RssReadableService
@@ -21,6 +22,7 @@ interface AppContainer {
     val rssRepository: RssRepository
     val settingsRepository: SettingsRepository
     val biliRepository: BiliRepository
+    val douyinRepository: DouyinRepository
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
@@ -54,6 +56,10 @@ class DefaultAppContainer(context: Context) : AppContainer {
             produceFile = { appContext.preferencesDataStoreFile("bili_cache.preferences_pb") }
         )
         BiliRepository(appContext, dataStore)
+    }
+
+    override val douyinRepository: DouyinRepository by lazy {
+        DouyinRepository(appContext)
     }
 
     override val rssRepository: RssRepository by lazy {

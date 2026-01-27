@@ -82,7 +82,8 @@ fun BiliPlayerScreen(
     uiState: BiliPlayerUiState,
     onRetry: () -> Unit,
     onOpenWeb: () -> Unit,
-    onPanStateChange: (Float, Float) -> Unit
+    onPanStateChange: (Float, Float) -> Unit,
+    allowPan: Boolean = true
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val spacing = dimensionResource(R.dimen.hey_distance_6dp)
@@ -438,7 +439,7 @@ fun BiliPlayerScreen(
                     }
                     .draggable(
                         orientation = if (isVerticalPan) Orientation.Vertical else Orientation.Horizontal,
-                        enabled = panRangePx > 0f,
+                        enabled = allowPan && panRangePx > 0f,
                         state = rememberDraggableState { delta ->
                             if (panRangePx <= 0f) return@rememberDraggableState
                             stopPanFling()
