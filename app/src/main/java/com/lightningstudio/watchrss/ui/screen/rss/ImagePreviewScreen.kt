@@ -55,7 +55,8 @@ import kotlin.math.roundToInt
 fun ImagePreviewScreen(
     url: String,
     alt: String?,
-    onPanStateChange: (offsetX: Float, rangeX: Float) -> Unit = { _, _ -> }
+    onPanStateChange: (offsetX: Float, rangeX: Float) -> Unit = { _, _ -> },
+    onExit: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -161,6 +162,7 @@ fun ImagePreviewScreen(
                 .fillMaxSize()
                 .pointerInput(url, containerSize, imageSize, maxScale) {
                     detectTapGestures(
+                        onTap = { onExit() },
                         onDoubleTap = { tap ->
                             val nextScale = nextDoubleTapScale(scale, maxScale)
                             scope.launch {

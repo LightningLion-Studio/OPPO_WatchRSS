@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +53,8 @@ fun SwipeActionButton(
     val textPadding = dimensionResource(R.dimen.hey_distance_8dp)
     val iconSize = dimensionResource(R.dimen.hey_distance_16dp)
     val iconSpacing = dimensionResource(R.dimen.hey_distance_4dp)
+    val dangerColor = colorResource(R.color.danger_red)
+    val actionColor = if (text.contains("删除")) dangerColor else Color.White
 
     Box(
         modifier = Modifier
@@ -70,13 +73,13 @@ fun SwipeActionButton(
                 Icon(
                     painter = painterResource(id = iconRes),
                     contentDescription = text,
-                    tint = Color.White,
+                    tint = actionColor,
                     modifier = Modifier.size(iconSize)
                 )
                 Spacer(modifier = Modifier.height(iconSpacing))
                 Text(
                     text = text,
-                    color = Color.White,
+                    color = actionColor,
                     fontSize = textSize,
                     textAlign = TextAlign.Center
                 )
@@ -84,7 +87,7 @@ fun SwipeActionButton(
         } else {
             Text(
                 text = text,
-                color = Color.White,
+                color = actionColor,
                 fontSize = textSize,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = textPadding)

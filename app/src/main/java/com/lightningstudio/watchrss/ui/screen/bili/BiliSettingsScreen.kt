@@ -14,7 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,6 +24,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import com.heytap.wearable.R as HeytapR
 import com.lightningstudio.watchrss.R
+import com.lightningstudio.watchrss.ui.components.WatchSwitch
 import com.lightningstudio.watchrss.ui.components.WatchSurface
 
 @Composable
@@ -72,8 +72,8 @@ fun BiliSettingsScreen(
             )
             if (showOriginalContent) {
                 Spacer(modifier = Modifier.height(sectionSpacing))
-                SettingsPillRow(label = "原文阅读模式") {
-                    Switch(
+                SettingsPillRow(label = "原文阅读模式", endPaddingMultiplier = 1.5f) {
+                    WatchSwitch(
                         checked = originalContentEnabled,
                         onCheckedChange = { onToggleOriginalContent() }
                     )
@@ -111,13 +111,14 @@ fun BiliSettingsScreen(
 @Composable
 private fun SettingsPillRow(
     label: String,
+    endPaddingMultiplier: Float = 1f,
     content: @Composable RowScope.() -> Unit
 ) {
     val pillColor = colorResource(R.color.watch_pill_background)
     val pillRadius = dimensionResource(HeytapR.dimen.hey_button_default_radius)
     val pillHeight = dimensionResource(HeytapR.dimen.hey_multiple_item_height)
     val startPadding = dimensionResource(HeytapR.dimen.hey_content_horizontal_distance_6_0)
-    val endPadding = dimensionResource(HeytapR.dimen.hey_distance_10dp)
+    val endPadding = dimensionResource(HeytapR.dimen.hey_distance_10dp) * endPaddingMultiplier
     val verticalPadding = dimensionResource(HeytapR.dimen.hey_distance_8dp)
 
     Row(

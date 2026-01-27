@@ -64,3 +64,11 @@ val Typography = Typography(
         lineHeight = 11.sp
     )
 )
+
+val ActionButtonTextStyle = TextStyle(
+    fontFamily = WatchFontFamily,
+    fontWeight = FontWeight.Medium,
+    fontSize = 17.sp,
+    lineHeight = 23.sp,
+    letterSpacing = 0.sp
+)

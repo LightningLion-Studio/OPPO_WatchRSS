@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import com.lightningstudio.watchrss.ui.theme.WatchBackground
 import com.lightningstudio.watchrss.ui.theme.WatchBackgroundDeep
 import com.lightningstudio.watchrss.ui.theme.WatchSurface
+import com.lightningstudio.watchrss.BuildConfig
 
 @Composable
 fun WatchSurface(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
@@ -28,18 +29,29 @@ fun WatchSurface(modifier: Modifier = Modifier, content: @Composable BoxScope.()
             colors = listOf(WatchSurface, Color.Black)
         )
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(outerGradient),
-            contentAlignment = Alignment.Center
-        ) {
+        if (BuildConfig.DEBUG) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(CircleShape)
-                    .background(innerGradient)
+                    .fillMaxSize()
+                    .background(outerGradient),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(CircleShape)
+                        .background(innerGradient)
+                ) {
+                    content()
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(innerGradient),
+                contentAlignment = Alignment.Center
             ) {
                 content()
             }

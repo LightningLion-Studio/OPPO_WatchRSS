@@ -4,8 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -24,6 +27,8 @@ class BiliSearchActivity : BaseHeytapActivity() {
 
         setContent {
             WatchRSSTheme {
+                val baseDensity = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
                 val navController = rememberNavController()
                 val context = LocalContext.current
                 val factory = remember(repository, rssRepository) {
@@ -57,6 +62,7 @@ class BiliSearchActivity : BaseHeytapActivity() {
                             }
                         )
                     }
+                }
                 }
             }
         }

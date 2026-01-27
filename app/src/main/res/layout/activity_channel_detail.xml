@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:layout_height="match_parent">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -61,26 +60,24 @@
 
             <com.heytap.wearable.support.widget.HeyShapeButton
                 android:id="@+id/button_channel_settings"
-                style="@style/HeySmallShapeButtonStyle"
+                style="@style/WatchActionPillButton"
                 android:layout_width="@dimen/watch_action_button_width"
                 android:layout_height="@dimen/watch_action_button_height"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="4dp"
                 android:background="@drawable/bg_settings_pill"
                 android:gravity="center"
-                android:textSize="@dimen/hey_m_title"
                 android:text="设置" />
 
             <com.heytap.wearable.support.widget.HeyShapeButton
                 android:id="@+id/button_channel_mark_read"
-                style="@style/HeySmallShapeButtonStyle"
+                style="@style/WatchActionPillButton"
                 android:layout_width="@dimen/watch_action_button_width"
                 android:layout_height="@dimen/watch_action_button_height"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="4dp"
                 android:background="@drawable/bg_settings_pill"
                 android:gravity="center"
-                android:textSize="@dimen/hey_m_title"
                 android:text="标记已读" />
         </LinearLayout>
     </ScrollView>

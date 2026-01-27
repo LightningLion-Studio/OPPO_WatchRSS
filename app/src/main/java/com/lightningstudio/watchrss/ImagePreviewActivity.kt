@@ -33,7 +33,8 @@ class ImagePreviewActivity : BaseHeytapActivity() {
                     onPanStateChange = { offsetX, rangeX ->
                         panOffsetX = offsetX
                         panRangeX = rangeX
-                    }
+                    },
+                    onExit = { finish() }
                 )
             }
         }

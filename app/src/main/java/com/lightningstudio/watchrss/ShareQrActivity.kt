@@ -28,7 +28,8 @@ class ShareQrActivity : BaseHeytapActivity() {
                     onQrError = {
                         HeyToast.showToast(this, "二维码生成失败", android.widget.Toast.LENGTH_SHORT)
                         finish()
-                    }
+                    },
+                    onBack = { finish() }
                 )
             }
         }

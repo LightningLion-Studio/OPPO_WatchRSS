@@ -2,8 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/add_rss_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:layout_height="match_parent">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -129,24 +128,22 @@
 
                 <com.heytap.wearable.support.widget.HeyShapeButton
                     android:id="@+id/button_confirm"
-                    style="@style/HeySmallShapeButtonStyle"
+                    style="@style/WatchActionPillButton"
                     android:layout_width="@dimen/watch_action_button_width"
                     android:layout_height="@dimen/watch_action_button_height"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center"
-                    android:text="确认添加"
-                    android:textSize="@dimen/hey_m_title" />
+                    android:text="确认添加" />
 
                 <com.heytap.wearable.support.widget.HeyShapeButton
                     android:id="@+id/button_edit"
-                    style="@style/HeySmallShapeButtonStyle"
+                    style="@style/WatchActionPillButton"
                     android:layout_width="@dimen/watch_action_button_width"
                     android:layout_height="@dimen/watch_action_button_height"
                     android:layout_marginTop="4dp"
                     android:background="@drawable/bg_settings_pill"
                     android:gravity="center"
-                    android:text="修改地址"
-                    android:textSize="@dimen/hey_m_title" />
+                    android:text="修改地址" />
             </LinearLayout>
         </LinearLayout>
 

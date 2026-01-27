@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingStart="@dimen/hey_content_horizontal_distance"
+        android:paddingEnd="@dimen/hey_content_horizontal_distance"
+        android:paddingTop="@dimen/watch_safe_padding"
+        android:paddingBottom="@dimen/hey_content_horizontal_distance"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="top|center_horizontal"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/action_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:showDividers="middle"
+                android:divider="@drawable/space_4dp">
+
+                <com.heytap.wearable.support.widget.HeyShapeButton
+                    android:id="@+id/button_favorite"
+                    style="@style/WatchActionPillButton"
+                    android:layout_width="@dimen/watch_action_button_width"
+                    android:layout_height="@dimen/watch_action_button_height"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center"
+                    android:text="收藏" />
+
+                <com.heytap.wearable.support.widget.HeyShapeButton
+                    android:id="@+id/button_watch_later"
+                    style="@style/WatchActionPillButton"
+                    android:layout_width="@dimen/watch_action_button_width"
+                    android:layout_height="@dimen/watch_action_button_height"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center"
+                    android:text="稍后再看" />
+
+                <com.heytap.wearable.support.widget.HeyShapeButton
+                    android:id="@+id/button_cancel"
+                    style="@style/WatchActionPillButton"
+                    android:layout_width="@dimen/watch_action_button_width"
+                    android:layout_height="@dimen/watch_action_button_height"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center"
+                    android:text="取消" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/hey_content_horizontal_distance_6_0" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

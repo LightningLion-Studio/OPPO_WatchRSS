@@ -2,6 +2,8 @@ package com.lightningstudio.watchrss.ui.screen.rss
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,8 +20,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,11 +31,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import com.heytap.wearable.R as HeytapR
 import com.lightningstudio.watchrss.R
+import com.lightningstudio.watchrss.ui.components.WatchSwitch
 import com.lightningstudio.watchrss.ui.components.WatchSurface
 import kotlinx.coroutines.flow.StateFlow
 
@@ -88,8 +93,9 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(sectionSpacing))
 
             SettingsPillRow(label = "缓存上限") {
-                RoundIconButton(
-                    text = "-",
+                RoundIconButtonIcon(
+                    iconRes = R.drawable.ic_action_minus,
+                    contentDescription = "减少缓存上限",
                     enabled = lowerCache != null,
                     onClick = { lowerCache?.let(onSelectCacheLimit) }
                 )
@@ -100,8 +106,9 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.width(stepperSpacing))
-                RoundIconButton(
-                    text = "+",
+                RoundIconButtonIcon(
+                    iconRes = R.drawable.ic_action_plus,
+                    contentDescription = "增加缓存上限",
                     enabled = higherCache != null,
                     onClick = { higherCache?.let(onSelectCacheLimit) }
                 )
@@ -115,8 +122,8 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(entrySpacing))
 
-            SettingsPillRow(label = "阅读主题") {
-                Switch(checked = themeDark, onCheckedChange = { onToggleReadingTheme() })
+            SettingsPillRow(label = "阅读主题", endPaddingMultiplier = 1.5f) {
+                WatchSwitch(checked = themeDark, onCheckedChange = { onToggleReadingTheme() })
             }
             Text(
                 text = if (themeDark) "深色" else "浅色",
@@ -127,8 +134,8 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(entrySpacing))
 
-            SettingsPillRow(label = "分享方式") {
-                Switch(checked = useSystemShare, onCheckedChange = { onToggleShareMode() })
+            SettingsPillRow(label = "分享方式", endPaddingMultiplier = 1.5f) {
+                WatchSwitch(checked = useSystemShare, onCheckedChange = { onToggleShareMode() })
             }
             Text(
                 text = if (useSystemShare) "系统分享" else "二维码",
@@ -140,8 +147,9 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(entrySpacing))
 
             SettingsPillRow(label = "字体大小") {
-                RoundIconButton(
-                    text = "-",
+                RoundIconButtonIcon(
+                    iconRes = R.drawable.ic_action_minus,
+                    contentDescription = "减小字体",
                     enabled = lowerFont != null,
                     onClick = { lowerFont?.let(onSelectFontSize) }
                 )
@@ -152,8 +160,9 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.width(stepperSpacing))
-                RoundIconButton(
-                    text = "+",
+                RoundIconButtonIcon(
+                    iconRes = R.drawable.ic_action_plus,
+                    contentDescription = "增大字体",
                     enabled = higherFont != null,
                     onClick = { higherFont?.let(onSelectFontSize) }
                 )
@@ -217,13 +226,14 @@ private fun SettingsHeader() {
 @Composable
 private fun SettingsPillRow(
     label: String,
+    endPaddingMultiplier: Float = 1f,
     content: @Composable RowScope.() -> Unit
 ) {
     val pillColor = colorResource(R.color.watch_pill_background)
     val pillRadius = dimensionResource(HeytapR.dimen.hey_button_default_radius)
     val pillHeight = dimensionResource(HeytapR.dimen.hey_multiple_item_height)
     val startPadding = dimensionResource(HeytapR.dimen.hey_content_horizontal_distance_6_0)
-    val endPadding = dimensionResource(HeytapR.dimen.hey_distance_10dp)
+    val endPadding = dimensionResource(HeytapR.dimen.hey_distance_10dp) * endPaddingMultiplier
     val verticalPadding = dimensionResource(HeytapR.dimen.hey_distance_8dp)
 
     Row(
@@ -257,7 +267,12 @@ private fun RoundIconButton(
     onClick: () -> Unit
 ) {
     val size = dimensionResource(HeytapR.dimen.hey_distance_20dp)
-    val backgroundColor = androidx.compose.ui.graphics.Color(0xFF303030)
+    val baseColor = colorResource(R.color.watch_pill_background)
+    val idleColor = lerp(baseColor, androidx.compose.ui.graphics.Color.White, 0.12f)
+    val pressedColor = lerp(baseColor, androidx.compose.ui.graphics.Color.Black, 0.18f)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val backgroundColor = if (isPressed && enabled) pressedColor else idleColor
 
     Box(
         modifier = Modifier
@@ -265,7 +280,12 @@ private fun RoundIconButton(
             .clip(CircleShape)
             .background(backgroundColor)
             .alpha(if (enabled) 1f else 0.4f)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -273,6 +293,45 @@ private fun RoundIconButton(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun RoundIconButtonIcon(
+    iconRes: Int,
+    contentDescription: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val size = dimensionResource(HeytapR.dimen.hey_distance_20dp)
+    val iconSize = size * 0.6f
+    val baseColor = colorResource(R.color.watch_pill_background)
+    val idleColor = lerp(baseColor, androidx.compose.ui.graphics.Color.White, 0.12f)
+    val pressedColor = lerp(baseColor, androidx.compose.ui.graphics.Color.Black, 0.18f)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val backgroundColor = if (isPressed && enabled) pressedColor else idleColor
+
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(backgroundColor)
+            .alpha(if (enabled) 1f else 0.4f)
+            .clickable(
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(iconSize)
         )
     }
 }

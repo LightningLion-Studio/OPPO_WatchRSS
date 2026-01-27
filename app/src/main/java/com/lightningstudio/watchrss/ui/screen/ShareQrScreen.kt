@@ -2,6 +2,8 @@ package com.lightningstudio.watchrss.ui.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +27,8 @@ import kotlin.math.roundToInt
 @Composable
 fun ShareQrScreen(
     link: String,
-    onQrError: () -> Unit
+    onQrError: () -> Unit,
+    onBack: () -> Unit
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
 
@@ -34,6 +37,11 @@ fun ShareQrScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onBack
+                )
                 .padding(safePadding)
         ) {
             BoxWithConstraints(

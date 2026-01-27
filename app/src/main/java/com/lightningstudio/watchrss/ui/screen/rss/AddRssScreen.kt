@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import com.lightningstudio.watchrss.data.rss.RssChannel
 import com.lightningstudio.watchrss.ui.components.WatchSurface
 import com.lightningstudio.watchrss.R
+import com.lightningstudio.watchrss.ui.theme.ActionButtonTextStyle
 import com.lightningstudio.watchrss.ui.viewmodel.AddRssUiState
 import com.lightningstudio.watchrss.ui.viewmodel.AddRssStep
 import kotlinx.coroutines.flow.StateFlow
@@ -210,7 +211,8 @@ fun AddRssScreen(
                             Text(
                                 text = if (state.isSubmitting) "添加中" else "确认添加",
                                 color = actionTextColor,
-                                style = MaterialTheme.typography.labelLarge
+                                style = ActionButtonTextStyle,
+                                textAlign = TextAlign.Center
                             )
                         }
                         Button(
@@ -224,7 +226,8 @@ fun AddRssScreen(
                             Text(
                                 text = "修改地址",
                                 color = actionTextColor,
-                                style = MaterialTheme.typography.labelLarge
+                                style = ActionButtonTextStyle,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -273,7 +276,8 @@ fun AddRssScreen(
                         Text(
                             text = "跳转频道",
                             color = actionTextColor,
-                            style = MaterialTheme.typography.labelLarge
+                            style = ActionButtonTextStyle,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }

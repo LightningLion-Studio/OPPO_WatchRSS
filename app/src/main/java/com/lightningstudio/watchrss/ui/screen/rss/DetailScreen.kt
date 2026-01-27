@@ -44,6 +44,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -80,6 +81,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -133,21 +135,24 @@ fun DetailScreen(
     val hasOfflineFailures = remember(offlineMedia) { offlineMedia.any { it.localPath == null } }
     val offlineMap = remember(offlineMedia) { offlineMedia.associateBy { it.originUrl } }
 
-    DetailContent(
-        item = item,
-        contentBlocks = contentBlocks,
-        offlineMedia = offlineMap,
-        hasOfflineFailures = hasOfflineFailures,
-        isFavorite = savedState.isFavorite,
-        isWatchLater = savedState.isWatchLater,
-        readingThemeDark = readingThemeDark,
-        readingFontSizeSp = readingFontSizeSp,
-        shareUseSystem = shareUseSystem,
-        onToggleFavorite = viewModel::toggleFavorite,
-        onRetryOfflineMedia = viewModel::retryOfflineMedia,
-        onSaveReadingProgress = viewModel::updateReadingProgress,
-        onBack = onBack
-    )
+    val baseDensity = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
+        DetailContent(
+            item = item,
+            contentBlocks = contentBlocks,
+            offlineMedia = offlineMap,
+            hasOfflineFailures = hasOfflineFailures,
+            isFavorite = savedState.isFavorite,
+            isWatchLater = savedState.isWatchLater,
+            readingThemeDark = readingThemeDark,
+            readingFontSizeSp = readingFontSizeSp,
+            shareUseSystem = shareUseSystem,
+            onToggleFavorite = viewModel::toggleFavorite,
+            onRetryOfflineMedia = viewModel::retryOfflineMedia,
+            onSaveReadingProgress = viewModel::updateReadingProgress,
+            onBack = onBack
+        )
+    }
 }
 
 @OptIn(FlowPreview::class)
@@ -175,9 +180,10 @@ internal fun DetailContent(
     val pagePadding = dimensionResource(R.dimen.detail_page_horizontal_padding)
     val blockSpacing = dimensionResource(R.dimen.detail_block_spacing)
     val titlePadding = dimensionResource(R.dimen.detail_title_safe_padding)
-    val actionSpacing = dimensionResource(R.dimen.hey_content_horizontal_distance)
-    val iconSize = dimensionResource(R.dimen.hey_listitem_lefticon_height_width)
-    val iconPadding = dimensionResource(R.dimen.hey_distance_6dp)
+    val actionVerticalSpacing = 12.dp
+    val actionHorizontalSpacing = 12.dp
+    val actionIconSize = 32.dp
+    val actionIconPadding = dimensionResource(R.dimen.hey_distance_6dp)
     val extraSafePadding = 0.dp
 
     val backgroundColor = if (readingThemeDark) Color.Black else Color.White
@@ -559,7 +565,7 @@ internal fun DetailContent(
                 }
             }
             item(key = "actionSpacing") {
-                Spacer(modifier = Modifier.height(actionSpacing))
+                Spacer(modifier = Modifier.height(actionVerticalSpacing))
             }
             item(key = "actions") {
                 Box(
@@ -574,18 +580,19 @@ internal fun DetailContent(
                             isFavorite = isFavorite,
                             activeColor = activeColor,
                             normalIconColor = normalIconColor,
-                            iconSize = iconSize,
-                            iconPadding = iconPadding,
+                            iconSize = actionIconSize,
+                            iconPadding = actionIconPadding,
                             enabled = !isScrolling,
                             onClick = onToggleFavorite
                         )
-                        Spacer(modifier = Modifier.width(actionSpacing))
+                        Spacer(modifier = Modifier.width(actionHorizontalSpacing))
                         CircleIconButton(
                             iconRes = R.drawable.ic_action_share,
                             contentDescription = "分享",
                             tint = normalIconColor,
-                            size = iconSize,
-                            padding = iconPadding,
+                            size = actionIconSize,
+                            padding = actionIconPadding,
+                            iconOffsetX = (-1).dp,
                             enabled = !isScrolling,
                             onClick = {
                                 val title = item?.title.orEmpty()
@@ -601,7 +608,7 @@ internal fun DetailContent(
                 }
             }
             item(key = "bottomSpacer") {
-                Spacer(modifier = Modifier.height(safePadding + extraSafePadding))
+                Spacer(modifier = Modifier.height(actionVerticalSpacing))
             }
         }
 
@@ -972,7 +979,7 @@ private fun FavoriteButtonWithStars(
     var triggerAnimation by remember { mutableStateOf(0) }
 
     Box(
-        modifier = Modifier.size(iconSize * 2.5f),
+        modifier = Modifier.size(iconSize),
         contentAlignment = Alignment.Center
     ) {
         // 星星粒子动画层
@@ -1103,6 +1110,7 @@ private fun CircleIconButton(
     tint: Color,
     size: Dp,
     padding: Dp,
+    iconOffsetX: Dp = 0.dp,
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
@@ -1119,7 +1127,8 @@ private fun CircleIconButton(
             contentDescription = contentDescription,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .offset(x = iconOffsetX),
             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(tint)
         )
     }

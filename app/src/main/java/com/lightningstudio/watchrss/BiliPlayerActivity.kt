@@ -5,8 +5,11 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.lightningstudio.watchrss.ui.screen.bili.BiliPlayerScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.BiliPlayerViewModel
@@ -30,19 +33,22 @@ class BiliPlayerActivity : BaseHeytapActivity() {
 
         setContent {
             WatchRSSTheme {
-                val uiState by viewModel.uiState.collectAsState()
-                BiliPlayerScreen(
-                    uiState = uiState,
-                    onRetry = viewModel::loadPlayUrl,
-                    onOpenWeb = {
-                        val safeLink = link ?: return@BiliPlayerScreen
-                        startActivity(WebViewActivity.createIntent(this, safeLink))
-                    },
-                    onPanStateChange = { offsetX, rangeX ->
-                        panOffsetX = offsetX
-                        panRangeX = rangeX
-                    }
-                )
+                val baseDensity = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
+                    val uiState by viewModel.uiState.collectAsState()
+                    BiliPlayerScreen(
+                        uiState = uiState,
+                        onRetry = viewModel::loadPlayUrl,
+                        onOpenWeb = {
+                            val safeLink = link ?: return@BiliPlayerScreen
+                            startActivity(WebViewActivity.createIntent(this, safeLink))
+                        },
+                        onPanStateChange = { offsetX, rangeX ->
+                            panOffsetX = offsetX
+                            panRangeX = rangeX
+                        }
+                    )
+                }
             }
         }
     }

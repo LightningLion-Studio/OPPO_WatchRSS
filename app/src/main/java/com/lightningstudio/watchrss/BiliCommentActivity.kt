@@ -4,6 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.lightningstudio.watchrss.ui.screen.bili.BiliCommentScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.BiliViewModelFactory
@@ -21,19 +24,22 @@ class BiliCommentActivity : BaseHeytapActivity() {
 
         setContent {
             WatchRSSTheme {
-                val factory = BiliViewModelFactory(repository, rssRepository)
+                val baseDensity = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
+                    val factory = BiliViewModelFactory(repository, rssRepository)
 
-                BiliCommentScreen(
-                    oid = oid,
-                    uploaderMid = uploaderMid,
-                    factory = factory,
-                    onNavigateBack = { finish() },
-                    onReplyClick = { commentOid, root ->
-                        startActivity(
-                            BiliReplyDetailActivity.createIntent(this, commentOid, root, uploaderMid)
-                        )
-                    }
-                )
+                    BiliCommentScreen(
+                        oid = oid,
+                        uploaderMid = uploaderMid,
+                        factory = factory,
+                        onNavigateBack = { finish() },
+                        onReplyClick = { commentOid, root ->
+                            startActivity(
+                                BiliReplyDetailActivity.createIntent(this, commentOid, root, uploaderMid)
+                            )
+                        }
+                    )
+                }
             }
         }
     }

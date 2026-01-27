@@ -5,10 +5,13 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.heytap.wearable.support.widget.HeyToast
 import com.lightningstudio.watchrss.ui.screen.bili.BiliListScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
@@ -28,6 +31,8 @@ class BiliListActivity : BaseHeytapActivity() {
 
         setContent {
             WatchRSSTheme {
+                val baseDensity = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
                 val context = LocalContext.current
                 val uiState by viewModel.uiState.collectAsState()
 
@@ -45,10 +50,11 @@ class BiliListActivity : BaseHeytapActivity() {
                     onLoadMore = viewModel::loadMore,
                     onItemClick = { item ->
                         context.startActivity(
-                            BiliDetailActivity.createIntent(context, item.aid, item.bvid, item.cid)
-                        )
-                    }
-                )
+                        BiliDetailActivity.createIntent(context, item.aid, item.bvid, item.cid)
+                    )
+                }
+            )
+                }
             }
         }
     }

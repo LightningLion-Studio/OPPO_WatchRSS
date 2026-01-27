@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/add_rss_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/watch_safe_padding">
+
+            <com.heytap.wearable.support.widget.HeyTextView
+                android:id="@+id/text_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="添加 RSS"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/hey_m_title"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/container_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/input_url"
+                    style="@style/HeyEditTextStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/hey_distance_4dp"
+                    android:hint="https://example.com/feed.xml"
+                    android:imeOptions="actionDone"
+                    android:inputType="textUri"
+                    android:maxLines="1" />
+
+                <com.heytap.wearable.support.widget.HeyTextView
+                    android:id="@+id/text_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+                    android:text="支持 RSS/Atom/RDF，添加后自动拉取内容"
+                    android:textSize="@dimen/hey_s_desription" />
+
+                <com.heytap.wearable.support.widget.HeyTextView
+                    android:id="@+id/text_error"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/hey_distance_4dp"
+                    android:textColor="#ED4735"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/container_error_actions"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/hey_distance_4dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <com.heytap.wearable.support.widget.HeyButton
+                        android:id="@+id/button_retry"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="重试" />
+
+                    <com.heytap.wearable.support.widget.HeyButton
+                        android:id="@+id/button_cancel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="@dimen/hey_distance_6dp"
+                        android:text="取消" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_preview"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="@dimen/hey_content_horizontal_distance"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+            <com.heytap.wearable.support.widget.HeyTextView
+                android:id="@+id/text_preview_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="频道标题"
+                android:textSize="@dimen/hey_m_title" />
+
+            <com.heytap.wearable.support.widget.HeyTextView
+                android:id="@+id/text_preview_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/hey_distance_4dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:text="频道简介"
+                android:textSize="@dimen/hey_m_desription" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <LinearLayout
+                android:id="@+id/container_preview_actions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/hey_content_horizontal_distance_6_0"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <com.heytap.wearable.support.widget.HeyShapeButton
+                    android:id="@+id/button_confirm"
+                    style="@style/WatchActionPillButton"
+                    android:layout_width="@dimen/watch_action_button_width"
+                    android:layout_height="@dimen/watch_action_button_height"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center"
+                    android:text="确认添加" />
+
+                <com.heytap.wearable.support.widget.HeyShapeButton
+                    android:id="@+id/button_edit"
+                    style="@style/WatchActionPillButton"
+                    android:layout_width="@dimen/watch_action_button_width"
+                    android:layout_height="@dimen/watch_action_button_height"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_settings_pill"
+                    android:gravity="center"
+                    android:text="修改地址" />
+            </LinearLayout>
+        </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/container_existing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/hey_content_horizontal_distance"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.heytap.wearable.support.widget.HeyTextView
+                    android:id="@+id/text_existing_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="已存在该订阅"
+                    android:textSize="@dimen/hey_s_title" />
+
+                <com.heytap.wearable.support.widget.HeyButton
+                    android:id="@+id/button_go_channel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/hey_content_horizontal_distance"
+                    android:text="跳转频道" />
+
+                <com.heytap.wearable.support.widget.HeyButton
+                    android:id="@+id/button_existing_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/hey_distance_4dp"
+                    android:text="返回" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <FrameLayout
+        android:id="@+id/button_submit"
+        android:layout_width="@dimen/hey_button_height"
+        android:layout_height="@dimen/hey_button_height"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="26dp"
+        android:background="@drawable/bg_round_icon_button"
+        android:clickable="true"
+        android:contentDescription="添加 RSS"
+        android:focusable="true">
+
+        <com.heytap.wearable.support.widget.HeyTextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/hey_s_title" />
+    </FrameLayout>
+</FrameLayout>

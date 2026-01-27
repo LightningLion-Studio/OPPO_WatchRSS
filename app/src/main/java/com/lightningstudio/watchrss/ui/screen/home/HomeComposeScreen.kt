@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -61,6 +62,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -89,78 +91,81 @@ fun HomeComposeScreen(
     onMoveTopClick: (RssChannel) -> Unit,
     onMarkReadClick: (RssChannel) -> Unit
 ) {
-    val entries = remember(channels) { buildHomeEntries(channels) }
-    val safePadding = dimensionResource(R.dimen.watch_safe_padding)
-    val itemSpacing = dimensionResource(R.dimen.hey_distance_6dp)
-    val listState = rememberLazyListState()
-    val isScrolling by remember(listState) {
-        derivedStateOf { listState.isScrollInProgress }
-    }
+    val baseDensity = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
+        val entries = remember(channels) { buildHomeEntries(channels) }
+        val safePadding = dimensionResource(R.dimen.watch_safe_padding)
+        val itemSpacing = dimensionResource(R.dimen.hey_distance_6dp)
+        val listState = rememberLazyListState()
+        val isScrolling by remember(listState) {
+            derivedStateOf { listState.isScrollInProgress }
+        }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = safePadding),
-            state = listState,
-            contentPadding = PaddingValues(
-                top = safePadding,
-                bottom = safePadding + itemSpacing
-            ),
-            verticalArrangement = Arrangement.spacedBy(itemSpacing)
+                .background(Color.Black)
         ) {
-            items(
-                entries,
-                key = { it.key },
-                contentType = { it::class }
-            ) { entry ->
-                when (entry) {
-                    HomeEntry.Profile -> {
-                        HomeProfileEntry(onProfileClick = onProfileClick)
-                    }
-                    HomeEntry.Empty -> {
-                        HomeDefaultItem(
-                            title = "还没有 RSS 频道",
-                            summary = "点击下方添加你的第一个订阅源",
-                            backgroundColor = colorResource(R.color.watch_card_background),
-                            showIndicator = false
-                        )
-                    }
-                    HomeEntry.Recommend -> {
-                        HomeDefaultItem(
-                            title = "RSS推荐",
-                            summary = "一键加入官方支持频道",
-                            backgroundColor = colorResource(R.color.watch_card_background),
-                            showIndicator = false,
-                            onClick = onRecommendClick
-                        )
-                    }
-                    HomeEntry.AddRss -> {
-                        HomeAddEntry(onAddRssClick = onAddRssClick)
-                    }
-                    is HomeEntry.Channel -> {
-                        HomeChannelEntry(
-                            channel = entry.channel,
-                            isScrolling = isScrolling,
-                            openSwipeId = openSwipeId,
-                            onOpenSwipe = onOpenSwipe,
-                            onCloseSwipe = onCloseSwipe,
-                            draggingSwipeId = draggingSwipeId,
-                            onDragStart = onDragStart,
-                            onDragEnd = onDragEnd,
-                            onChannelClick = { onChannelClick(entry.channel) },
-                            onChannelLongClick = { onChannelLongClick(entry.channel) },
-                            onMoveTopClick = { onMoveTopClick(entry.channel) },
-                            onMarkReadClick = { onMarkReadClick(entry.channel) }
-                        )
-                    }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = safePadding),
+                state = listState,
+                contentPadding = PaddingValues(
+                    top = safePadding,
+                    bottom = safePadding + itemSpacing
+                ),
+                verticalArrangement = Arrangement.spacedBy(itemSpacing)
+            ) {
+                items(
+                    entries,
+                    key = { it.key },
+                    contentType = { it::class }
+                ) { entry ->
+                    when (entry) {
+                        HomeEntry.Profile -> {
+                            HomeProfileEntry(onProfileClick = onProfileClick)
+                        }
+                        HomeEntry.Empty -> {
+                            HomeDefaultItem(
+                                title = "还没有 RSS 频道",
+                                summary = "点击下方添加你的第一个订阅源",
+                                backgroundColor = colorResource(R.color.watch_card_background),
+                                showIndicator = false
+                            )
+                        }
+                        HomeEntry.Recommend -> {
+                            HomeDefaultItem(
+                                title = "RSS推荐",
+                                summary = "一键加入官方支持频道",
+                                backgroundColor = colorResource(R.color.watch_card_background),
+                                showIndicator = false,
+                                onClick = onRecommendClick
+                            )
+                        }
+                        HomeEntry.AddRss -> {
+                            HomeAddEntry(onAddRssClick = onAddRssClick)
+                        }
+                        is HomeEntry.Channel -> {
+                            HomeChannelEntry(
+                                channel = entry.channel,
+                                isScrolling = isScrolling,
+                                openSwipeId = openSwipeId,
+                                onOpenSwipe = onOpenSwipe,
+                                onCloseSwipe = onCloseSwipe,
+                                draggingSwipeId = draggingSwipeId,
+                                onDragStart = onDragStart,
+                                onDragEnd = onDragEnd,
+                                onChannelClick = { onChannelClick(entry.channel) },
+                                onChannelLongClick = { onChannelLongClick(entry.channel) },
+                                onMoveTopClick = { onMoveTopClick(entry.channel) },
+                                onMarkReadClick = { onMarkReadClick(entry.channel) }
+                            )
+                        }
                 }
             }
         }
+    }
     }
 }
 
@@ -451,6 +456,8 @@ private fun HomeSwipeActionButton(
     val textPadding = dimensionResource(R.dimen.hey_distance_8dp)
     val iconSize = dimensionResource(R.dimen.hey_distance_16dp)
     val iconSpacing = dimensionResource(R.dimen.hey_distance_4dp)
+    val dangerColor = colorResource(R.color.danger_red)
+    val actionColor = if (text.contains("删除")) dangerColor else Color.White
 
     Box(
         modifier = Modifier
@@ -470,13 +477,13 @@ private fun HomeSwipeActionButton(
                 Icon(
                     painter = painterResource(id = iconRes),
                     contentDescription = text,
-                    tint = Color.White,
+                    tint = actionColor,
                     modifier = Modifier.size(iconSize)
                 )
                 Spacer(modifier = Modifier.height(iconSpacing))
                 Text(
                     text = text,
-                    color = Color.White,
+                    color = actionColor,
                     fontSize = textSize,
                     textAlign = TextAlign.Center
                 )
@@ -484,7 +491,7 @@ private fun HomeSwipeActionButton(
         } else {
             Text(
                 text = text,
-                color = Color.White,
+                color = actionColor,
                 fontSize = textSize,
                 textAlign = TextAlign.Center,
                 modifier = Modifier

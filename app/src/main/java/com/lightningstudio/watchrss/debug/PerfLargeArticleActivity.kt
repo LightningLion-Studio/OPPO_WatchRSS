@@ -2,8 +2,11 @@ package com.lightningstudio.watchrss.debug
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.lightningstudio.watchrss.BaseHeytapActivity
 import com.lightningstudio.watchrss.BuildConfig
 import com.lightningstudio.watchrss.ui.screen.rss.DetailContent
@@ -25,6 +28,7 @@ class PerfLargeArticleActivity : BaseHeytapActivity() {
 
         setContent {
             WatchRSSTheme {
+                val baseDensity = LocalDensity.current
                 val item by produceState(initialValue = null as com.lightningstudio.watchrss.data.rss.RssItem?) {
                     value = withContext(Dispatchers.Default) {
                         PerfDataFactory.buildLargeArticle()
@@ -37,21 +41,23 @@ class PerfLargeArticleActivity : BaseHeytapActivity() {
                     }
                 }
 
-                DetailContent(
-                    item = item,
-                    contentBlocks = contentBlocks,
-                    offlineMedia = emptyMap(),
-                    hasOfflineFailures = false,
-                    isFavorite = false,
-                    isWatchLater = false,
-                    readingThemeDark = true,
-                    readingFontSizeSp = 18,
-                    shareUseSystem = true,
-                    onToggleFavorite = {},
-                    onRetryOfflineMedia = {},
-                    onSaveReadingProgress = {},
-                    onBack = { _, _, _ -> finish() }
-                )
+                CompositionLocalProvider(LocalDensity provides Density(3f, baseDensity.fontScale)) {
+                    DetailContent(
+                        item = item,
+                        contentBlocks = contentBlocks,
+                        offlineMedia = emptyMap(),
+                        hasOfflineFailures = false,
+                        isFavorite = false,
+                        isWatchLater = false,
+                        readingThemeDark = true,
+                        readingFontSizeSp = 18,
+                        shareUseSystem = true,
+                        onToggleFavorite = {},
+                        onRetryOfflineMedia = {},
+                        onSaveReadingProgress = {},
+                        onBack = { _, _, _ -> finish() }
+                    )
+                }
             }
         }
     }

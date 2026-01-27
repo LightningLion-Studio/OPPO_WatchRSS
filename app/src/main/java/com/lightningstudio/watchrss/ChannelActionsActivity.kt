@@ -1,14 +1,21 @@
 package com.lightningstudio.watchrss
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.heytap.wearable.support.widget.HeyDialog
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
 import com.lightningstudio.watchrss.ui.screen.ActionDialogScreen
 import com.lightningstudio.watchrss.ui.screen.ActionItem
+import com.lightningstudio.watchrss.ui.screen.DeleteConfirmDialog
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.AppViewModelFactory
 import com.lightningstudio.watchrss.ui.viewmodel.ChannelActionsViewModel
@@ -35,6 +42,7 @@ class ChannelActionsActivity : BaseHeytapActivity() {
                 val pinLabel = if (channel?.isPinned == true) "取消置顶" else "置顶"
                 val isBuiltin = channel?.let { BuiltinChannelType.fromUrl(it.url) != null } ?: false
                 val canMarkRead = channel?.let { it.unreadCount > 0 && !isBuiltin } ?: false
+                var showDeleteConfirm by remember { mutableStateOf(false) }
 
                 val items = buildList {
                     add(
@@ -72,7 +80,7 @@ class ChannelActionsActivity : BaseHeytapActivity() {
                             ActionItem(
                                 label = "删除",
                                 enabled = isValid,
-                                onClick = { confirmDelete() }
+                                onClick = { showDeleteConfirm = true }
                             )
                         )
                     }
@@ -84,26 +92,34 @@ class ChannelActionsActivity : BaseHeytapActivity() {
                     )
                 }
 
-                ActionDialogScreen(items = items)
+                Box(modifier = Modifier.fillMaxSize()) {
+                    ActionDialogScreen(items = items)
+                    if (showDeleteConfirm) {
+                        DeleteConfirmDialog(
+                            title = "删除频道",
+                            message = "删除后将移除本地缓存",
+                            onConfirm = {
+                                showDeleteConfirm = false
+                                viewModel.delete()
+                                navigateHome()
+                            },
+                            onCancel = { showDeleteConfirm = false }
+                        )
+                    }
+                }
             }
         }
-    }
-
-    private fun confirmDelete() {
-        HeyDialog.HeyBuilder(this)
-            .setTitle("删除频道")
-            .setMessage("删除后将移除本地缓存")
-            .setPositiveButton("删除") { _ ->
-                viewModel.delete()
-                finish()
-            }
-            .setNegativeButton("取消") { _ -> }
-            .create()
-            .show()
     }
 
     companion object {
         const val EXTRA_CHANNEL_ID = "channelId"
         const val EXTRA_QUICK = "quick"
+    }
+
+    private fun navigateHome() {
+        val intent = Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        startActivity(intent)
+        finish()
     }
 }

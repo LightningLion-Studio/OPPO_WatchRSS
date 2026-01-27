@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="WatchActionPillButton" parent="@style/HeySmallShapeButtonStyle">
+        <item name="android:fontFamily">@font/oppo_sans</item>
+        <item name="android:textSize">@dimen/watch_action_button_text_size</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:lineHeight">@dimen/watch_action_button_line_height</item>
+        <item name="android:gravity">center</item>
+    </style>
+</resources>

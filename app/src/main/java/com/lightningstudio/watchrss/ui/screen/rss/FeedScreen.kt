@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
@@ -54,6 +55,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import android.graphics.Paint
@@ -96,132 +98,136 @@ fun FeedScreen(
     onItemLongClick: (RssItem) -> Unit,
     onFavoriteClick: (RssItem) -> Unit,
     onWatchLaterClick: (RssItem) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    densityScale: Float = 2f
 ) {
-    val safePadding = dimensionResource(R.dimen.watch_safe_padding)
-    val imageItemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
-    val textItemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
-    val listState = rememberLazyListState()
-    val context = LocalContext.current
-    val maxImageWidthPx = remember(context) {
-        val safePaddingPx = context.resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
-        (context.resources.displayMetrics.widthPixels - safePaddingPx * 2).coerceAtLeast(1)
-    }
-    val prefetchedUrls = remember(channel?.id) { mutableSetOf<String>() }
-    val isAtTop by remember(listState) {
-        derivedStateOf {
-            listState.firstVisibleItemIndex == 0 &&
-                listState.firstVisibleItemScrollOffset == 0
+    val baseDensity = LocalDensity.current
+    CompositionLocalProvider(LocalDensity provides Density(densityScale, baseDensity.fontScale)) {
+        val safePadding = dimensionResource(R.dimen.watch_safe_padding)
+        val imageItemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
+        val textItemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
+        val listState = rememberLazyListState()
+        val context = LocalContext.current
+        val maxImageWidthPx = remember(context) {
+            val safePaddingPx = context.resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
+            (context.resources.displayMetrics.widthPixels - safePaddingPx * 2).coerceAtLeast(1)
         }
-    }
-    val isScrolling by remember(listState) {
-        derivedStateOf { listState.isScrollInProgress }
-    }
-
-    LaunchedEffect(listState, items, maxImageWidthPx, channel?.id) {
-        if (items.isEmpty()) return@LaunchedEffect
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .map { info ->
-                val indices = info.mapNotNull { itemInfo ->
-                    val index = itemInfo.index - 1
-                    if (index in items.indices) index else null
-                }
-                val first = indices.minOrNull() ?: 0
-                val last = indices.maxOrNull() ?: -1
-                first to last
+        val prefetchedUrls = remember(channel?.id) { mutableSetOf<String>() }
+        val isAtTop by remember(listState) {
+            derivedStateOf {
+                listState.firstVisibleItemIndex == 0 &&
+                    listState.firstVisibleItemScrollOffset == 0
             }
-            .distinctUntilChanged()
-            .collectLatest { (first, last) ->
-                if (listState.isScrollInProgress) return@collectLatest
-                if (last < 0) return@collectLatest
-                val start = (first - FEED_PREFETCH_BEFORE).coerceAtLeast(0)
-                val end = (last + FEED_PREFETCH_AFTER).coerceAtMost(items.lastIndex)
-                var prefetched = 0
-                for (index in start..end) {
-                    if (prefetched >= FEED_PREFETCH_LIMIT) break
-                    val url = resolveThumbUrl(items[index]) ?: continue
-                    if (!prefetchedUrls.add(url)) continue
-                    RssImageLoader.preloadAndCacheRatio(context, url, maxImageWidthPx)
-                    prefetched++
-                }
-            }
-    }
+        }
+        val isScrolling by remember(listState) {
+            derivedStateOf { listState.isScrollInProgress }
+        }
 
-    PullRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black),
-        indicatorPadding = safePadding,
-        isAtTop = { isAtTop }
-    ) {
-        LazyColumn(
+        LaunchedEffect(listState, items, maxImageWidthPx, channel?.id) {
+            if (items.isEmpty()) return@LaunchedEffect
+            snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+                .map { info ->
+                    val indices = info.mapNotNull { itemInfo ->
+                        val index = itemInfo.index - 1
+                        if (index in items.indices) index else null
+                    }
+                    val first = indices.minOrNull() ?: 0
+                    val last = indices.maxOrNull() ?: -1
+                    first to last
+                }
+                .distinctUntilChanged()
+                .collectLatest { (first, last) ->
+                    if (listState.isScrollInProgress) return@collectLatest
+                    if (last < 0) return@collectLatest
+                    val start = (first - FEED_PREFETCH_BEFORE).coerceAtLeast(0)
+                    val end = (last + FEED_PREFETCH_AFTER).coerceAtMost(items.lastIndex)
+                    var prefetched = 0
+                    for (index in start..end) {
+                        if (prefetched >= FEED_PREFETCH_LIMIT) break
+                        val url = resolveThumbUrl(items[index]) ?: continue
+                        if (!prefetchedUrls.add(url)) continue
+                        RssImageLoader.preloadAndCacheRatio(context, url, maxImageWidthPx)
+                        prefetched++
+                    }
+                }
+        }
+
+        PullRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(safePadding),
-            state = listState,
-            contentPadding = PaddingValues(bottom = imageItemSpacing)
+                .background(Color.Black),
+            indicatorPadding = safePadding,
+            isAtTop = { isAtTop }
         ) {
-            item(key = "header") {
-                Box(modifier = Modifier.padding(bottom = imageItemSpacing)) {
-                    FeedHeader(
-                        title = channel?.title ?: "RSS",
-                        isRefreshing = isRefreshing,
-                        enabled = !isScrolling,
-                        onClick = onHeaderClick
-                    )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = safePadding),
+                state = listState,
+                contentPadding = PaddingValues(bottom = imageItemSpacing)
+            ) {
+                item(key = "header") {
+                    Box(modifier = Modifier.padding(bottom = imageItemSpacing)) {
+                        FeedHeader(
+                            title = channel?.title ?: "RSS",
+                            isRefreshing = isRefreshing,
+                            enabled = !isScrolling,
+                            onClick = onHeaderClick
+                        )
+                    }
                 }
-            }
-            if (items.isEmpty()) {
-                item(key = "empty") {
-                    FeedEmpty(
-                        onBack = onBack
-                    )
-                }
-            } else {
-                items(
-                    items,
-                    key = { it.id },
-                    contentType = {
-                        if (!it.imageUrl.isNullOrBlank() || !it.previewImageUrl.isNullOrBlank()) {
-                            "image"
+                if (items.isEmpty()) {
+                    item(key = "empty") {
+                        FeedEmpty(
+                            onBack = onBack
+                        )
+                    }
+                } else {
+                    items(
+                        items,
+                        key = { it.id },
+                        contentType = {
+                            if (!it.imageUrl.isNullOrBlank() || !it.previewImageUrl.isNullOrBlank()) {
+                                "image"
+                            } else {
+                                "text"
+                            }
+                        }
+                    ) { item ->
+                        val thumbUrl = resolveThumbUrl(item)
+                        val itemSpacing = if (thumbUrl.isNullOrBlank()) {
+                            textItemSpacing
                         } else {
-                            "text"
+                            imageItemSpacing
+                        }
+                        Box(modifier = Modifier.padding(bottom = itemSpacing)) {
+                            FeedItemEntry(
+                                item = item,
+                                thumbUrl = thumbUrl,
+                                maxImageWidthPx = maxImageWidthPx,
+                                isScrolling = isScrolling,
+                                openSwipeId = openSwipeId,
+                                onOpenSwipe = onOpenSwipe,
+                                onCloseSwipe = onCloseSwipe,
+                                draggingSwipeId = draggingSwipeId,
+                                onDragStart = onDragStart,
+                                onDragEnd = onDragEnd,
+                                onClick = { onItemClick(item) },
+                                onLongClick = { onItemLongClick(item) },
+                                onFavoriteClick = { onFavoriteClick(item) },
+                                onWatchLaterClick = { onWatchLaterClick(item) }
+                            )
                         }
                     }
-                ) { item ->
-                    val thumbUrl = resolveThumbUrl(item)
-                    val itemSpacing = if (thumbUrl.isNullOrBlank()) {
-                        textItemSpacing
-                    } else {
-                        imageItemSpacing
-                    }
-                    Box(modifier = Modifier.padding(bottom = itemSpacing)) {
-                        FeedItemEntry(
-                            item = item,
-                            thumbUrl = thumbUrl,
-                            maxImageWidthPx = maxImageWidthPx,
-                            isScrolling = isScrolling,
-                            openSwipeId = openSwipeId,
-                            onOpenSwipe = onOpenSwipe,
-                            onCloseSwipe = onCloseSwipe,
-                            draggingSwipeId = draggingSwipeId,
-                            onDragStart = onDragStart,
-                            onDragEnd = onDragEnd,
-                            onClick = { onItemClick(item) },
-                            onLongClick = { onItemLongClick(item) },
-                            onFavoriteClick = { onFavoriteClick(item) },
-                            onWatchLaterClick = { onWatchLaterClick(item) }
-                        )
-                    }
-                }
-                item(key = "actions") {
-                    Box(modifier = Modifier.padding(top = imageItemSpacing)) {
-                        FeedActions(
-                            canLoadMore = hasMore,
-                            onLoadMore = onLoadMore
-                        )
+                    item(key = "actions") {
+                        Box(modifier = Modifier.padding(top = imageItemSpacing)) {
+                            FeedActions(
+                                canLoadMore = hasMore,
+                                onLoadMore = onLoadMore
+                            )
+                        }
                     }
                 }
             }

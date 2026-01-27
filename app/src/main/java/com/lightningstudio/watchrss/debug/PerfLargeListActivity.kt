@@ -67,7 +67,8 @@ class PerfLargeListActivity : BaseHeytapActivity() {
                     onItemLongClick = {},
                     onFavoriteClick = {},
                     onWatchLaterClick = {},
-                    onBack = { finish() }
+                    onBack = { finish() },
+                    densityScale = 3f
                 )
             }
         }

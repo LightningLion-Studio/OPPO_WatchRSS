@@ -5,11 +5,14 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -32,6 +35,8 @@ class BiliChannelInfoActivity : BaseHeytapActivity() {
 
         setContent {
             WatchRSSTheme {
+                val baseDensity = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
                 val context = LocalContext.current
                 val uiState by viewModel.uiState.collectAsState()
                 val lifecycleOwner = LocalLifecycleOwner.current
@@ -76,6 +81,7 @@ class BiliChannelInfoActivity : BaseHeytapActivity() {
                         context.startActivity(BiliSettingsActivity.createIntent(context))
                     }
                 )
+                }
             }
         }
     }

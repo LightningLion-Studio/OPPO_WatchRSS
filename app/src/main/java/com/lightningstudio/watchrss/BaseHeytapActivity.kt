@@ -47,6 +47,10 @@ open class BaseHeytapActivity : ComponentActivity() {
     }
 
     override fun setContentView(layoutResID: Int) {
+        if (!BuildConfig.DEBUG) {
+            super.setContentView(layoutResID)
+            return
+        }
         val maskLayout = WatchMaskLayout(this)
         layoutInflater.inflate(layoutResID, maskLayout, true)
         super.setContentView(maskLayout)
@@ -54,6 +58,10 @@ open class BaseHeytapActivity : ComponentActivity() {
 
     override fun setContentView(view: View?) {
         if (view == null) {
+            super.setContentView(view)
+            return
+        }
+        if (!BuildConfig.DEBUG) {
             super.setContentView(view)
             return
         }
@@ -70,6 +78,10 @@ open class BaseHeytapActivity : ComponentActivity() {
 
     override fun setContentView(view: View?, params: ViewGroup.LayoutParams?) {
         if (view == null) {
+            super.setContentView(view, params)
+            return
+        }
+        if (!BuildConfig.DEBUG) {
             super.setContentView(view, params)
             return
         }

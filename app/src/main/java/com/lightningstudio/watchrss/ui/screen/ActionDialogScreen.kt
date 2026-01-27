@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.heytap.wearable.R as HeytapR
 import com.lightningstudio.watchrss.R
 import com.lightningstudio.watchrss.ui.components.WatchSurface
+import com.lightningstudio.watchrss.ui.theme.ActionButtonTextStyle
 
 data class ActionItem(
     val label: String,
@@ -90,7 +91,9 @@ private fun ActionButton(
 ) {
     val shape = RoundedCornerShape(radius)
     val background = backgroundColor
-    val textColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.6f)
+    val baseColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.6f)
+    val dangerColor = colorResource(R.color.danger_red).copy(alpha = if (enabled) 1f else 0.6f)
+    val textColor = if (label.contains("删除")) dangerColor else baseColor
     Box(
         modifier = Modifier
             .width(width)
@@ -103,7 +106,7 @@ private fun ActionButton(
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge,
+            style = ActionButtonTextStyle,
             color = textColor,
             textAlign = TextAlign.Center
         )
