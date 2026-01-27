@@ -17,13 +17,15 @@ import com.lightningstudio.watchrss.BiliLoginActivity
 import com.lightningstudio.watchrss.BiliListActivity
 import com.lightningstudio.watchrss.BiliSearchActivity
 import com.lightningstudio.watchrss.data.bili.BiliRepository
+import com.lightningstudio.watchrss.data.rss.BuiltinChannelType
+import com.lightningstudio.watchrss.data.rss.RssRepository
 import com.lightningstudio.watchrss.ui.viewmodel.BiliFeedViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliViewModelFactory
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lightningstudio.watchrss.ui.viewmodel.BiliListType
-import com.lightningstudio.watchrss.data.rss.RssRepository
+import kotlinx.coroutines.flow.map
 
 object BiliRoutes {
     const val FEED = "bili_feed"
@@ -42,6 +44,15 @@ fun BiliEntryNavGraph(repository: BiliRepository, rssRepository: RssRepository) 
     val navController = rememberNavController()
     val factory = remember(repository, rssRepository) { BiliViewModelFactory(repository, rssRepository) }
     val context = androidx.compose.ui.platform.LocalContext.current
+    val originalContentEnabled by remember(rssRepository) {
+        rssRepository.observeChannels().map { channels ->
+            channels.firstOrNull { it.url == BuiltinChannelType.BILI.url }?.useOriginalContent ?: true
+        }
+    }.collectAsState(initial = true)
+
+    LaunchedEffect(Unit) {
+        rssRepository.ensureBuiltinChannels()
+    }
 
     NavHost(
         navController = navController,
@@ -72,32 +83,55 @@ fun BiliEntryNavGraph(repository: BiliRepository, rssRepository: RssRepository) 
                 }
             }
 
-            BiliFeedScreen(
-                uiState = uiState,
-                onLoginClick = { context.startActivity(BiliLoginActivity.createIntent(context)) },
-                onRefresh = viewModel::refresh,
-                onHeaderClick = { context.startActivity(BiliChannelInfoActivity.createIntent(context)) },
-                onLoadMore = viewModel::loadMore,
-                onOpenWatchLater = {
-                    context.startActivity(BiliListActivity.createIntent(context, BiliListType.WATCH_LATER))
-                },
-                onOpenHistory = {
-                    context.startActivity(BiliListActivity.createIntent(context, BiliListType.HISTORY))
-                },
-                onOpenFavorites = {
-                    context.startActivity(BiliListActivity.createIntent(context, BiliListType.FAVORITE))
-                },
-                onFavoriteClick = viewModel::favorite,
-                onWatchLaterClick = viewModel::watchLater,
-                onItemClick = { item ->
-                    context.startActivity(
-                        BiliDetailActivity.createIntent(context, item.aid, item.bvid, item.cid)
-                    )
-                },
-                onSearchClick = {
-                    context.startActivity(BiliSearchActivity.createIntent(context))
-                }
-            )
+            if (originalContentEnabled) {
+                BiliFeedScreen(
+                    uiState = uiState,
+                    onLoginClick = { context.startActivity(BiliLoginActivity.createIntent(context)) },
+                    onRefresh = viewModel::refresh,
+                    onHeaderClick = { context.startActivity(BiliChannelInfoActivity.createIntent(context)) },
+                    onLoadMore = viewModel::loadMore,
+                    onOpenWatchLater = {
+                        context.startActivity(BiliListActivity.createIntent(context, BiliListType.WATCH_LATER))
+                    },
+                    onOpenHistory = {
+                        context.startActivity(BiliListActivity.createIntent(context, BiliListType.HISTORY))
+                    },
+                    onOpenFavorites = {
+                        context.startActivity(BiliListActivity.createIntent(context, BiliListType.FAVORITE))
+                    },
+                    onFavoriteClick = viewModel::favorite,
+                    onWatchLaterClick = viewModel::watchLater,
+                    onItemClick = { item ->
+                        context.startActivity(
+                            BiliDetailActivity.createIntent(context, item.aid, item.bvid, item.cid)
+                        )
+                    },
+                    onSearchClick = {
+                        context.startActivity(BiliSearchActivity.createIntent(context))
+                    }
+                )
+            } else {
+                BiliRssFeedScreen(
+                    uiState = uiState,
+                    onLoginClick = { context.startActivity(BiliLoginActivity.createIntent(context)) },
+                    onRefresh = viewModel::refresh,
+                    onHeaderClick = { context.startActivity(BiliChannelInfoActivity.createIntent(context)) },
+                    onLoadMore = viewModel::loadMore,
+                    onFavoriteClick = viewModel::favorite,
+                    onWatchLaterClick = viewModel::watchLater,
+                    onItemClick = { item ->
+                        context.startActivity(
+                            BiliDetailActivity.createIntent(
+                                context = context,
+                                aid = item.aid,
+                                bvid = item.bvid,
+                                cid = item.cid,
+                                rssMode = true
+                            )
+                        )
+                    }
+                )
+            }
         }
 
         composable(BiliRoutes.COMMENT) { backStackEntry ->

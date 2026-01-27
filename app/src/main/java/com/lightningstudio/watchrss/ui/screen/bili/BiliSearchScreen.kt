@@ -1,6 +1,6 @@
 package com.lightningstudio.watchrss.ui.screen.bili
 
-import androidx.compose.foundation.clickable
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -10,30 +10,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,15 +23,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.heytap.wearable.R as HeytapR
+import com.lightningstudio.watchrss.R
+import com.lightningstudio.watchrss.ui.components.SearchInputBar
+import com.lightningstudio.watchrss.ui.components.WatchSurface
 import com.lightningstudio.watchrss.ui.utils.BiliFormatUtils
 import com.lightningstudio.watchrss.ui.viewmodel.BiliSearchViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.BiliViewModelFactory
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BiliSearchScreen(
     factory: BiliViewModelFactory,
@@ -62,61 +48,51 @@ fun BiliSearchScreen(
     var searchText by remember { mutableStateOf("") }
     val hotSearchWords by viewModel.hotSearchWords.collectAsState()
     val searchHistory by viewModel.searchHistory.collectAsState()
+    val safePadding = dimensionResource(R.dimen.watch_safe_padding)
+    val titleSize = textSize(R.dimen.hey_s_title)
+    val listSpacing = dimensionResource(HeytapR.dimen.hey_distance_6dp)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    TextField(
-                        value = searchText,
-                        onValueChange = { searchText = it },
-                        placeholder = { Text("搜索视频、UP主") },
-                        singleLine = true,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                if (searchText.isNotBlank()) {
-                                    if (BiliFormatUtils.isVideoId(searchText)) {
-                                        // Handle video ID navigation
-                                    } else {
-                                        viewModel.addSearchHistory(searchText)
-                                        onSearch(searchText)
-                                    }
-                                }
-                            }
-                        ),
-                        trailingIcon = {
-                            if (searchText.isNotEmpty()) {
-                                IconButton(onClick = { searchText = "" }) {
-                                    Icon(Icons.Default.Clear, contentDescription = "清空")
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
-                    }
-                }
-            )
-        },
-        modifier = modifier
-    ) { paddingValues ->
+    BackHandler(onBack = onNavigateBack)
+
+    WatchSurface {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                start = safePadding,
+                top = safePadding,
+                end = safePadding,
+                bottom = safePadding + 32.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(listSpacing)
         ) {
+            item {
+                Text(
+                    text = "搜索",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = titleSize,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            item {
+                SearchInputBar(
+                    keyword = searchText,
+                    onKeywordChange = { searchText = it },
+                    onSearch = {
+                        if (searchText.isNotBlank()) {
+                            if (BiliFormatUtils.isVideoId(searchText)) {
+                                // Handle video ID navigation
+                            } else {
+                                viewModel.addSearchHistory(searchText)
+                                onSearch(searchText)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             // Search History
             if (searchHistory.isNotEmpty()) {
                 item {
@@ -183,3 +159,9 @@ fun BiliSearchScreen(
     }
 }
 
+@Composable
+private fun textSize(id: Int): TextUnit {
+    return androidx.compose.ui.platform.LocalDensity.current.run {
+        dimensionResource(id).toSp()
+    }
+}

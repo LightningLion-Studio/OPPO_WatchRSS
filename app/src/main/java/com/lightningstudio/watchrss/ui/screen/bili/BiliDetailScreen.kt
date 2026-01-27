@@ -24,8 +24,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,7 +57,8 @@ fun BiliDetailScreen(
     onCoin: () -> Unit,
     onFavorite: () -> Unit,
     onShare: () -> Unit,
-    onCommentClick: () -> Unit
+    onCommentClick: () -> Unit,
+    showCommentEntry: Boolean
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val spacing = dimensionResource(R.dimen.hey_distance_6dp)
@@ -127,11 +131,13 @@ fun BiliDetailScreen(
                     BiliDescriptionCard(text = detail?.desc.orEmpty())
                 }
             }
-            item {
-                BiliSectionTitle(title = "评论")
-            }
-            item {
-                BiliCommentEntryCard(onClick = onCommentClick)
+            if (showCommentEntry) {
+                item {
+                    BiliSectionTitle(title = "评论")
+                }
+                item {
+                    BiliCommentEntryCard(onClick = onCommentClick)
+                }
             }
             if (!uiState.message.isNullOrBlank()) {
                 item {
@@ -380,18 +386,60 @@ private fun BiliDescriptionCard(text: String) {
     val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
     val padding = dimensionResource(R.dimen.hey_distance_6dp)
     val background = colorResource(R.color.watch_card_background)
-    Column(
+    val textSize = textSize(R.dimen.hey_s_title)
+    val lineHeight = textSize * 1.1f
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val arrowWidth = remember(textSize, density) { with(density) { textSize.toDp() } }
+    var expanded by rememberSaveable(text) { mutableStateOf(false) }
+    var canExpand by remember(text) { mutableStateOf(false) }
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(radius))
             .background(background)
+            .clickableWithoutRipple(
+                onClick = {
+                    if (canExpand || expanded) {
+                        expanded = !expanded
+                    }
+                }
+            )
             .padding(padding)
     ) {
         Text(
             text = text,
             color = Color.White,
-            fontSize = textSize(R.dimen.hey_s_title)
+            fontSize = textSize,
+            lineHeight = lineHeight,
+            maxLines = if (expanded) Int.MAX_VALUE else 3,
+            overflow = TextOverflow.Ellipsis,
+            modifier = if (!expanded && canExpand) {
+                Modifier.padding(end = arrowWidth)
+            } else {
+                Modifier
+            },
+            onTextLayout = { result ->
+                if (!expanded) {
+                    canExpand = result.hasVisualOverflow
+                }
+            }
         )
+        if (!expanded && canExpand) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(start = 4.dp),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    text = "▼",
+                    color = Color.White,
+                    fontSize = textSize,
+                    modifier = Modifier.alignByBaseline()
+                )
+            }
+        }
     }
 }
 

@@ -59,6 +59,11 @@ class BiliSearchActivity : BaseHeytapActivity() {
                                 context.startActivity(
                                     BiliDetailActivity.createIntent(context, aid, bvid, null)
                                 )
+                            },
+                            onSearch = { newKeyword ->
+                                navController.navigate("search_result/$newKeyword") {
+                                    launchSingleTop = true
+                                }
                             }
                         )
                     }

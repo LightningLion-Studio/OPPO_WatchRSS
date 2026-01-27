@@ -30,12 +30,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -71,6 +73,7 @@ import com.lightningstudio.watchrss.ui.components.SwipeActionRow
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -99,6 +102,8 @@ fun FeedScreen(
     onFavoriteClick: (RssItem) -> Unit,
     onWatchLaterClick: (RssItem) -> Unit,
     onBack: () -> Unit,
+    onOriginalContentScrollStateChanged: (Boolean) -> Unit = {},
+    onRequestOriginalContents: (List<Long>) -> Unit = {},
     densityScale: Float = 2f
 ) {
     val baseDensity = LocalDensity.current
@@ -108,6 +113,15 @@ fun FeedScreen(
         val textItemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
         val listState = rememberLazyListState()
         val context = LocalContext.current
+        val canLoadMoreState = rememberUpdatedState(hasMore)
+        val isRefreshingState = rememberUpdatedState(isRefreshing)
+        val hasItemsState = rememberUpdatedState(items.isNotEmpty())
+        val itemsSizeState = rememberUpdatedState(items.size)
+        val useOriginalContent = channel?.useOriginalContent == true
+        val onOriginalContentScrollStateChangedState =
+            rememberUpdatedState(onOriginalContentScrollStateChanged)
+        val onRequestOriginalContentsState = rememberUpdatedState(onRequestOriginalContents)
+        var lastLoadMoreSize by remember(channel?.id) { mutableStateOf(-1) }
         val maxImageWidthPx = remember(context) {
             val safePaddingPx = context.resources.getDimensionPixelSize(R.dimen.watch_safe_padding)
             (context.resources.displayMetrics.widthPixels - safePaddingPx * 2).coerceAtLeast(1)
@@ -123,7 +137,7 @@ fun FeedScreen(
             derivedStateOf { listState.isScrollInProgress }
         }
 
-        LaunchedEffect(listState, items, maxImageWidthPx, channel?.id) {
+        LaunchedEffect(listState, items, maxImageWidthPx, channel?.id, useOriginalContent) {
             if (items.isEmpty()) return@LaunchedEffect
             snapshotFlow { listState.layoutInfo.visibleItemsInfo }
                 .map { info ->
@@ -133,12 +147,18 @@ fun FeedScreen(
                     }
                     val first = indices.minOrNull() ?: 0
                     val last = indices.maxOrNull() ?: -1
-                    first to last
+                    Triple(indices, first, last)
                 }
                 .distinctUntilChanged()
-                .collectLatest { (first, last) ->
+                .collectLatest { (indices, first, last) ->
                     if (listState.isScrollInProgress) return@collectLatest
                     if (last < 0) return@collectLatest
+                    if (useOriginalContent && indices.isNotEmpty()) {
+                        val ids = indices.mapNotNull { index -> items.getOrNull(index)?.id }
+                        if (ids.isNotEmpty()) {
+                            onRequestOriginalContentsState.value(ids.distinct())
+                        }
+                    }
                     val start = (first - FEED_PREFETCH_BEFORE).coerceAtLeast(0)
                     val end = (last + FEED_PREFETCH_AFTER).coerceAtMost(items.lastIndex)
                     var prefetched = 0
@@ -148,6 +168,49 @@ fun FeedScreen(
                         if (!prefetchedUrls.add(url)) continue
                         RssImageLoader.preloadAndCacheRatio(context, url, maxImageWidthPx)
                         prefetched++
+                    }
+                }
+        }
+
+        LaunchedEffect(listState, useOriginalContent, channel?.id) {
+            if (!useOriginalContent) return@LaunchedEffect
+            snapshotFlow { listState.isScrollInProgress }
+                .distinctUntilChanged()
+                .collect { isScrolling ->
+                    onOriginalContentScrollStateChangedState.value(isScrolling)
+                }
+        }
+
+        DisposableEffect(useOriginalContent, channel?.id) {
+            if (useOriginalContent) {
+                onOriginalContentScrollStateChangedState.value(false)
+            }
+            onDispose {
+                if (useOriginalContent) {
+                    onOriginalContentScrollStateChangedState.value(false)
+                }
+            }
+        }
+
+        LaunchedEffect(listState) {
+            snapshotFlow {
+                val layoutInfo = listState.layoutInfo
+                val lastIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                lastIndex to layoutInfo.totalItemsCount
+            }
+                .distinctUntilChanged()
+                .filter { (_, total) -> total > 0 }
+                .collect { (lastIndex, total) ->
+                    val shouldLoadMore = lastIndex >= total - 3
+                    val itemsSize = itemsSizeState.value
+                    if (shouldLoadMore &&
+                        canLoadMoreState.value &&
+                        !isRefreshingState.value &&
+                        hasItemsState.value &&
+                        lastLoadMoreSize != itemsSize
+                    ) {
+                        lastLoadMoreSize = itemsSize
+                        onLoadMore()
                     }
                 }
         }
@@ -166,7 +229,10 @@ fun FeedScreen(
                     .fillMaxSize()
                     .padding(horizontal = safePadding),
                 state = listState,
-                contentPadding = PaddingValues(bottom = imageItemSpacing)
+                contentPadding = PaddingValues(
+                    top = 12.dp,
+                    bottom = imageItemSpacing
+                )
             ) {
                 item(key = "header") {
                     Box(modifier = Modifier.padding(bottom = imageItemSpacing)) {
@@ -208,6 +274,7 @@ fun FeedScreen(
                                 thumbUrl = thumbUrl,
                                 maxImageWidthPx = maxImageWidthPx,
                                 isScrolling = isScrolling,
+                                useOriginalContent = channel?.useOriginalContent == true,
                                 openSwipeId = openSwipeId,
                                 onOpenSwipe = onOpenSwipe,
                                 onCloseSwipe = onCloseSwipe,
@@ -386,6 +453,7 @@ private fun FeedItemEntry(
     thumbUrl: String?,
     maxImageWidthPx: Int,
     isScrolling: Boolean,
+    useOriginalContent: Boolean,
     openSwipeId: Long?,
     onOpenSwipe: (Long) -> Unit,
     onCloseSwipe: () -> Unit,
@@ -453,6 +521,7 @@ private fun FeedItemEntry(
                     item = item,
                     pressState = pressState,
                     enabled = !isScrolling,
+                    useOriginalContent = useOriginalContent,
                     modifier = cardScaleModifier,
                     onClick = onClick,
                     onLongClick = onLongClick
@@ -465,6 +534,7 @@ private fun FeedItemEntry(
                     pressState = pressState,
                     enabled = !isScrolling,
                     isScrolling = isScrolling,
+                    useOriginalContent = useOriginalContent,
                     modifier = cardScaleModifier,
                     onClick = onClick,
                     onLongClick = onLongClick
@@ -535,6 +605,7 @@ private fun FeedTextCard(
     item: RssItem,
     pressState: PressScaleState,
     enabled: Boolean,
+    useOriginalContent: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
     onLongClick: () -> Unit
@@ -548,8 +619,13 @@ private fun FeedTextCard(
     val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
     val unreadSize = dimensionResource(R.dimen.hey_distance_8dp)
     val unreadMargin = dimensionResource(R.dimen.hey_distance_6dp)
-    val summary = remember(item.id, item.summary) {
-        item.summary ?: "暂无摘要"
+    val summary = remember(item.id, item.summary, item.content, useOriginalContent) {
+        val baseSummary = item.summary ?: "暂无摘要"
+        if (useOriginalContent && item.content.isNullOrBlank()) {
+            "$baseSummary\n原文加载中..."
+        } else {
+            baseSummary
+        }
     }
 
     Box(
@@ -604,6 +680,7 @@ private fun FeedImageCard(
     pressState: PressScaleState,
     enabled: Boolean,
     isScrolling: Boolean,
+    useOriginalContent: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
     onLongClick: () -> Unit
@@ -618,8 +695,13 @@ private fun FeedImageCard(
     val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
     val unreadSize = dimensionResource(R.dimen.hey_distance_8dp)
     val unreadMargin = dimensionResource(R.dimen.hey_distance_6dp)
-    val summary = remember(item.id, item.summary) {
-        item.summary ?: "暂无摘要"
+    val summary = remember(item.id, item.summary, item.content, useOriginalContent) {
+        val baseSummary = item.summary ?: "暂无摘要"
+        if (useOriginalContent && item.content.isNullOrBlank()) {
+            "$baseSummary\n原文加载中..."
+        } else {
+            baseSummary
+        }
     }
     val overlay = remember {
         Brush.verticalGradient(

@@ -37,6 +37,11 @@ class DefaultRssRepository(
     private val offlineStore: RssOfflineStore
 ) : RssRepository {
     private val refreshJobs = ConcurrentHashMap<Long, Job>()
+    private val originalContentItemJobs = ConcurrentHashMap<Long, Job>()
+    private val pausedOriginalChannels: MutableSet<Long> = ConcurrentHashMap.newKeySet()
+    private val pendingOriginalUpdates:
+        ConcurrentHashMap<Long, ConcurrentHashMap<String, PendingOriginalUpdate>> =
+        ConcurrentHashMap()
     private val previewJobs: MutableSet<Long> = ConcurrentHashMap.newKeySet()
 
     override fun observeChannels(): Flow<List<RssChannel>> =
@@ -75,6 +80,14 @@ class DefaultRssRepository(
             item?.toModel()
         }
 
+    override fun searchItems(channelId: Long, keyword: String, limit: Int): Flow<List<RssItem>> {
+        val pattern = buildSearchPattern(keyword)
+        return itemDao.searchItems(channelId, pattern, limit).map { items ->
+            schedulePreviewUpdates(items)
+            items.map { it.toModel() }
+        }
+    }
+
     override fun observeCacheUsageBytes(): Flow<Long> =
         itemDao.observeTotalCacheBytes().map { it ?: 0L }
 
@@ -111,7 +124,8 @@ class DefaultRssRepository(
                 lastFetchedAt = null,
                 createdAt = timestamp,
                 sortOrder = timestamp,
-                isPinned = false
+                isPinned = false,
+                useOriginalContent = type.useOriginalContentByDefault
             )
             channelDao.insertChannel(entity)
         }
@@ -180,7 +194,8 @@ class DefaultRssRepository(
                     lastFetchedAt = null,
                     createdAt = now,
                     sortOrder = now,
-                    isPinned = false
+                    isPinned = false,
+                    useOriginalContent = builtinType.useOriginalContentByDefault
                 )
                 val channelId = channelDao.insertChannel(channel)
                 val storedChannel = if (channelId > 0) {
@@ -251,7 +266,8 @@ class DefaultRssRepository(
                 lastFetchedAt = null,
                 createdAt = now,
                 sortOrder = now,
-                isPinned = false
+                isPinned = false,
+                useOriginalContent = builtinType.useOriginalContentByDefault
             )
             val channelId = channelDao.insertChannel(channel)
             val storedChannel = if (channelId > 0) {
@@ -296,35 +312,27 @@ class DefaultRssRepository(
                 )
             }
             val items = parsed.items.map { item ->
-                val originalContent = if (useOriginalContent) {
-                    readableService.fetchOriginalContent(item.link, baseLink)
-                } else {
-                    null
-                }
-                val fallbackContent = if (useOriginalContent && originalContent == null) {
-                    val fallback = buildOriginalFallbackContent(item)
-                    DebugLogBuffer.log(
-                        "orig",
-                        "fallback link=${item.link} size=${fallback.length}"
-                    )
-                    fallback
-                } else {
-                    null
-                }
                 val entity = parseService.toEntityFromParsedItem(
                     item = item,
                     channelId = channelId,
                     isRead = false,
-                    fetchedAt = fetchedAt,
-                    contentOverride = originalContent ?: fallbackContent
+                    fetchedAt = fetchedAt
                 )
-                if (useOriginalContent && originalContent != null && entity.content == null) {
-                    DebugLogBuffer.log(
-                        "orig",
-                        "drop link=${item.link} override=${originalContent.length}"
+                if (useOriginalContent) {
+                    val fallbackDescription = if (entity.description.isNullOrBlank()) {
+                        entity.content
+                    } else {
+                        entity.description
+                    }
+                    val summary = entity.summary?.takeIf { it.isNotBlank() } ?: "暂无摘要"
+                    entity.copy(
+                        description = fallbackDescription,
+                        content = null,
+                        summary = summary
                     )
+                } else {
+                    entity
                 }
-                entity
             }
             if (useOriginalContent) {
                 DebugLogBuffer.log(
@@ -334,7 +342,7 @@ class DefaultRssRepository(
             }
             if (items.isNotEmpty()) {
                 val insertResults = itemDao.insertItems(items)
-                if (refreshAll) {
+                if (refreshAll && !useOriginalContent) {
                     var updated = 0
                     insertResults.forEachIndexed { index, rowId ->
                         if (rowId <= 0L) {
@@ -353,12 +361,6 @@ class DefaultRssRepository(
                             )
                             updated += 1
                         }
-                    }
-                    if (useOriginalContent) {
-                        DebugLogBuffer.log(
-                            "orig",
-                            "inserted=${insertResults.count { it > 0 }} updated=$updated"
-                        )
                     }
                 }
             }
@@ -382,6 +384,65 @@ class DefaultRssRepository(
                     "refresh failed channelId=$channelId error=${result.exceptionOrNull()?.message}"
                 )
             }
+        }
+    }
+
+    override fun requestOriginalContent(itemId: Long) {
+        if (itemId <= 0L) return
+        if (originalContentItemJobs.containsKey(itemId)) return
+        val job = appScope.launch(Dispatchers.IO) {
+            val item = itemDao.getItem(itemId) ?: return@launch
+            if (!item.content.isNullOrBlank()) return@launch
+            val channel = channelDao.getChannel(item.channelId) ?: return@launch
+            if (!channel.useOriginalContent) return@launch
+            if (item.summary.isNullOrBlank()) {
+                itemDao.updatePreview(item.id, "暂无摘要", null)
+            }
+            val baseLink = channel.url
+            val originalContent = readableService.fetchOriginalContent(item.link, baseLink)
+            val contentOverride = originalContent ?: buildOriginalFallbackContent(item)
+            val contentSizeBytes = estimateContentSize(
+                title = item.title,
+                description = item.description,
+                content = contentOverride,
+                link = item.link,
+                imageUrl = item.imageUrl,
+                audioUrl = item.audioUrl,
+                videoUrl = item.videoUrl
+            )
+            if (originalContent == null) {
+                DebugLogBuffer.log(
+                    "orig",
+                    "fallback link=${item.link} size=${contentOverride.length}"
+                )
+            }
+            val update = PendingOriginalUpdate(item.dedupKey, contentOverride, contentSizeBytes)
+            if (pausedOriginalChannels.contains(item.channelId)) {
+                enqueueOriginalUpdate(item.channelId, update)
+            } else {
+                itemDao.updateOriginalContentByDedupKey(
+                    channelId = item.channelId,
+                    dedupKey = update.dedupKey,
+                    content = update.content,
+                    contentSizeBytes = update.contentSizeBytes
+                )
+            }
+        }
+        originalContentItemJobs[itemId] = job
+        job.invokeOnCompletion { originalContentItemJobs.remove(itemId) }
+    }
+
+    override fun requestOriginalContents(itemIds: List<Long>) {
+        itemIds.forEach { requestOriginalContent(it) }
+    }
+
+    override fun setOriginalContentUpdatesPaused(channelId: Long, paused: Boolean) {
+        if (channelId <= 0L) return
+        if (paused) {
+            pausedOriginalChannels.add(channelId)
+        } else {
+            pausedOriginalChannels.remove(channelId)
+            flushOriginalUpdates(channelId)
         }
     }
 
@@ -536,6 +597,26 @@ class DefaultRssRepository(
         return missingSummary || missingPreview
     }
 
+    private fun enqueueOriginalUpdate(channelId: Long, update: PendingOriginalUpdate) {
+        val pending = pendingOriginalUpdates.getOrPut(channelId) { ConcurrentHashMap() }
+        pending[update.dedupKey] = update
+    }
+
+    private fun flushOriginalUpdates(channelId: Long) {
+        val pending = pendingOriginalUpdates.remove(channelId) ?: return
+        if (pending.isEmpty()) return
+        appScope.launch(Dispatchers.IO) {
+            pending.values.forEach { update ->
+                itemDao.updateOriginalContentByDedupKey(
+                    channelId = channelId,
+                    dedupKey = update.dedupKey,
+                    content = update.content,
+                    contentSizeBytes = update.contentSizeBytes
+                )
+            }
+        }
+    }
+
     private suspend fun enforceCacheLimit(limitBytes: Long) {
         if (limitBytes <= 0) return
         var total = itemDao.getTotalCacheBytes() ?: 0L
@@ -551,6 +632,16 @@ class DefaultRssRepository(
         if (toDelete.isNotEmpty()) {
             itemDao.deleteByIds(toDelete)
         }
+    }
+
+    private fun buildSearchPattern(keyword: String): String {
+        val trimmed = keyword.trim()
+        if (trimmed.isEmpty()) return "%"
+        val escaped = trimmed
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_")
+        return "%$escaped%"
     }
 
     private fun isValidUrl(url: String): Boolean {
@@ -605,7 +696,8 @@ class DefaultRssRepository(
             lastFetchedAt = null,
             createdAt = now,
             sortOrder = now,
-            isPinned = false
+            isPinned = false,
+            useOriginalContent = builtin.useOriginalContentByDefault
         )
         val insertedId = channelDao.insertChannel(entity)
         return if (insertedId > 0) {
@@ -649,6 +741,36 @@ class DefaultRssRepository(
         } else {
             "<p>$notice</p>\n$body"
         }
+    }
+
+    private fun buildOriginalFallbackContent(item: RssItemEntity): String {
+        val notice = "原文抓取失败，已显示 RSS 内容。"
+        val body = item.content?.trim()?.ifEmpty { null }
+            ?: item.description?.trim()?.ifEmpty { null }
+        return if (body == null) {
+            "<p>$notice</p>"
+        } else {
+            "<p>$notice</p>\n$body"
+        }
+    }
+
+    private fun estimateContentSize(
+        title: String?,
+        description: String?,
+        content: String?,
+        link: String?,
+        imageUrl: String?,
+        audioUrl: String?,
+        videoUrl: String?
+    ): Long {
+        var total = 0L
+        val parts = listOf(title, description, content, link, imageUrl, audioUrl, videoUrl)
+        for (part in parts) {
+            if (!part.isNullOrEmpty()) {
+                total += part.toByteArray(Charsets.UTF_8).size
+            }
+        }
+        return total
     }
 
     private fun buildSavedState(entries: List<SavedEntryEntity>): SavedState {
@@ -720,3 +842,9 @@ class DefaultRssRepository(
         fetchedAt = fetchedAt
     )
 }
+
+private data class PendingOriginalUpdate(
+    val dedupKey: String,
+    val content: String,
+    val contentSizeBytes: Long
+)

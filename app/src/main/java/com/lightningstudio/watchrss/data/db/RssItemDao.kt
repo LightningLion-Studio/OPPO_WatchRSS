@@ -27,6 +27,21 @@ interface RssItemDao {
     @Query("SELECT * FROM rss_items WHERE channelId = :channelId AND dedupKey = :dedupKey LIMIT 1")
     suspend fun getItemByDedupKey(channelId: Long, dedupKey: String): RssItemEntity?
 
+    @Query(
+        """
+        SELECT * FROM rss_items
+        WHERE channelId = :channelId AND (
+            title LIKE :keyword ESCAPE '\' OR
+            description LIKE :keyword ESCAPE '\' OR
+            content LIKE :keyword ESCAPE '\' OR
+            summary LIKE :keyword ESCAPE '\'
+        )
+        ORDER BY fetchedAt DESC, id DESC
+        LIMIT :limit
+        """
+    )
+    fun searchItems(channelId: Long, keyword: String, limit: Int): Flow<List<RssItemEntity>>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertItems(items: List<RssItemEntity>): List<Long>
 
@@ -69,8 +84,36 @@ interface RssItemDao {
         contentSizeBytes: Long
     )
 
-    @Query("UPDATE rss_items SET summary = :summary, previewImageUrl = :previewImageUrl WHERE id = :id")
+    @Query(
+        """
+        UPDATE rss_items SET
+            summary = CASE
+                WHEN summary IS NULL OR summary = '' THEN :summary
+                ELSE summary
+            END,
+            previewImageUrl = CASE
+                WHEN previewImageUrl IS NULL OR previewImageUrl = '' THEN :previewImageUrl
+                ELSE previewImageUrl
+            END
+        WHERE id = :id
+        """
+    )
     suspend fun updatePreview(id: Long, summary: String?, previewImageUrl: String?)
+
+    @Query(
+        """
+        UPDATE rss_items SET
+            content = :content,
+            contentSizeBytes = :contentSizeBytes
+        WHERE channelId = :channelId AND dedupKey = :dedupKey
+        """
+    )
+    suspend fun updateOriginalContentByDedupKey(
+        channelId: Long,
+        dedupKey: String,
+        content: String?,
+        contentSizeBytes: Long
+    )
 
     @Query("SELECT COUNT(*) FROM rss_items WHERE channelId = :channelId")
     fun observeItemCount(channelId: Long): Flow<Int>

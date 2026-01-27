@@ -42,6 +42,7 @@ import kotlin.math.min
 fun ChannelDetailScreen(
     channel: RssChannel?,
     onOpenSettings: () -> Unit,
+    onSearch: () -> Unit,
     onMarkRead: () -> Unit,
     onShare: () -> Unit
 ) {
@@ -140,6 +141,16 @@ fun ChannelDetailScreen(
                 width = buttonWidth,
                 height = buttonHeight,
                 onClick = onOpenSettings
+            )
+
+            Spacer(modifier = Modifier.height(buttonSpacing))
+
+            ActionButton(
+                label = "搜索",
+                enabled = channel != null,
+                width = buttonWidth,
+                height = buttonHeight,
+                onClick = onSearch
             )
 
             Spacer(modifier = Modifier.height(buttonSpacing))

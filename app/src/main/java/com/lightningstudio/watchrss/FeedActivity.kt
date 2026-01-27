@@ -93,7 +93,9 @@ class FeedActivity : BaseHeytapActivity() {
                         closeOpenSwipe()
                         viewModel.toggleWatchLater(item.id)
                     },
-                    onBack = { finish() }
+                    onBack = { finish() },
+                    onOriginalContentScrollStateChanged = viewModel::setOriginalContentUpdatesPaused,
+                    onRequestOriginalContents = viewModel::requestOriginalContents
                 )
             }
         }

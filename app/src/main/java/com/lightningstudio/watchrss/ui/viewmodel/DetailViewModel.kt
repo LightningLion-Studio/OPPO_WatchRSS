@@ -12,7 +12,10 @@ import com.lightningstudio.watchrss.ui.util.buildContentBlocks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,6 +29,12 @@ class DetailViewModel(
     private val itemId: Long = savedStateHandle["itemId"] ?: 0L
 
     val item = repository.observeItem(itemId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val channel = item
+        .flatMapLatest { current ->
+            if (current == null) flowOf(null) else repository.observeChannel(current.channelId)
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     val contentBlocks = item
@@ -56,10 +65,25 @@ class DetailViewModel(
 
     val shareUseSystem = settingsRepository.shareUseSystem
 
+    private val requestedOriginalIds = mutableSetOf<Long>()
+
     init {
         if (itemId > 0L) {
             viewModelScope.launch {
                 repository.markItemRead(itemId)
+            }
+        }
+        viewModelScope.launch {
+            combine(item, channel) { currentItem, currentChannel ->
+                currentItem to currentChannel
+            }.collect { (currentItem, currentChannel) ->
+                val id = currentItem?.id ?: return@collect
+                if (currentChannel?.useOriginalContent == true &&
+                    currentItem.content.isNullOrBlank() &&
+                    requestedOriginalIds.add(id)
+                ) {
+                    repository.requestOriginalContent(id)
+                }
             }
         }
     }

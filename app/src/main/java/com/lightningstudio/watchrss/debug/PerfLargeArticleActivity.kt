@@ -44,6 +44,7 @@ class PerfLargeArticleActivity : BaseHeytapActivity() {
                 CompositionLocalProvider(LocalDensity provides Density(3f, baseDensity.fontScale)) {
                     DetailContent(
                         item = item,
+                        showOriginalLoadingNotice = false,
                         contentBlocks = contentBlocks,
                         offlineMedia = emptyMap(),
                         hasOfflineFailures = false,

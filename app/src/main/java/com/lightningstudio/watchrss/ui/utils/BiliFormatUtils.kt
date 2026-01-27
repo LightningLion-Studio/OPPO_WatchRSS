@@ -108,4 +108,12 @@ object BiliFormatUtils {
             }
         }
     }
+
+    fun stripKeywordHighlight(text: String?): String {
+        if (text.isNullOrBlank()) return ""
+        val keywordPattern = Regex("""<em class="keyword">(.*?)</em>""")
+        return keywordPattern.replace(text) { matchResult ->
+            matchResult.groupValues[1]
+        }
+    }
 }

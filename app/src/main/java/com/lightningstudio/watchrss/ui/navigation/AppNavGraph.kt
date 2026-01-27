@@ -198,7 +198,9 @@ fun AppNavGraph(modifier: Modifier = Modifier) {
                 },
                 onFavoriteClick = { item -> viewModel.toggleFavorite(item.id) },
                 onWatchLaterClick = { item -> viewModel.toggleWatchLater(item.id) },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onOriginalContentScrollStateChanged = viewModel::setOriginalContentUpdatesPaused,
+                onRequestOriginalContents = viewModel::requestOriginalContents
             )
         }
         composable(

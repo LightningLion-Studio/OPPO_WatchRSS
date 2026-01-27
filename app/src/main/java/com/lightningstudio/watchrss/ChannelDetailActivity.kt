@@ -39,6 +39,11 @@ class ChannelDetailActivity : BaseHeytapActivity() {
                         intent.putExtra(ChannelSettingsActivity.EXTRA_CHANNEL_ID, channelId)
                         startActivity(intent)
                     },
+                    onSearch = {
+                        if (channelId <= 0L) return@ChannelDetailScreen
+                        val intent = RssSearchActivity.createIntent(this, channelId)
+                        startActivity(intent)
+                    },
                     onMarkRead = viewModel::markRead,
                     onShare = {
                         val title = channel?.title

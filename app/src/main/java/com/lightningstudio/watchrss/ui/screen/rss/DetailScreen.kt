@@ -126,6 +126,7 @@ fun DetailScreen(
     onBack: (Long, Boolean, Boolean) -> Unit
 ) {
     val item by viewModel.item.collectAsState()
+    val channel by viewModel.channel.collectAsState()
     val savedState by viewModel.savedState.collectAsState()
     val offlineMedia by viewModel.offlineMedia.collectAsState()
     val contentBlocks by viewModel.contentBlocks.collectAsState()
@@ -140,6 +141,8 @@ fun DetailScreen(
     CompositionLocalProvider(LocalDensity provides Density(2f, baseDensity.fontScale)) {
         DetailContent(
             item = item,
+            showOriginalLoadingNotice = channel?.useOriginalContent == true &&
+                item?.content.isNullOrBlank(),
             contentBlocks = contentBlocks,
             offlineMedia = offlineMap,
             hasOfflineFailures = hasOfflineFailures,
@@ -160,6 +163,7 @@ fun DetailScreen(
 @Composable
 internal fun DetailContent(
     item: RssItem?,
+    showOriginalLoadingNotice: Boolean,
     contentBlocks: List<ContentBlock>,
     offlineMedia: Map<String, OfflineMedia>,
     hasOfflineFailures: Boolean,
@@ -487,6 +491,18 @@ internal fun DetailContent(
             }
             item(key = "contentGap") {
                 Spacer(modifier = Modifier.height(blockSpacing))
+            }
+            if (showOriginalLoadingNotice) {
+                item(key = "originalLoading") {
+                    DetailTextBlock(
+                        text = "原文加载中，您正在查看RSS内容...",
+                        style = ContentTextStyle.QUOTE,
+                        textColor = textColor,
+                        fontSizeSp = bodyFontSize,
+                        topPadding = 0.dp,
+                        isScrolling = isScrolling
+                    )
+                }
             }
             if (item == null) {
                 item(key = "loading") {

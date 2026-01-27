@@ -46,6 +46,7 @@ class FeedViewModel(
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+    private val requestedOriginalIds = mutableSetOf<Long>()
 
     fun refresh() {
         viewModelScope.launch {
@@ -61,6 +62,18 @@ class FeedViewModel(
 
     fun loadMore() {
         _visibleCount.value = (_visibleCount.value + PAGE_SIZE).coerceAtMost(MAX_VISIBLE_ITEMS)
+    }
+
+    fun requestOriginalContents(itemIds: List<Long>) {
+        if (itemIds.isEmpty()) return
+        val newIds = itemIds.filter { requestedOriginalIds.add(it) }
+        if (newIds.isEmpty()) return
+        repository.requestOriginalContents(newIds)
+    }
+
+    fun setOriginalContentUpdatesPaused(paused: Boolean) {
+        if (channelId <= 0L) return
+        repository.setOriginalContentUpdatesPaused(channelId, paused)
     }
 
     fun toggleFavorite(itemId: Long) {
