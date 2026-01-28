@@ -2,6 +2,7 @@ package com.lightningstudio.watchrss
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
@@ -21,6 +22,17 @@ class DouyinEntryActivity : BaseHeytapActivity() {
         DouyinViewModelFactory(repository)
     }
     private var disableSwipeBack = false
+
+    private val loginLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val cookies = result.data?.getStringExtra(DouyinLoginActivity.EXTRA_COOKIES)
+            if (!cookies.isNullOrEmpty()) {
+                viewModel.applyCookie(cookies)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +60,9 @@ class DouyinEntryActivity : BaseHeytapActivity() {
                                 val items = uiState.items
                                 if (items.isEmpty()) return@DouyinFeedScreen
                                 startActivity(DouyinPlayerActivity.createIntent(this, items, index))
+                            },
+                            onLoginClick = {
+                                loginLauncher.launch(DouyinLoginActivity.createIntent(this))
                             }
                         )
                     }

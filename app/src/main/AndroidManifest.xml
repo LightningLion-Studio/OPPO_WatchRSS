@@ -166,6 +166,10 @@
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />
         <activity
+            android:name=".DouyinLoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatchRSS.Translucent" />
+        <activity
             android:name=".DouyinPlayerActivity"
             android:exported="false"
             android:theme="@style/Theme.WatchRSS.Translucent" />

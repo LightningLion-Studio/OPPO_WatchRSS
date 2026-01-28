@@ -1,6 +1,7 @@
 package com.lightningstudio.watchrss.ui.screen.douyin
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -36,7 +37,8 @@ import com.lightningstudio.watchrss.ui.viewmodel.DouyinFeedUiState
 fun DouyinFeedScreen(
     uiState: DouyinFeedUiState,
     onRefresh: () -> Unit,
-    onItemClick: (DouyinVideo, Int) -> Unit
+    onItemClick: (DouyinVideo, Int) -> Unit,
+    onLoginClick: () -> Unit = {}
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val itemSpacing = dimensionResource(R.dimen.hey_distance_8dp)
@@ -72,7 +74,7 @@ fun DouyinFeedScreen(
                 verticalArrangement = Arrangement.spacedBy(itemSpacing)
             ) {
                 item {
-                    DouyinFeedHeader()
+                    DouyinFeedHeader(onLoginClick = onLoginClick)
                 }
                 if (uiState.items.isEmpty()) {
                     item {
@@ -102,7 +104,7 @@ fun DouyinFeedScreen(
 }
 
 @Composable
-private fun DouyinFeedHeader() {
+private fun DouyinFeedHeader(onLoginClick: () -> Unit = {}) {
     val headerPadding = dimensionResource(R.dimen.hey_distance_6dp)
     Column(
         modifier = Modifier
@@ -122,6 +124,14 @@ private fun DouyinFeedHeader() {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.hey_distance_4dp)))
+        Text(
+            text = "登录",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(0xFF1E88E5),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.clickable { onLoginClick() }
         )
     }
 }
