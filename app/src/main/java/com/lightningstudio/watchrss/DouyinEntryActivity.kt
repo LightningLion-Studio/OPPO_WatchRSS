@@ -10,8 +10,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
-import com.lightningstudio.watchrss.ui.screen.WebViewLoginScreen
 import com.lightningstudio.watchrss.ui.screen.douyin.DouyinFeedScreen
+import com.lightningstudio.watchrss.ui.screen.douyin.DouyinLoginScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.viewmodel.DouyinFeedViewModel
 import com.lightningstudio.watchrss.ui.viewmodel.DouyinViewModelFactory
@@ -45,9 +45,7 @@ class DouyinEntryActivity : BaseHeytapActivity() {
                     val uiState by viewModel.uiState.collectAsState()
                     if (!uiState.isLoggedIn) {
                         SideEffect { disableSwipeBack = true }
-                        WebViewLoginScreen(
-                            loginUrl = "https://www.douyin.com/user/self",
-                            cookieDomain = "https://www.douyin.com",
+                        DouyinLoginScreen(
                             onLoginComplete = viewModel::applyCookie,
                             onBack = { }
                         )

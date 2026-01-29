@@ -97,6 +97,12 @@ fun CollaboratorsScreen(
                             role = "前端开发",
                             leadingText = "L"
                         )
+                        CollaboratorPill(
+                            name = "Nicolas",
+                            role = "icon图标设计",
+                            leadingText = "N"
+                        )
+                        
                     }
                 }
             }

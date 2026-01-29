@@ -32,7 +32,8 @@ fun AboutScreen(
     onIntroClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onTermsClick: () -> Unit,
-    onLicensesClick: () -> Unit
+    onLicensesClick: () -> Unit,
+    onCollaboratorsClick: () -> Unit
 ) {
     val safePadding = dimensionResource(R.dimen.watch_safe_padding)
     val sectionSpacing = dimensionResource(HeytapR.dimen.hey_content_horizontal_distance)
@@ -113,6 +114,21 @@ fun AboutScreen(
                 title = "开源许可与清单",
                 summary = "第三方库信息",
                 onClick = onLicensesClick,
+                pillHeight = pillHeight,
+                pillRadius = pillRadius,
+                pillColor = pillColor,
+                pillStartPadding = pillStartPadding,
+                pillEndPadding = pillEndPadding,
+                pillVerticalPadding = pillVerticalPadding,
+                summarySpacing = summarySpacing
+            )
+
+            Spacer(modifier = Modifier.height(entrySpacing))
+
+            AboutEntry(
+                title = "贡献者",
+                summary = "协作者名单",
+                onClick = onCollaboratorsClick,
                 pillHeight = pillHeight,
                 pillRadius = pillRadius,
                 pillColor = pillColor,

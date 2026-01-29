@@ -25,6 +25,9 @@ class AboutActivity : BaseHeytapActivity() {
                     },
                     onLicensesClick = {
                         openInfo("开源许可与清单", getString(R.string.about_licenses_content))
+                    },
+                    onCollaboratorsClick = {
+                        startActivity(Intent(this, CollaboratorsActivity::class.java))
                     }
                 )
             }
