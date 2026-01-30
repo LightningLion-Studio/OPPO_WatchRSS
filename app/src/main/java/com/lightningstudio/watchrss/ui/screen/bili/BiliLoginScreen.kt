@@ -18,7 +18,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +51,7 @@ fun BiliLoginScreen(
         onRefresh = onRefreshQr,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(MaterialTheme.colorScheme.background),
         indicatorPadding = safePadding,
         isAtTop = { scrollState.value == 0 }
     ) {
@@ -67,7 +66,7 @@ fun BiliLoginScreen(
             Text(
                 text = "扫码登录",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(spacing))
             val sizePx = with(androidx.compose.ui.platform.LocalDensity.current) {

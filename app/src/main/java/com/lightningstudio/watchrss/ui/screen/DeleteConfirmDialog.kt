@@ -14,13 +14,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -47,7 +47,7 @@ fun DeleteConfirmDialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.9f))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -64,7 +64,7 @@ fun DeleteConfirmDialog(
                 modifier = Modifier
                     .size(containerSize)
                     .clip(CircleShape)
-                    .background(Color.Black)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(top = scaleDp(96.dp), bottom = scaleDp(30.dp)),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(scaleDp(32.dp))
@@ -108,7 +108,7 @@ private fun DialogContent(
             fontWeight = FontWeight.Medium,
             fontSize = (34f * scale).sp,
             lineHeight = (46f * scale).sp,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
@@ -118,7 +118,7 @@ private fun DialogContent(
             fontWeight = FontWeight.Normal,
             fontSize = (34f * scale).sp,
             lineHeight = (46f * scale).sp,
-            color = Color(0xFFB0B5BF),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
@@ -136,7 +136,7 @@ private fun DialogButtons(
         verticalAlignment = Alignment.CenterVertically
     ) {
         RoundIconButton(
-            background = Color(0xFF202124),
+            background = MaterialTheme.colorScheme.surfaceVariant,
             iconRes = R.drawable.ic_action_cancel,
             onClick = onCancel,
             scaleDp = scaleDp
@@ -170,7 +170,7 @@ private fun RoundIconButton(
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(iconSize)
         )
     }

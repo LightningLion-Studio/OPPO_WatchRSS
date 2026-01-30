@@ -26,12 +26,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
 import com.lightningstudio.watchrss.data.rss.RssChannel
 import com.lightningstudio.watchrss.ui.components.WatchSurface
 import com.lightningstudio.watchrss.R
@@ -68,8 +66,8 @@ fun AddRssScreen(
         val actionShape = RoundedCornerShape(dimensionResource(R.dimen.hey_button_default_radius))
         val actionWidth = dimensionResource(R.dimen.watch_action_button_width)
         val actionHeight = dimensionResource(R.dimen.watch_action_button_height)
-        val actionColor = colorResource(R.color.watch_pill_background)
-        val actionTextColor = Color.White
+        val actionColor = MaterialTheme.colorScheme.surfaceVariant
+        val actionTextColor = MaterialTheme.colorScheme.onSurface
 
         Column(
             modifier = Modifier

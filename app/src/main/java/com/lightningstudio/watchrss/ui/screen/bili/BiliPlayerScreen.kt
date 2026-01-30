@@ -522,7 +522,10 @@ fun BiliPlayerScreen(
                             .fillMaxWidth()
                             .background(
                                 Brush.verticalGradient(
-                                    listOf(Color(0xCC000000), Color.Transparent)
+                                    listOf(
+                                        MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+                                        Color.Transparent
+                                    )
                                 )
                             )
                             .padding(horizontal = safePadding, vertical = spacing)
@@ -571,7 +574,7 @@ fun BiliPlayerScreen(
                     ) {
                         Text(
                             text = formatTime(positionMs),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = timeSize
                         )
                         LinearProgressIndicator(
@@ -579,7 +582,7 @@ fun BiliPlayerScreen(
                                 if (durationMs > 0) positionMs.toFloat() / durationMs else 0f
                             },
                             color = accent,
-                            trackColor = Color(0x55FFFFFF),
+                            trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
                             modifier = Modifier
                                 .weight(1f)
                                 .height(4.dp)
@@ -666,12 +669,12 @@ private fun PlayerBadge(text: String) {
     Box(
         modifier = Modifier
             .clip(androidx.compose.foundation.shape.RoundedCornerShape(radius))
-            .background(Color(0x66000000))
+            .background(MaterialTheme.colorScheme.background.copy(alpha = 0.6f))
             .padding(horizontal = padding, vertical = padding / 2)
     ) {
         Text(
             text = text,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = textSize(R.dimen.hey_caption),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis

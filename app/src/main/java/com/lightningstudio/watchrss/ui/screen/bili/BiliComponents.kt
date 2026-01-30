@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,7 +48,7 @@ fun BiliPillButton(
     val horizontalPadding = dimensionResource(R.dimen.hey_button_mergin_horizontal)
     val verticalPadding = dimensionResource(R.dimen.hey_button_padding_vertical)
     val textSize = textSize(R.dimen.hey_s_title)
-    val background = colorResource(R.color.watch_pill_background)
+    val background = MaterialTheme.colorScheme.surfaceVariant
 
     Box(
         modifier = Modifier
@@ -62,7 +61,7 @@ fun BiliPillButton(
     ) {
         Text(
             text = text,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = textSize,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -85,7 +84,7 @@ fun BiliVideoCard(
     val subtitleSize = textSize(R.dimen.hey_caption)
     val badgePadding = dimensionResource(R.dimen.hey_distance_4dp)
     val badgeTextSize = textSize(R.dimen.feed_card_action_text_size)
-    val cardColor = colorResource(R.color.watch_card_background)
+    val cardColor = MaterialTheme.colorScheme.surface
     val durationText = remember(durationSeconds) { formatDuration(durationSeconds) }
     val context = LocalContext.current
     val maxWidthPx = remember(context) { context.resources.displayMetrics.widthPixels.coerceAtLeast(1) }
@@ -103,7 +102,7 @@ fun BiliVideoCard(
                 .fillMaxWidth()
                 .height(coverHeight)
                 .clip(RoundedCornerShape(cardRadius))
-                .background(Color.Black),
+                .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
             val bitmap by produceState<android.graphics.Bitmap?>(initialValue = null, coverUrl, maxWidthPx) {
@@ -131,12 +130,12 @@ fun BiliVideoCard(
                         .align(Alignment.BottomEnd)
                         .padding(badgePadding)
                         .clip(RoundedCornerShape(badgePadding))
-                        .background(Color(0x99000000))
+                        .background(MaterialTheme.colorScheme.background.copy(alpha = 0.6f))
                         .padding(horizontal = badgePadding, vertical = badgePadding / 2)
                 ) {
                     Text(
                         text = durationText,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = badgeTextSize
                     )
                 }
@@ -145,7 +144,7 @@ fun BiliVideoCard(
         Spacer(modifier = Modifier.height(textPadding))
         Text(
             text = title,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = titleSize,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
@@ -172,7 +171,7 @@ fun BiliFeedCard(
     onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val background = colorResource(R.color.watch_card_background)
+    val background = MaterialTheme.colorScheme.surface
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val imageHeight = dimensionResource(R.dimen.feed_card_image_height)
     val padding = dimensionResource(R.dimen.hey_distance_8dp)
@@ -181,7 +180,7 @@ fun BiliFeedCard(
     val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
     val overlay = remember {
         Brush.verticalGradient(
-            colors = listOf(Color.Transparent, Color(0xB0000000))
+            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background.copy(alpha = 0.7f))
         )
     }
     val context = LocalContext.current
@@ -213,7 +212,7 @@ fun BiliFeedCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(imageHeight)
-                    .background(Color(0xFF1C1C1C))
+                .background(MaterialTheme.colorScheme.surface)
             )
         }
         Box(
@@ -229,14 +228,14 @@ fun BiliFeedCard(
         ) {
             Text(
                 text = title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = titleSize,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = summary,
-                color = Color(0xCCFFFFFF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 fontSize = summarySize,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,

@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -111,7 +110,7 @@ fun BiliFeedScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         val maxWidth = this.maxWidth
         val menuWidth = (maxWidth * 0.68f).coerceAtMost(180.dp)
@@ -208,7 +207,7 @@ fun BiliFeedScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.45f))
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.45f))
                     .clickableWithoutRipple { menuOpen = false }
             )
         } else {
@@ -242,7 +241,7 @@ fun BiliFeedScreen(
                 .align(Alignment.CenterEnd)
                 .offset(x = menuOffset)
                 .clip(RoundedCornerShape(18.dp))
-                .background(Color(0xFF1B1B1B))
+                .background(MaterialTheme.colorScheme.surface)
                 .pointerInput(menuOpen) {
                     if (!menuOpen) return@pointerInput
                     var dragDistance = 0f
@@ -397,7 +396,7 @@ private fun BiliFeedHeader(
         ) {
             Text(
                 text = "哔哩哔哩",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = titleSize,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
@@ -472,7 +471,7 @@ private fun BiliSideMenu(
     ) {
         Text(
             text = "快速入口",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = textSize(R.dimen.hey_s_title),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -522,7 +521,7 @@ private fun BiliSideMenuItem(
     val height = dimensionResource(R.dimen.hey_button_height)
     val padding = dimensionResource(R.dimen.hey_distance_8dp)
     val textSize = textSize(R.dimen.feed_card_action_text_size)
-    val background = Color(0xFF2A2A2A)
+    val background = MaterialTheme.colorScheme.surfaceVariant
 
     Box(
         modifier = Modifier
@@ -537,7 +536,7 @@ private fun BiliSideMenuItem(
     ) {
         Text(
             text = label,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = textSize,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis

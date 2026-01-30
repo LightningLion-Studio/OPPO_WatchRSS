@@ -48,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -104,7 +103,7 @@ fun HomeComposeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -130,7 +129,7 @@ fun HomeComposeScreen(
                             HomeDefaultItem(
                                 title = "还没有 RSS 频道",
                                 summary = "点击下方添加你的第一个订阅源",
-                                backgroundColor = colorResource(R.color.watch_card_background),
+                                backgroundColor = MaterialTheme.colorScheme.surface,
                                 showIndicator = false
                             )
                         }
@@ -138,7 +137,7 @@ fun HomeComposeScreen(
                             HomeDefaultItem(
                                 title = "RSS推荐",
                                 summary = "一键加入官方支持频道",
-                                backgroundColor = colorResource(R.color.watch_card_background),
+                                backgroundColor = MaterialTheme.colorScheme.surface,
                                 showIndicator = false,
                                 onClick = onRecommendClick
                             )
@@ -198,8 +197,8 @@ private fun HomeProfileEntry(onProfileClick: () -> Unit) {
     val hintSize = textSize(R.dimen.hey_caption)
     val avatarTextSize = textSize(R.dimen.hey_m_desription)
     val strokeWidth = dimensionResource(R.dimen.hey_dotStrokeWidth)
-    val accentColor = colorResource(R.color.oppo_orange)
-    val cardColor = colorResource(R.color.watch_card_background)
+    val accentColor = MaterialTheme.colorScheme.primary
+    val cardColor = MaterialTheme.colorScheme.surface
 
     Column(
         modifier = Modifier
@@ -219,20 +218,20 @@ private fun HomeProfileEntry(onProfileClick: () -> Unit) {
         ) {
             Text(
                 text = "我",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = avatarTextSize
             )
         }
         Spacer(modifier = Modifier.height(padding))
         Text(
             text = "未登录",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = nameSize,
             modifier = Modifier.semantics { contentDescription = "未登录" }
         )
         Text(
             text = "点击进入我的",
-            color = colorResource(android.R.color.darker_gray),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = hintSize
         )
     }
@@ -265,7 +264,7 @@ private fun HomeAddEntry(onAddRssClick: () -> Unit) {
                 .size(buttonSize)
                 .then(scaleModifier)
                 .clip(RoundedCornerShape(radius))
-                .background(colorResource(R.color.watch_card_background))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .clickableWithoutRipple(
                     onClick = onAddRssClick,
                     interactionSource = pressState.interactionSource
@@ -275,7 +274,7 @@ private fun HomeAddEntry(onAddRssClick: () -> Unit) {
         ) {
             Text(
                 text = "+",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = textSize(R.dimen.hey_s_title)
             )
         }
@@ -356,18 +355,16 @@ private fun HomeChannelEntry(
                 modifier = Modifier
                     .matchParentSize()
                     .then(backgroundScaleModifier)
-                    .background(Color.Black)
+                    .background(MaterialTheme.colorScheme.background)
             )
             HomeDefaultItem(
                 title = channel.title,
                 summary = summary,
-                backgroundColor = colorResource(
-                    if (channel.isPinned) {
-                        R.color.watch_card_background_pinned
-                    } else {
-                        R.color.watch_card_background
-                    }
-                ),
+                backgroundColor = if (channel.isPinned) {
+                    MaterialTheme.colorScheme.surfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.surface
+                },
                 showIndicator = channel.unreadCount > 0,
                 modifier = Modifier
                     .then(cardScaleModifier)
@@ -457,14 +454,14 @@ private fun HomeSwipeActionButton(
     val iconSize = dimensionResource(R.dimen.hey_distance_16dp)
     val iconSpacing = dimensionResource(R.dimen.hey_distance_4dp)
     val dangerColor = colorResource(R.color.danger_red)
-    val actionColor = if (text.contains("删除")) dangerColor else Color.White
+    val actionColor = if (text.contains("删除")) dangerColor else MaterialTheme.colorScheme.onSurface
 
     Box(
         modifier = Modifier
             .width(width)
             .fillMaxHeight()
             .clip(RoundedCornerShape(radius))
-            .background(Color(0xFF2A2A2A))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickableWithoutRipple(onClick = onClick)
             .alpha(alpha),
         contentAlignment = Alignment.Center
@@ -605,7 +602,7 @@ private fun HomeDefaultItem(
     val summaryBottom = dimensionResource(R.dimen.hey_alone_summary_margin_bottom)
     val titleSize = textSize(R.dimen.hey_s_title)
     val summarySize = textSize(R.dimen.hey_m_desription)
-    val summaryColor = Color(0xFFB0B5BF)
+    val summaryColor = MaterialTheme.colorScheme.onSurfaceVariant
     val arrowMargin = dimensionResource(R.dimen.hey_listitem_widget_margin_left)
     val minorMarginRight = dimensionResource(R.dimen.hey_listitem_widget_minor_margin_right)
     val indicatorSize = dimensionResource(R.dimen.hey_distance_6dp)
@@ -633,7 +630,7 @@ private fun HomeDefaultItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = titleSize,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -663,7 +660,7 @@ private fun HomeDefaultItem(
                     .offset(x = minorMarginRight)
                     .size(indicatorSize)
                     .clip(CircleShape)
-                    .background(Color(0xFFFF6026))
+                    .background(MaterialTheme.colorScheme.primary)
             )
         }
     }

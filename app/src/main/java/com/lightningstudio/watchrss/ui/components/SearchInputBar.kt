@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
@@ -41,14 +40,14 @@ fun SearchInputBar(
 ) {
     val focusManager = LocalFocusManager.current
     val shape = RoundedCornerShape(30.dp)
-    val borderColor = Color(0xFF202124)
+    val borderColor = MaterialTheme.colorScheme.outline
     val textStyle = TextStyle(
-        color = Color.White,
+        color = MaterialTheme.colorScheme.onSurface,
         fontSize = 17.sp,
         fontWeight = FontWeight.Medium,
         fontFamily = MaterialTheme.typography.titleMedium.fontFamily
     )
-    val placeholderColor = Color(0xB3FFFFFF)
+    val placeholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
 
     Row(
         modifier = modifier
@@ -64,7 +63,7 @@ fun SearchInputBar(
                 onValueChange = onKeywordChange,
                 singleLine = true,
                 textStyle = textStyle,
-                cursorBrush = SolidColor(Color.White),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(
                     onSearch = {
@@ -82,7 +81,7 @@ fun SearchInputBar(
         Icon(
             imageVector = Icons.Default.Search,
             contentDescription = "搜索",
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(24.dp)
         )
     }

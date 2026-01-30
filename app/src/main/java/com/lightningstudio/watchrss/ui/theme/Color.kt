@@ -12,3 +12,6 @@ val WatchSurfaceVariant = Color(0xFF23272A)
 val WatchTextPrimary = Color(0xFFF5F5F5)
 val WatchTextSecondary = Color(0xFFB6B6B6)
 val WatchDivider = Color(0xFF2C3135)
+
+val WatchReadingBackgroundLight = Color(0xFFF7F4F0)
+val WatchReadingTextLight = Color(0xFF1C1B1F)

@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -158,7 +157,7 @@ private fun BiliCoverCard(
     val playIconSize = dimensionResource(R.dimen.hey_listitem_widget_size)
     val overlay = remember {
         Brush.verticalGradient(
-            colors = listOf(Color.Transparent, Color(0xB0000000))
+            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background.copy(alpha = 0.7f))
         )
     }
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -174,7 +173,7 @@ private fun BiliCoverCard(
             .fillMaxWidth()
             .height(coverHeight)
             .clip(RoundedCornerShape(radius))
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.surface)
             .clickableWithoutRipple(onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -196,7 +195,7 @@ private fun BiliCoverCard(
             modifier = Modifier
                 .size(playIconSize + 12.dp)
                 .clip(RoundedCornerShape(100))
-                .background(Color(0x66000000)),
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.6f)),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -218,7 +217,7 @@ private fun BiliMetaCard(
 ) {
     val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
     val spacing = dimensionResource(R.dimen.hey_distance_6dp)
-    val cardColor = colorResource(R.color.watch_card_background)
+    val cardColor = MaterialTheme.colorScheme.surface
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -229,7 +228,7 @@ private fun BiliMetaCard(
     ) {
         Text(
             text = title,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = textSize(R.dimen.hey_m_title),
             fontWeight = FontWeight.SemiBold,
             maxLines = 3,
@@ -271,7 +270,7 @@ private fun BiliStatChips(
 private fun BiliStatChip(text: String) {
     val radius = dimensionResource(R.dimen.hey_button_default_radius)
     val padding = dimensionResource(R.dimen.hey_distance_4dp)
-    val background = colorResource(R.color.watch_pill_background)
+    val background = MaterialTheme.colorScheme.surfaceVariant
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(radius))
@@ -338,10 +337,10 @@ private fun BiliActionCircleButton(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    val accent = colorResource(R.color.oppo_orange)
+    val accent = MaterialTheme.colorScheme.primary
     val size = dimensionResource(R.dimen.hey_button_height)
     val iconSize = dimensionResource(R.dimen.hey_listitem_widget_size)
-    val background = if (selected) accent else colorResource(R.color.watch_pill_background)
+    val background = if (selected) accent else MaterialTheme.colorScheme.surfaceVariant
     Box(
         modifier = Modifier
             .size(size)
@@ -385,7 +384,7 @@ private fun BiliSectionTitle(title: String, trailing: String? = null) {
 private fun BiliDescriptionCard(text: String) {
     val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
     val padding = dimensionResource(R.dimen.hey_distance_6dp)
-    val background = colorResource(R.color.watch_card_background)
+    val background = MaterialTheme.colorScheme.surface
     val textSize = textSize(R.dimen.hey_s_title)
     val lineHeight = textSize * 1.1f
     val density = androidx.compose.ui.platform.LocalDensity.current
@@ -409,7 +408,7 @@ private fun BiliDescriptionCard(text: String) {
     ) {
         Text(
             text = text,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = textSize,
             lineHeight = lineHeight,
             maxLines = if (expanded) Int.MAX_VALUE else 3,
@@ -434,7 +433,7 @@ private fun BiliDescriptionCard(text: String) {
             ) {
                 Text(
                     text = "▼",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = textSize,
                     modifier = Modifier.alignByBaseline()
                 )
@@ -447,7 +446,7 @@ private fun BiliDescriptionCard(text: String) {
 private fun BiliCommentEntryCard(onClick: () -> Unit) {
     val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
     val padding = dimensionResource(R.dimen.hey_distance_6dp)
-    val background = colorResource(R.color.watch_card_background)
+    val background = MaterialTheme.colorScheme.surface
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -459,7 +458,7 @@ private fun BiliCommentEntryCard(onClick: () -> Unit) {
     ) {
         Text(
             text = "查看评论",
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = textSize(R.dimen.hey_s_title),
             textAlign = TextAlign.Center
         )
@@ -470,7 +469,7 @@ private fun BiliCommentEntryCard(onClick: () -> Unit) {
 private fun BiliMessageCard(message: String) {
     val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
     val padding = dimensionResource(R.dimen.hey_distance_6dp)
-    val background = colorResource(R.color.watch_card_background)
+    val background = MaterialTheme.colorScheme.surface
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -494,8 +493,8 @@ private fun BiliPageEntry(
     onClick: () -> Unit
 ) {
     val radius = dimensionResource(R.dimen.hey_card_normal_bg_radius)
-    val accent = colorResource(R.color.oppo_orange)
-    val background = if (selected) Color(0xFF2F2F2F) else Color(0xFF1B1B1B)
+    val accent = MaterialTheme.colorScheme.primary
+    val background = if (selected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface
     val borderColor = if (selected) accent else Color.Transparent
     val padding = dimensionResource(R.dimen.hey_distance_6dp)
     Column(
@@ -514,7 +513,7 @@ private fun BiliPageEntry(
         ) {
             Text(
                 text = page.part?.ifBlank { null } ?: "第${page.page ?: 1}集",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = textSize(R.dimen.hey_s_title),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,

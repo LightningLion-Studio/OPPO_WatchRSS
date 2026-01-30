@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +40,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -50,6 +50,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
 import com.lightningstudio.watchrss.R
+import com.lightningstudio.watchrss.ui.theme.WatchBackgroundDeep
+import com.lightningstudio.watchrss.ui.theme.WatchReadingBackgroundLight
+import com.lightningstudio.watchrss.ui.theme.WatchReadingTextLight
+import com.lightningstudio.watchrss.ui.theme.WatchTextPrimary
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import com.lightningstudio.watchrss.ui.viewmodel.BiliDetailUiState
 import android.text.TextPaint
@@ -71,13 +75,13 @@ fun BiliRssDetailScreen(
     val isScrolling by remember(listState) {
         derivedStateOf { listState.isScrollInProgress }
     }
-    val backgroundColor = if (readingThemeDark) Color.Black else Color.White
-    val textColor = if (readingThemeDark) Color.White else Color(0xFF111111)
+    val backgroundColor = if (readingThemeDark) WatchBackgroundDeep else WatchReadingBackgroundLight
+    val textColor = if (readingThemeDark) WatchTextPrimary else WatchReadingTextLight
     val bodySize = readingFontSizeSp.sp
     val titleSize = textSize(R.dimen.hey_m_title)
     val actionIconSize = 32.dp
     val actionIconPadding = dimensionResource(R.dimen.hey_distance_6dp)
-    val activeColor = colorResource(R.color.oppo_orange)
+    val activeColor = MaterialTheme.colorScheme.primary
 
     val detail = uiState.detail
     if (detail == null) {
@@ -241,7 +245,7 @@ private fun BiliRssVideoCard(
             .fillMaxWidth()
             .padding(top = topPadding)
             .clip(shape)
-            .background(colorResource(R.color.watch_card_background))
+            .background(MaterialTheme.colorScheme.surface)
             .clickableWithoutRipple(enabled = !isScrolling, onClick = onClick)
     ) {
         val bitmap = cover
@@ -291,7 +295,7 @@ private fun CircleIconButton(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(Color(0xFF303030))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickableWithoutRipple(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {

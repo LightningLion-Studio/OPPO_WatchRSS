@@ -15,6 +15,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
+import androidx.core.content.ContextCompat
 import com.lightningstudio.watchrss.ui.screen.WebViewScreen
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import com.lightningstudio.watchrss.ui.widget.ProgressRingView
@@ -72,7 +73,7 @@ class WebViewActivity : BaseHeytapActivity() {
     }
 
     private fun setupWebView() {
-        webView.setBackgroundColor(0xFF000000.toInt())
+        webView.setBackgroundColor(ContextCompat.getColor(this, R.color.watch_background_deep))
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true

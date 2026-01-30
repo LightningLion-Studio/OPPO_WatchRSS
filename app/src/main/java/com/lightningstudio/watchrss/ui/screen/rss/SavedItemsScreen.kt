@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,12 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,7 +65,7 @@ fun SavedItemsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -127,13 +126,13 @@ private fun SavedHeader(title: String, hint: String) {
     ) {
         Text(
             text = title,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = titleSize,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = hint,
-            color = colorResource(android.R.color.darker_gray),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = hintSize
         )
     }
@@ -146,7 +145,7 @@ private fun SavedEmpty(message: String) {
 
     Text(
         text = message,
-        color = colorResource(android.R.color.darker_gray),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         fontSize = textSize,
         textAlign = TextAlign.Center,
         modifier = Modifier
@@ -164,7 +163,7 @@ private fun SavedItemRow(
 ) {
     val context = LocalContext.current
     val isRound = remember(context) { HeyWidgetUtils.isScreenRound(context) }
-    val backgroundColor = colorResource(R.color.watch_card_background)
+    val backgroundColor = MaterialTheme.colorScheme.surface
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val paddingStart = dimensionResource(R.dimen.hey_content_horizontal_distance_6_0)
     val paddingEnd = dimensionResource(R.dimen.hey_listitem_padding_right)
@@ -174,7 +173,7 @@ private fun SavedItemRow(
     val summaryBottom = dimensionResource(R.dimen.hey_alone_summary_margin_bottom)
     val titleSize = textSize(R.dimen.hey_s_title)
     val summarySize = textSize(R.dimen.hey_m_desription)
-    val summaryColor = Color(0xFFB0B5BF)
+    val summaryColor = MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(
         modifier = modifier
@@ -193,7 +192,7 @@ private fun SavedItemRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = titleSize,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

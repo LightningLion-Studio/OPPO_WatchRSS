@@ -34,7 +34,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -279,7 +278,7 @@ private fun BiliRssTextCard(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    val background = colorResource(R.color.watch_card_background)
+    val background = MaterialTheme.colorScheme.surface
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val padding = dimensionResource(R.dimen.hey_content_horizontal_distance)
     val titleSize = textSize(R.dimen.feed_card_title_text_size)
@@ -302,14 +301,14 @@ private fun BiliRssTextCard(
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = title,
-                color = androidx.compose.ui.graphics.Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = titleSize,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = summary,
-                color = androidx.compose.ui.graphics.Color(0xB3FFFFFF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 fontSize = summarySize,
                 lineHeight = summaryLineHeight,
                 maxLines = 2,
@@ -344,7 +343,7 @@ private fun BiliRssFeedHeader(
         ) {
             Text(
                 text = "哔哩哔哩",
-                color = androidx.compose.ui.graphics.Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = titleSize,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()

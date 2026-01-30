@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import com.lightningstudio.watchrss.R
+import com.lightningstudio.watchrss.ui.theme.WatchBackground
+import com.lightningstudio.watchrss.ui.theme.WatchBackgroundDeep
 import com.lightningstudio.watchrss.ui.theme.WatchRSSTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -96,8 +98,8 @@ fun WebViewLoginScreen(
     }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val bgOuter1 = Color(0xFF0B1211)
-        val bgOuter2 = Color(0xFF070B0B)
+        val bgOuter1 = WatchBackground
+        val bgOuter2 = WatchBackgroundDeep
 
         Box(
             modifier = Modifier
@@ -115,7 +117,7 @@ fun WebViewLoginScreen(
                     .aspectRatio(1f)
                     .clip(CircleShape)
                     .align(Alignment.Center)
-                    .background(Color.Black)
+                    .background(WatchBackgroundDeep)
                     .pointerInteropFilter { event ->
                         val bounds = webWindowBounds
                         if (bounds == null) return@pointerInteropFilter false
@@ -164,7 +166,7 @@ fun WebViewLoginScreen(
                     ) {
                         Text(
                             text = "✓ 您已登录完成",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.headlineSmall,
                             modifier = Modifier.padding(12.dp)
                         )

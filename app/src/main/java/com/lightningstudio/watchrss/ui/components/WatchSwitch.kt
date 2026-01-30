@@ -17,12 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import com.lightningstudio.watchrss.R
 
 @Composable
 fun WatchSwitch(
@@ -36,8 +34,8 @@ fun WatchSwitch(
     val trackRadius = with(density) { 30f.toDp() }
     val thumbSize = with(density) { 25f.toDp() }
     val thumbInset = with(density) { 5f.toDp() }
-    val onColor = Color(0xFF476CFF)
-    val offColor = colorResource(R.color.watch_card_background)
+    val onColor = MaterialTheme.colorScheme.primary
+    val offColor = MaterialTheme.colorScheme.surfaceVariant
     val alpha = if (enabled) 1f else 0.5f
     val trackColor by animateColorAsState(
         targetValue = if (checked) onColor else offColor,
@@ -76,7 +74,7 @@ fun WatchSwitch(
                 .offset(x = thumbOffset)
                 .size(thumbSize)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.onPrimary)
         )
     }
 }

@@ -53,7 +53,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -359,7 +358,7 @@ private fun FeedHeader(
         }
         Text(
             text = if (isRefreshing) "正在刷新中..." else "下拉刷新",
-            color = colorResource(android.R.color.darker_gray),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = hintSize,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -383,7 +382,7 @@ private fun FeedEmpty(
     ) {
         Text(
             text = "暂无内容",
-            color = colorResource(android.R.color.darker_gray),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = hintSize,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
@@ -426,7 +425,7 @@ private fun FeedPillButton(
     val horizontalPadding = dimensionResource(R.dimen.hey_button_mergin_horizontal)
     val verticalPadding = dimensionResource(R.dimen.hey_button_padding_vertical)
     val textSize = textSize(R.dimen.hey_s_title)
-    val background = colorResource(R.color.watch_pill_background)
+    val background = MaterialTheme.colorScheme.surfaceVariant
 
     Box(
         modifier = Modifier
@@ -440,7 +439,7 @@ private fun FeedPillButton(
     ) {
         Text(
             text = text,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = textSize,
             textAlign = TextAlign.Center
         )
@@ -610,7 +609,7 @@ private fun FeedTextCard(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    val background = colorResource(R.color.watch_card_background)
+    val background = MaterialTheme.colorScheme.surface
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val padding = dimensionResource(R.dimen.hey_content_horizontal_distance)
     val titleSize = textSize(R.dimen.feed_card_title_text_size)
@@ -644,14 +643,14 @@ private fun FeedTextCard(
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = item.title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = titleSize,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = summary,
-                color = Color(0xB3FFFFFF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 fontSize = summarySize,
                 lineHeight = summaryLineHeight,
                 maxLines = 2,
@@ -666,7 +665,7 @@ private fun FeedTextCard(
                     .padding(top = unreadMargin, end = unreadMargin)
                     .size(unreadSize)
                     .clip(CircleShape)
-                    .background(Color(0xFFFF6026))
+                    .background(MaterialTheme.colorScheme.primary)
             )
         }
     }
@@ -685,7 +684,7 @@ private fun FeedImageCard(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    val background = colorResource(R.color.watch_card_background)
+    val background = MaterialTheme.colorScheme.surface
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val imageHeight = dimensionResource(R.dimen.feed_card_image_height)
     val padding = dimensionResource(R.dimen.hey_distance_8dp)
@@ -705,7 +704,7 @@ private fun FeedImageCard(
     }
     val overlay = remember {
         Brush.verticalGradient(
-            colors = listOf(Color.Transparent, Color(0xB0000000))
+            colors = listOf(Color.Transparent, MaterialTheme.colorScheme.background.copy(alpha = 0.7f))
         )
     }
 
@@ -742,14 +741,14 @@ private fun FeedImageCard(
         ) {
             Text(
                 text = item.title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = titleSize,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = summary,
-                color = Color(0xCCFFFFFF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 fontSize = summarySize,
                 lineHeight = summaryLineHeight,
                 maxLines = 2,
@@ -764,7 +763,7 @@ private fun FeedImageCard(
                     .padding(top = unreadMargin, end = unreadMargin)
                     .size(unreadSize)
                     .clip(CircleShape)
-                    .background(Color(0xFFFF6026))
+                    .background(MaterialTheme.colorScheme.primary)
             )
         }
     }
@@ -816,7 +815,7 @@ private fun RssThumbnail(
         )
     } else {
         Box(
-            modifier = modifier.background(Color(0xFF1C1C1C))
+            modifier = modifier.background(MaterialTheme.colorScheme.surface)
         )
     }
 }

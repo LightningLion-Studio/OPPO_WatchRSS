@@ -24,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -113,7 +112,7 @@ private fun RecommendHeader(title: String, hint: String) {
 
 @Composable
 private fun RecommendGroupCard(group: RssRecommendGroup, onClick: () -> Unit) {
-    val cardColor = colorResource(R.color.watch_card_background)
+    val cardColor = MaterialTheme.colorScheme.surface
     val cardRadius = dimensionResource(HeytapR.dimen.hey_card_normal_bg_radius)
     val horizontalPadding = dimensionResource(HeytapR.dimen.hey_distance_12dp)
     val verticalPadding = dimensionResource(HeytapR.dimen.hey_content_horizontal_distance)
@@ -156,7 +155,7 @@ private fun RecommendChannelCard(
     modifier: Modifier = Modifier,
     onAddClick: () -> Unit
 ) {
-    val cardColor = colorResource(R.color.watch_card_background)
+    val cardColor = MaterialTheme.colorScheme.surface
     val cardRadius = dimensionResource(HeytapR.dimen.hey_card_normal_bg_radius)
     val horizontalPadding = dimensionResource(HeytapR.dimen.hey_distance_12dp)
     val endPadding = dimensionResource(HeytapR.dimen.hey_content_horizontal_distance)
@@ -202,7 +201,7 @@ private fun RecommendChannelCard(
             modifier = Modifier
                 .size(iconSize)
                 .clip(CircleShape)
-                .background(androidx.compose.ui.graphics.Color(0xFF303030))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .clickable(onClick = onAddClick),
             contentAlignment = Alignment.Center
         ) {

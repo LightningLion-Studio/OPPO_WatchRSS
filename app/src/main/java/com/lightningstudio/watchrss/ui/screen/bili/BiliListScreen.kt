@@ -19,7 +19,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import com.lightningstudio.watchrss.R
@@ -73,7 +72,7 @@ fun BiliListScreen(
         onRefresh = onRefresh,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(MaterialTheme.colorScheme.background),
         indicatorPadding = safePadding,
         isAtTop = {
             listState.firstVisibleItemIndex == 0 &&
@@ -99,7 +98,7 @@ fun BiliListScreen(
                 ) {
                     Text(
                         text = uiState.type.title,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = textSize(R.dimen.hey_m_title),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()

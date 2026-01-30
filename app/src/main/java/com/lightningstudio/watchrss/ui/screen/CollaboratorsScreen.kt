@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,11 +35,11 @@ fun CollaboratorsScreen(
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val bgOuter1 = Color(0xFF0B1211)
-        val bgOuter2 = Color(0xFF070B0B)
+        val bgOuter1 = MaterialTheme.colorScheme.background
+        val bgOuter2 = MaterialTheme.colorScheme.surface
 
-        val circleBg1 = Color(0xFF050708)
-        val circleBg2 = Color(0xFF000000)
+        val circleBg1 = MaterialTheme.colorScheme.surfaceVariant
+        val circleBg2 = MaterialTheme.colorScheme.background
 
         val circle = Modifier
             .fillMaxWidth()
@@ -76,7 +75,7 @@ fun CollaboratorsScreen(
 
                     Text(
                         text = "协作者名单",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -117,7 +116,7 @@ private fun CollaboratorPill(
     leadingText: String,
     modifier: Modifier = Modifier
 ) {
-    val pillColor = Color(0xFF23272A)
+    val pillColor = MaterialTheme.colorScheme.surfaceVariant
 
     Surface(
         modifier = modifier
@@ -137,14 +136,14 @@ private fun CollaboratorPill(
             Surface(
                 modifier = Modifier.size(24.dp),
                 shape = CircleShape,
-                color = Color.White.copy(alpha = 0.12f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = leadingText,
-                        color = Color.White.copy(alpha = 0.95f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.95f),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -159,7 +158,7 @@ private fun CollaboratorPill(
             ) {
                 Text(
                     text = name,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1
@@ -167,7 +166,7 @@ private fun CollaboratorPill(
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = role,
-                    color = Color.White.copy(alpha = 0.65f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1

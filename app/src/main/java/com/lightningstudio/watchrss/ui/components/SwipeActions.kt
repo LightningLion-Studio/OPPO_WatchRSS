@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,7 +28,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -54,14 +54,14 @@ fun SwipeActionButton(
     val iconSize = dimensionResource(R.dimen.hey_distance_16dp)
     val iconSpacing = dimensionResource(R.dimen.hey_distance_4dp)
     val dangerColor = colorResource(R.color.danger_red)
-    val actionColor = if (text.contains("删除")) dangerColor else Color.White
+    val actionColor = if (text.contains("删除")) dangerColor else MaterialTheme.colorScheme.onSurface
 
     Box(
         modifier = Modifier
             .width(width)
             .fillMaxHeight()
             .clip(RoundedCornerShape(radius))
-            .background(Color(0xFF2A2A2A))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickableWithoutRipple(onClick),
         contentAlignment = Alignment.Center
     ) {

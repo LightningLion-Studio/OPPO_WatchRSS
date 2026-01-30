@@ -16,8 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -102,14 +100,14 @@ private fun SearchResultCard(
     keyword: String,
     onClick: () -> Unit
 ) {
-    val background = colorResource(R.color.watch_card_background)
+    val background = MaterialTheme.colorScheme.surface
     val shape = RoundedCornerShape(dimensionResource(R.dimen.hey_card_normal_bg_radius))
     val padding = dimensionResource(R.dimen.hey_content_horizontal_distance)
     val titleSize = textSize(R.dimen.feed_card_title_text_size)
     val summarySize = textSize(R.dimen.feed_card_summary_text_size)
     val summaryLineHeight = summarySize * 1.1f
     val summaryTop = dimensionResource(R.dimen.hey_distance_2dp)
-    val highlightColor = Color(0xFFFFD54F)
+    val highlightColor = MaterialTheme.colorScheme.primary
     val snippet = remember(item.id, item.summary, item.description, item.content, keyword) {
         buildSearchSnippet(item, keyword)
     }
@@ -124,14 +122,14 @@ private fun SearchResultCard(
     ) {
         Text(
             text = buildHighlightedText(item.title, keyword, highlightColor),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = titleSize,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = buildHighlightedText(snippet, keyword, highlightColor),
-            color = Color(0xB3FFFFFF),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
             fontSize = summarySize,
             lineHeight = summaryLineHeight,
             maxLines = 2,

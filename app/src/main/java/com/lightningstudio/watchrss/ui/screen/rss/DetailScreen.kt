@@ -71,7 +71,6 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -100,6 +99,10 @@ import com.lightningstudio.watchrss.data.rss.OfflineMedia
 import com.lightningstudio.watchrss.data.rss.RssItem
 import com.lightningstudio.watchrss.data.rss.RssUrlResolver
 import com.lightningstudio.watchrss.data.settings.DEFAULT_READING_FONT_SIZE_SP
+import com.lightningstudio.watchrss.ui.theme.WatchBackgroundDeep
+import com.lightningstudio.watchrss.ui.theme.WatchReadingBackgroundLight
+import com.lightningstudio.watchrss.ui.theme.WatchReadingTextLight
+import com.lightningstudio.watchrss.ui.theme.WatchTextPrimary
 import com.lightningstudio.watchrss.ui.util.ContentBlock
 import com.lightningstudio.watchrss.ui.util.RssImageLoader
 import com.lightningstudio.watchrss.ui.util.TextStyle as ContentTextStyle
@@ -191,9 +194,9 @@ internal fun DetailContent(
     val actionIconPadding = dimensionResource(R.dimen.hey_distance_6dp)
     val extraSafePadding = 0.dp
 
-    val backgroundColor = if (readingThemeDark) Color.Black else Color.White
-    val textColor = if (readingThemeDark) Color.White else Color(0xFF111111)
-    val activeColor = colorResource(R.color.oppo_orange)
+    val backgroundColor = if (readingThemeDark) WatchBackgroundDeep else WatchReadingBackgroundLight
+    val textColor = if (readingThemeDark) WatchTextPrimary else WatchReadingTextLight
+    val activeColor = MaterialTheme.colorScheme.primary
     val normalIconColor = textColor
     val prefetchScope = rememberCoroutineScope()
 
@@ -697,13 +700,13 @@ private fun DetailActionButton(
     Box(
         modifier = Modifier
             .clip(shape)
-            .background(colorResource(R.color.watch_card_background))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickableWithoutRipple(onClick = onClick)
             .padding(padding)
     ) {
         Text(
             text = text,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = fontSize
         )
     }
@@ -808,7 +811,7 @@ private fun DetailImageBlock(
                 .fillMaxWidth()
                 .padding(top = topPadding)
                 .then(placeholderModifier)
-                .background(colorResource(R.color.watch_card_background))
+                .background(MaterialTheme.colorScheme.surface)
                 .scrollSemanticsDisabled(isScrolling)
                 .debugTraceLayout("DetailImageBlock/placeholder/layout")
                 .debugTraceDraw("DetailImageBlock/placeholder/draw")
@@ -874,7 +877,7 @@ private fun DetailVideoBlock(
             .fillMaxWidth()
             .padding(top = topPadding)
             .clip(shape)
-            .background(colorResource(R.color.watch_card_background))
+            .background(MaterialTheme.colorScheme.surface)
             .clickableWithoutRipple(enabled = !isScrolling, onClick = onClick)
             .scrollSemanticsDisabled(isScrolling)
             .debugTraceLayout("DetailVideoBlock/layout")
@@ -1206,7 +1209,7 @@ private fun CircleIconButton(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(Color(0xFF303030))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickableWithoutRipple(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
